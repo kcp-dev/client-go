@@ -28,6 +28,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/watch"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 )
 
@@ -35,7 +36,7 @@ type dynamicClient struct {
 	client *rest.RESTClient
 }
 
-var _ Interface = &dynamicClient{}
+var _ dynamic.Interface = &dynamicClient{}
 
 // ConfigFor returns a copy of the provided config with the
 // appropriate dynamic client defaults set.
@@ -52,7 +53,7 @@ func ConfigFor(inConfig *rest.Config) *rest.Config {
 
 // NewForConfigOrDie creates a new Interface for the given config and
 // panics if there is an error in the config.
-func NewForConfigOrDie(c *rest.Config) Interface {
+func NewForConfigOrDie(c *rest.Config) dynamic.Interface {
 	ret, err := NewForConfig(c)
 	if err != nil {
 		panic(err)
@@ -63,7 +64,7 @@ func NewForConfigOrDie(c *rest.Config) Interface {
 // NewForConfig creates a new dynamic client or returns an error.
 // NewForConfig is equivalent to NewForConfigAndClient(c, httpClient),
 // where httpClient was generated with rest.HTTPClientFor(c).
-func NewForConfig(inConfig *rest.Config) (Interface, error) {
+func NewForConfig(inConfig *rest.Config) (dynamic.Interface, error) {
 	config := ConfigFor(inConfig)
 
 	httpClient, err := rest.HTTPClientFor(config)
@@ -75,7 +76,7 @@ func NewForConfig(inConfig *rest.Config) (Interface, error) {
 
 // NewForConfigAndClient creates a new dynamic client for the given config and http client.
 // Note the http client provided takes precedence over the configured transport values.
-func NewForConfigAndClient(inConfig *rest.Config, h *http.Client) (Interface, error) {
+func NewForConfigAndClient(inConfig *rest.Config, h *http.Client) (dynamic.Interface, error) {
 	config := ConfigFor(inConfig)
 	// for serializing the options
 	config.GroupVersion = &schema.GroupVersion{}
@@ -94,11 +95,11 @@ type dynamicResourceClient struct {
 	resource  schema.GroupVersionResource
 }
 
-func (c *dynamicClient) Resource(resource schema.GroupVersionResource) NamespaceableResourceInterface {
+func (c *dynamicClient) Resource(resource schema.GroupVersionResource) dynamic.NamespaceableResourceInterface {
 	return &dynamicResourceClient{client: c, resource: resource}
 }
 
-func (c *dynamicResourceClient) Namespace(ns string) ResourceInterface {
+func (c *dynamicResourceClient) Namespace(ns string) dynamic.ResourceInterface {
 	ret := *c
 	ret.namespace = ns
 	return &ret
@@ -217,37 +218,60 @@ func (c *dynamicResourceClient) UpdateStatus(ctx context.Context, obj *unstructu
 }
 
 func (c *dynamicResourceClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions, subresources ...string) error {
+	_, _, err := c.RawDelete(ctx, name, opts, subresources...)
+	return err
+}
+
+func (c *dynamicResourceClient) RawDelete(ctx context.Context, name string, opts metav1.DeleteOptions, subresources ...string) ([]byte, int, error) {
 	if len(name) == 0 {
-		return fmt.Errorf("name is required")
+		return nil, -1, fmt.Errorf("name is required")
 	}
 	deleteOptionsByte, err := runtime.Encode(deleteOptionsCodec.LegacyCodec(schema.GroupVersion{Version: "v1"}), &opts)
 	if err != nil {
-		return err
+		return nil, -1, err
 	}
 
+	var statusCode int
 	result := c.client.client.
 		Delete().
 		AbsPath(append(c.makeURLSegments(name), subresources...)...).
 		SetHeader("Content-Type", runtime.ContentTypeJSON).
 		Body(deleteOptionsByte).
-		Do(ctx)
-	return result.Error()
+		Do(ctx).
+		StatusCode(&statusCode)
+
+	if err := result.Error(); err != nil {
+		return nil, statusCode, err
+	}
+	data, readErr := result.Raw()
+	return data, statusCode, readErr
 }
 
 func (c *dynamicResourceClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOptions metav1.ListOptions) error {
+	_, _, err := c.RawDeleteCollection(ctx, opts, listOptions)
+	return err
+}
+
+func (c *dynamicResourceClient) RawDeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOptions metav1.ListOptions) ([]byte, int, error) {
 	deleteOptionsByte, err := runtime.Encode(deleteOptionsCodec.LegacyCodec(schema.GroupVersion{Version: "v1"}), &opts)
 	if err != nil {
-		return err
+		return nil, -1, err
 	}
 
+	var statusCode int
 	result := c.client.client.
 		Delete().
 		AbsPath(c.makeURLSegments("")...).
 		SetHeader("Content-Type", runtime.ContentTypeJSON).
 		Body(deleteOptionsByte).
 		SpecificallyVersionedParams(&listOptions, dynamicParameterCodec, versionV1).
-		Do(ctx)
-	return result.Error()
+		Do(ctx).
+		StatusCode(&statusCode)
+	if err := result.Error(); err != nil {
+		return nil, statusCode, err
+	}
+	data, readErr := result.Raw()
+	return data, statusCode, readErr
 }
 
 func (c *dynamicResourceClient) Get(ctx context.Context, name string, opts metav1.GetOptions, subresources ...string) (*unstructured.Unstructured, error) {
