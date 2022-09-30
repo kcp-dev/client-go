@@ -23,9 +23,6 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	thirdpartyinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	kcpinformers "github.com/kcp-dev/client-go/clients/informers"
-	kcpmetadata "github.com/kcp-dev/client-go/clients/metadata"
-	kcpmetadatalisters "github.com/kcp-dev/client-go/clients/metadata/metadatalister"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -34,6 +31,10 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/metadata/metadatainformer"
 	"k8s.io/client-go/tools/cache"
+
+	kcpinformers "github.com/kcp-dev/client-go/clients/informers"
+	kcpmetadata "github.com/kcp-dev/client-go/clients/metadata"
+	kcpmetadatalisters "github.com/kcp-dev/client-go/clients/metadata/metadatalister"
 )
 
 // NewSharedInformerFactory constructs a new instance of sharedInformerFactory for all namespaces.

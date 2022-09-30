@@ -17,9 +17,9 @@ limitations under the License.
 package metadatainformer
 
 import (
-	kcpinformers "github.com/kcp-dev/client-go/clients/informers"
-
 	"k8s.io/apimachinery/pkg/runtime/schema"
+
+	kcpinformers "github.com/kcp-dev/client-go/clients/informers"
 )
 
 // SharedInformerFactory provides access to a shared informer and lister for dynamic client
