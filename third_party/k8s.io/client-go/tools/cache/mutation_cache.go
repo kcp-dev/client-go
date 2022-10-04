@@ -22,6 +22,7 @@ import (
 	"sync"
 	"time"
 
+	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog/v2"
 
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -60,8 +61,9 @@ type ResourceVersionComparator interface {
 // If includeAdds is true, objects in the mutation cache will be returned even if they don't exist
 // in the underlying store. This is only safe if your use of the cache can handle mutation entries
 // remaining in the cache for up to ttl when mutations and deletes occur very closely in time.
-func NewIntegerResourceVersionMutationCache(backingCache Store, indexer Indexer, ttl time.Duration, includeAdds bool) MutationCache {
+func NewIntegerResourceVersionMutationCache(keyFunc cache.KeyFunc, backingCache cache.Store, indexer cache.Indexer, ttl time.Duration, includeAdds bool) MutationCache {
 	return &mutationCache{
+		keyFunc:       keyFunc,
 		backingCache:  backingCache,
 		indexer:       indexer,
 		mutationCache: utilcache.NewLRUExpireCache(100),
@@ -76,8 +78,9 @@ func NewIntegerResourceVersionMutationCache(backingCache Store, indexer Indexer,
 // if the key is missing from the backing cache, we always return it as missing
 type mutationCache struct {
 	lock          sync.Mutex
-	backingCache  Store
-	indexer       Indexer
+	keyFunc       cache.KeyFunc
+	backingCache  cache.Store
+	indexer       cache.Indexer
 	mutationCache *utilcache.LRUExpireCache
 	includeAdds   bool
 	ttl           time.Duration
@@ -201,7 +204,7 @@ func (c *mutationCache) Mutation(obj interface{}) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	key, err := DeletionHandlingMetaNamespaceKeyFunc(obj)
+	key, err := c.keyFunc(obj)
 	if err != nil {
 		// this is a "nice to have", so failures shouldn't do anything weird
 		utilruntime.HandleError(err)
