@@ -25,8 +25,8 @@ if [[ -z "${MAKELEVEL:-}" ]]; then
 fi
 
 ${CODE_GENERATOR} \
-  "client:outputPackagePath=github.com/kcp-dev/client-go,name=kubernetes,apiPackagePath=k8s.io/api,singleClusterClientPackagePath=k8s.io/client-go/kubernetes,headerFile=./hack/boilerplate/boilerplate.go.txt,year=2022" \
-  "lister:apiPackagePath=k8s.io/api,singleClusterListerPackagePath=k8s.io/client-go/listers,headerFile=./hack/boilerplate/boilerplate.go.txt,year=2022" \
-  "informer:outputPackagePath=github.com/kcp-dev/client-go,apiPackagePath=k8s.io/api,headerFile=./hack/boilerplate/boilerplate.go.txt,year=2022" \
+  "client:outputPackagePath=github.com/kcp-dev/client-go,name=kubernetes,apiPackagePath=k8s.io/api,singleClusterClientPackagePath=k8s.io/client-go/kubernetes,headerFile=./hack/boilerplate/boilerplate.go.txt" \
+  "lister:apiPackagePath=k8s.io/api,singleClusterListerPackagePath=k8s.io/client-go/listers,headerFile=./hack/boilerplate/boilerplate.go.txt" \
+  "informer:outputPackagePath=github.com/kcp-dev/client-go,apiPackagePath=k8s.io/api,headerFile=./hack/boilerplate/boilerplate.go.txt" \
   "paths=$( go list -m -json k8s.io/api | jq --raw-output .Dir )/..." \
   "output:dir=./"
