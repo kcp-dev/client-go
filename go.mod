@@ -3,7 +3,7 @@ module github.com/kcp-dev/client-go
 go 1.18
 
 require (
-	github.com/kcp-dev/apimachinery v0.0.0-20220912132244-efe716c18e43
+	github.com/kcp-dev/apimachinery v0.0.0-20221003220612-a61d757411af
 	github.com/kcp-dev/logicalcluster/v2 v2.0.0-alpha.1
 	k8s.io/api v0.24.3
 	k8s.io/apiextensions-apiserver v0.24.3
