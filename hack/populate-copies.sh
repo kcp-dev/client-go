@@ -30,6 +30,10 @@ for file in scheme simple; do
   cp "${source_dir}/dynamic/${file}.go" "${sink_dir}"
 done
 
+sink_dir="./third_party/k8s.io/client-go/tools/cache"
+mkdir -p "${sink_dir}"
+cp "${source_dir}/tools/cache/mutation_cache.go" "${sink_dir}/mutation_cache.go"
+
 for extension in $( find "${source_dir}/listers" -type f -name '*_expansion.go' ); do
   sink="./clients/${extension##"${source_dir}/"}"
   mkdir -p "$( dirname "${sink}" )"
