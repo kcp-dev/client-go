@@ -61,3 +61,15 @@ codegen: $(CODE_GENERATOR)
 	./hack/update-codegen.sh
 	$(MAKE) imports
 .PHONY: codegen
+
+# Note, running this locally if you have any modified files, even those that are not generated,
+# will result in an error. This target is mostly for CI jobs.
+.PHONY: verify-codegen
+verify-codegen:
+	$(MAKE) codegen
+
+	if ! git diff --quiet HEAD; then \
+		git diff; \
+		echo "You need to run 'make codegen' to update generated files and commit them"; \
+		exit 1; \
+	fi
