@@ -51,7 +51,7 @@ func (c *PolicyV1ClusterClient) Cluster(name logicalcluster.Name) policyv1.Polic
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *PolicyV1ClusterClient) PodDisruptionBudgets() PodDisruptionBudgetsClusterInterface {
+func (c *PolicyV1ClusterClient) PodDisruptionBudgets() PodDisruptionBudgetClusterInterface {
 	return &podDisruptionBudgetsClusterInterface{clientCache: c.clientCache}
 }
 

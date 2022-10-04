@@ -51,7 +51,7 @@ func (c *DiscoveryV1beta1ClusterClient) Cluster(name logicalcluster.Name) discov
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *DiscoveryV1beta1ClusterClient) EndpointSlices() EndpointSlicesClusterInterface {
+func (c *DiscoveryV1beta1ClusterClient) EndpointSlices() EndpointSliceClusterInterface {
 	return &endpointSlicesClusterInterface{clientCache: c.clientCache}
 }
 

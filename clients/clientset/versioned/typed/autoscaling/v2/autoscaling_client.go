@@ -51,7 +51,7 @@ func (c *AutoscalingV2ClusterClient) Cluster(name logicalcluster.Name) autoscali
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *AutoscalingV2ClusterClient) HorizontalPodAutoscalers() HorizontalPodAutoscalersClusterInterface {
+func (c *AutoscalingV2ClusterClient) HorizontalPodAutoscalers() HorizontalPodAutoscalerClusterInterface {
 	return &horizontalPodAutoscalersClusterInterface{clientCache: c.clientCache}
 }
 

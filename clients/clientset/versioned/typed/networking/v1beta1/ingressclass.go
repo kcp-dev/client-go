@@ -33,15 +33,15 @@ import (
 	networkingv1beta1client "k8s.io/client-go/kubernetes/typed/networking/v1beta1"
 )
 
-// IngressClassesClusterGetter has a method to return a IngressClassesClusterInterface.
+// IngressClassesClusterGetter has a method to return a IngressClassClusterInterface.
 // A group's cluster client should implement this interface.
 type IngressClassesClusterGetter interface {
-	IngressClasses() IngressClassesClusterInterface
+	IngressClasses() IngressClassClusterInterface
 }
 
-// IngressClassesClusterInterface can operate on IngressClasses across all clusters,
+// IngressClassClusterInterface can operate on IngressClasses across all clusters,
 // or scope down to one cluster and return a networkingv1beta1client.IngressClassInterface.
-type IngressClassesClusterInterface interface {
+type IngressClassClusterInterface interface {
 	Cluster(logicalcluster.Name) networkingv1beta1client.IngressClassInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*networkingv1beta1.IngressClassList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

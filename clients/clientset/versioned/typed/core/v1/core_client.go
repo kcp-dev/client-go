@@ -66,31 +66,31 @@ func (c *CoreV1ClusterClient) Cluster(name logicalcluster.Name) corev1.CoreV1Int
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *CoreV1ClusterClient) PersistentVolumes() PersistentVolumesClusterInterface {
+func (c *CoreV1ClusterClient) PersistentVolumes() PersistentVolumeClusterInterface {
 	return &persistentVolumesClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *CoreV1ClusterClient) PersistentVolumeClaims() PersistentVolumeClaimsClusterInterface {
+func (c *CoreV1ClusterClient) PersistentVolumeClaims() PersistentVolumeClaimClusterInterface {
 	return &persistentVolumeClaimsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *CoreV1ClusterClient) Pods() PodsClusterInterface {
+func (c *CoreV1ClusterClient) Pods() PodClusterInterface {
 	return &podsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *CoreV1ClusterClient) PodTemplates() PodTemplatesClusterInterface {
+func (c *CoreV1ClusterClient) PodTemplates() PodTemplateClusterInterface {
 	return &podTemplatesClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *CoreV1ClusterClient) ReplicationControllers() ReplicationControllersClusterInterface {
+func (c *CoreV1ClusterClient) ReplicationControllers() ReplicationControllerClusterInterface {
 	return &replicationControllersClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *CoreV1ClusterClient) Services() ServicesClusterInterface {
+func (c *CoreV1ClusterClient) Services() ServiceClusterInterface {
 	return &servicesClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *CoreV1ClusterClient) ServiceAccounts() ServiceAccountsClusterInterface {
+func (c *CoreV1ClusterClient) ServiceAccounts() ServiceAccountClusterInterface {
 	return &serviceAccountsClusterInterface{clientCache: c.clientCache}
 }
 
@@ -98,35 +98,35 @@ func (c *CoreV1ClusterClient) Endpoints() EndpointsClusterInterface {
 	return &endpointsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *CoreV1ClusterClient) Nodes() NodesClusterInterface {
+func (c *CoreV1ClusterClient) Nodes() NodeClusterInterface {
 	return &nodesClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *CoreV1ClusterClient) Namespaces() NamespacesClusterInterface {
+func (c *CoreV1ClusterClient) Namespaces() NamespaceClusterInterface {
 	return &namespacesClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *CoreV1ClusterClient) Events() EventsClusterInterface {
+func (c *CoreV1ClusterClient) Events() EventClusterInterface {
 	return &eventsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *CoreV1ClusterClient) LimitRanges() LimitRangesClusterInterface {
+func (c *CoreV1ClusterClient) LimitRanges() LimitRangeClusterInterface {
 	return &limitRangesClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *CoreV1ClusterClient) ResourceQuotas() ResourceQuotasClusterInterface {
+func (c *CoreV1ClusterClient) ResourceQuotas() ResourceQuotaClusterInterface {
 	return &resourceQuotasClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *CoreV1ClusterClient) Secrets() SecretsClusterInterface {
+func (c *CoreV1ClusterClient) Secrets() SecretClusterInterface {
 	return &secretsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *CoreV1ClusterClient) ConfigMaps() ConfigMapsClusterInterface {
+func (c *CoreV1ClusterClient) ConfigMaps() ConfigMapClusterInterface {
 	return &configMapsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *CoreV1ClusterClient) ComponentStatuses() ComponentStatusesClusterInterface {
+func (c *CoreV1ClusterClient) ComponentStatuses() ComponentStatusClusterInterface {
 	return &componentStatusesClusterInterface{clientCache: c.clientCache}
 }
 

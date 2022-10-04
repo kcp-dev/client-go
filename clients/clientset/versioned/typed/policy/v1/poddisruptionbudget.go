@@ -33,15 +33,15 @@ import (
 	policyv1client "k8s.io/client-go/kubernetes/typed/policy/v1"
 )
 
-// PodDisruptionBudgetsClusterGetter has a method to return a PodDisruptionBudgetsClusterInterface.
+// PodDisruptionBudgetsClusterGetter has a method to return a PodDisruptionBudgetClusterInterface.
 // A group's cluster client should implement this interface.
 type PodDisruptionBudgetsClusterGetter interface {
-	PodDisruptionBudgets() PodDisruptionBudgetsClusterInterface
+	PodDisruptionBudgets() PodDisruptionBudgetClusterInterface
 }
 
-// PodDisruptionBudgetsClusterInterface can operate on PodDisruptionBudgets across all clusters,
+// PodDisruptionBudgetClusterInterface can operate on PodDisruptionBudgets across all clusters,
 // or scope down to one cluster and return a PodDisruptionBudgetsNamespacer.
-type PodDisruptionBudgetsClusterInterface interface {
+type PodDisruptionBudgetClusterInterface interface {
 	Cluster(logicalcluster.Name) PodDisruptionBudgetsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*policyv1.PodDisruptionBudgetList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

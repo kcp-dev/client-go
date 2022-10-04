@@ -55,23 +55,23 @@ func (c *StorageV1beta1ClusterClient) Cluster(name logicalcluster.Name) storagev
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *StorageV1beta1ClusterClient) StorageClasses() StorageClassesClusterInterface {
+func (c *StorageV1beta1ClusterClient) StorageClasses() StorageClassClusterInterface {
 	return &storageClassesClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *StorageV1beta1ClusterClient) VolumeAttachments() VolumeAttachmentsClusterInterface {
+func (c *StorageV1beta1ClusterClient) VolumeAttachments() VolumeAttachmentClusterInterface {
 	return &volumeAttachmentsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *StorageV1beta1ClusterClient) CSIDrivers() CSIDriversClusterInterface {
+func (c *StorageV1beta1ClusterClient) CSIDrivers() CSIDriverClusterInterface {
 	return &cSIDriversClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *StorageV1beta1ClusterClient) CSINodes() CSINodesClusterInterface {
+func (c *StorageV1beta1ClusterClient) CSINodes() CSINodeClusterInterface {
 	return &cSINodesClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *StorageV1beta1ClusterClient) CSIStorageCapacities() CSIStorageCapacitiesClusterInterface {
+func (c *StorageV1beta1ClusterClient) CSIStorageCapacities() CSIStorageCapacityClusterInterface {
 	return &cSIStorageCapacitiesClusterInterface{clientCache: c.clientCache}
 }
 

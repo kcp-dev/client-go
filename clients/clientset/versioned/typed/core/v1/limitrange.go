@@ -33,15 +33,15 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-// LimitRangesClusterGetter has a method to return a LimitRangesClusterInterface.
+// LimitRangesClusterGetter has a method to return a LimitRangeClusterInterface.
 // A group's cluster client should implement this interface.
 type LimitRangesClusterGetter interface {
-	LimitRanges() LimitRangesClusterInterface
+	LimitRanges() LimitRangeClusterInterface
 }
 
-// LimitRangesClusterInterface can operate on LimitRanges across all clusters,
+// LimitRangeClusterInterface can operate on LimitRanges across all clusters,
 // or scope down to one cluster and return a LimitRangesNamespacer.
-type LimitRangesClusterInterface interface {
+type LimitRangeClusterInterface interface {
 	Cluster(logicalcluster.Name) LimitRangesNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.LimitRangeList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

@@ -52,11 +52,11 @@ func (c *NetworkingV1beta1ClusterClient) Cluster(name logicalcluster.Name) netwo
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *NetworkingV1beta1ClusterClient) Ingresses() IngressesClusterInterface {
+func (c *NetworkingV1beta1ClusterClient) Ingresses() IngressClusterInterface {
 	return &ingressesClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *NetworkingV1beta1ClusterClient) IngressClasses() IngressClassesClusterInterface {
+func (c *NetworkingV1beta1ClusterClient) IngressClasses() IngressClassClusterInterface {
 	return &ingressClassesClusterInterface{clientCache: c.clientCache}
 }
 

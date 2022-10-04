@@ -33,15 +33,15 @@ import (
 	storagev1client "k8s.io/client-go/kubernetes/typed/storage/v1"
 )
 
-// StorageClassesClusterGetter has a method to return a StorageClassesClusterInterface.
+// StorageClassesClusterGetter has a method to return a StorageClassClusterInterface.
 // A group's cluster client should implement this interface.
 type StorageClassesClusterGetter interface {
-	StorageClasses() StorageClassesClusterInterface
+	StorageClasses() StorageClassClusterInterface
 }
 
-// StorageClassesClusterInterface can operate on StorageClasses across all clusters,
+// StorageClassClusterInterface can operate on StorageClasses across all clusters,
 // or scope down to one cluster and return a storagev1client.StorageClassInterface.
-type StorageClassesClusterInterface interface {
+type StorageClassClusterInterface interface {
 	Cluster(logicalcluster.Name) storagev1client.StorageClassInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*storagev1.StorageClassList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

@@ -51,7 +51,7 @@ func (c *EventsV1beta1ClusterClient) Cluster(name logicalcluster.Name) eventsv1b
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *EventsV1beta1ClusterClient) Events() EventsClusterInterface {
+func (c *EventsV1beta1ClusterClient) Events() EventClusterInterface {
 	return &eventsClusterInterface{clientCache: c.clientCache}
 }
 

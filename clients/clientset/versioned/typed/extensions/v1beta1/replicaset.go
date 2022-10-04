@@ -33,15 +33,15 @@ import (
 	extensionsv1beta1client "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
 )
 
-// ReplicaSetsClusterGetter has a method to return a ReplicaSetsClusterInterface.
+// ReplicaSetsClusterGetter has a method to return a ReplicaSetClusterInterface.
 // A group's cluster client should implement this interface.
 type ReplicaSetsClusterGetter interface {
-	ReplicaSets() ReplicaSetsClusterInterface
+	ReplicaSets() ReplicaSetClusterInterface
 }
 
-// ReplicaSetsClusterInterface can operate on ReplicaSets across all clusters,
+// ReplicaSetClusterInterface can operate on ReplicaSets across all clusters,
 // or scope down to one cluster and return a ReplicaSetsNamespacer.
-type ReplicaSetsClusterInterface interface {
+type ReplicaSetClusterInterface interface {
 	Cluster(logicalcluster.Name) ReplicaSetsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*extensionsv1beta1.ReplicaSetList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

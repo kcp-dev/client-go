@@ -53,15 +53,15 @@ func (c *AppsV1beta1ClusterClient) Cluster(name logicalcluster.Name) appsv1beta1
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *AppsV1beta1ClusterClient) StatefulSets() StatefulSetsClusterInterface {
+func (c *AppsV1beta1ClusterClient) StatefulSets() StatefulSetClusterInterface {
 	return &statefulSetsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *AppsV1beta1ClusterClient) Deployments() DeploymentsClusterInterface {
+func (c *AppsV1beta1ClusterClient) Deployments() DeploymentClusterInterface {
 	return &deploymentsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *AppsV1beta1ClusterClient) ControllerRevisions() ControllerRevisionsClusterInterface {
+func (c *AppsV1beta1ClusterClient) ControllerRevisions() ControllerRevisionClusterInterface {
 	return &controllerRevisionsClusterInterface{clientCache: c.clientCache}
 }
 

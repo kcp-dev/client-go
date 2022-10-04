@@ -33,15 +33,15 @@ import (
 	certificatesv1client "k8s.io/client-go/kubernetes/typed/certificates/v1"
 )
 
-// CertificateSigningRequestsClusterGetter has a method to return a CertificateSigningRequestsClusterInterface.
+// CertificateSigningRequestsClusterGetter has a method to return a CertificateSigningRequestClusterInterface.
 // A group's cluster client should implement this interface.
 type CertificateSigningRequestsClusterGetter interface {
-	CertificateSigningRequests() CertificateSigningRequestsClusterInterface
+	CertificateSigningRequests() CertificateSigningRequestClusterInterface
 }
 
-// CertificateSigningRequestsClusterInterface can operate on CertificateSigningRequests across all clusters,
+// CertificateSigningRequestClusterInterface can operate on CertificateSigningRequests across all clusters,
 // or scope down to one cluster and return a certificatesv1client.CertificateSigningRequestInterface.
-type CertificateSigningRequestsClusterInterface interface {
+type CertificateSigningRequestClusterInterface interface {
 	Cluster(logicalcluster.Name) certificatesv1client.CertificateSigningRequestInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*certificatesv1.CertificateSigningRequestList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

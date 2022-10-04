@@ -52,11 +52,11 @@ func (c *AdmissionregistrationV1beta1ClusterClient) Cluster(name logicalcluster.
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *AdmissionregistrationV1beta1ClusterClient) ValidatingWebhookConfigurations() ValidatingWebhookConfigurationsClusterInterface {
+func (c *AdmissionregistrationV1beta1ClusterClient) ValidatingWebhookConfigurations() ValidatingWebhookConfigurationClusterInterface {
 	return &validatingWebhookConfigurationsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *AdmissionregistrationV1beta1ClusterClient) MutatingWebhookConfigurations() MutatingWebhookConfigurationsClusterInterface {
+func (c *AdmissionregistrationV1beta1ClusterClient) MutatingWebhookConfigurations() MutatingWebhookConfigurationClusterInterface {
 	return &mutatingWebhookConfigurationsClusterInterface{clientCache: c.clientCache}
 }
 

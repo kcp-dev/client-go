@@ -33,15 +33,15 @@ import (
 	policyv1beta1client "k8s.io/client-go/kubernetes/typed/policy/v1beta1"
 )
 
-// PodSecurityPoliciesClusterGetter has a method to return a PodSecurityPoliciesClusterInterface.
+// PodSecurityPoliciesClusterGetter has a method to return a PodSecurityPolicyClusterInterface.
 // A group's cluster client should implement this interface.
 type PodSecurityPoliciesClusterGetter interface {
-	PodSecurityPolicies() PodSecurityPoliciesClusterInterface
+	PodSecurityPolicies() PodSecurityPolicyClusterInterface
 }
 
-// PodSecurityPoliciesClusterInterface can operate on PodSecurityPolicies across all clusters,
+// PodSecurityPolicyClusterInterface can operate on PodSecurityPolicies across all clusters,
 // or scope down to one cluster and return a policyv1beta1client.PodSecurityPolicyInterface.
-type PodSecurityPoliciesClusterInterface interface {
+type PodSecurityPolicyClusterInterface interface {
 	Cluster(logicalcluster.Name) policyv1beta1client.PodSecurityPolicyInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*policyv1beta1.PodSecurityPolicyList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

@@ -33,15 +33,15 @@ import (
 	storagev1alpha1client "k8s.io/client-go/kubernetes/typed/storage/v1alpha1"
 )
 
-// CSIStorageCapacitiesClusterGetter has a method to return a CSIStorageCapacitiesClusterInterface.
+// CSIStorageCapacitiesClusterGetter has a method to return a CSIStorageCapacityClusterInterface.
 // A group's cluster client should implement this interface.
 type CSIStorageCapacitiesClusterGetter interface {
-	CSIStorageCapacities() CSIStorageCapacitiesClusterInterface
+	CSIStorageCapacities() CSIStorageCapacityClusterInterface
 }
 
-// CSIStorageCapacitiesClusterInterface can operate on CSIStorageCapacities across all clusters,
+// CSIStorageCapacityClusterInterface can operate on CSIStorageCapacities across all clusters,
 // or scope down to one cluster and return a CSIStorageCapacitiesNamespacer.
-type CSIStorageCapacitiesClusterInterface interface {
+type CSIStorageCapacityClusterInterface interface {
 	Cluster(logicalcluster.Name) CSIStorageCapacitiesNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*storagev1alpha1.CSIStorageCapacityList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

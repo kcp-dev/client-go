@@ -55,23 +55,23 @@ func (c *AppsV1beta2ClusterClient) Cluster(name logicalcluster.Name) appsv1beta2
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *AppsV1beta2ClusterClient) StatefulSets() StatefulSetsClusterInterface {
+func (c *AppsV1beta2ClusterClient) StatefulSets() StatefulSetClusterInterface {
 	return &statefulSetsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *AppsV1beta2ClusterClient) Deployments() DeploymentsClusterInterface {
+func (c *AppsV1beta2ClusterClient) Deployments() DeploymentClusterInterface {
 	return &deploymentsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *AppsV1beta2ClusterClient) DaemonSets() DaemonSetsClusterInterface {
+func (c *AppsV1beta2ClusterClient) DaemonSets() DaemonSetClusterInterface {
 	return &daemonSetsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *AppsV1beta2ClusterClient) ReplicaSets() ReplicaSetsClusterInterface {
+func (c *AppsV1beta2ClusterClient) ReplicaSets() ReplicaSetClusterInterface {
 	return &replicaSetsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *AppsV1beta2ClusterClient) ControllerRevisions() ControllerRevisionsClusterInterface {
+func (c *AppsV1beta2ClusterClient) ControllerRevisions() ControllerRevisionClusterInterface {
 	return &controllerRevisionsClusterInterface{clientCache: c.clientCache}
 }
 

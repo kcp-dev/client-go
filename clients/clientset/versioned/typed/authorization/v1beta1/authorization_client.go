@@ -54,19 +54,19 @@ func (c *AuthorizationV1beta1ClusterClient) Cluster(name logicalcluster.Name) au
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *AuthorizationV1beta1ClusterClient) SubjectAccessReviews() SubjectAccessReviewsClusterInterface {
+func (c *AuthorizationV1beta1ClusterClient) SubjectAccessReviews() SubjectAccessReviewClusterInterface {
 	return &subjectAccessReviewsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *AuthorizationV1beta1ClusterClient) SelfSubjectAccessReviews() SelfSubjectAccessReviewsClusterInterface {
+func (c *AuthorizationV1beta1ClusterClient) SelfSubjectAccessReviews() SelfSubjectAccessReviewClusterInterface {
 	return &selfSubjectAccessReviewsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *AuthorizationV1beta1ClusterClient) LocalSubjectAccessReviews() LocalSubjectAccessReviewsClusterInterface {
+func (c *AuthorizationV1beta1ClusterClient) LocalSubjectAccessReviews() LocalSubjectAccessReviewClusterInterface {
 	return &localSubjectAccessReviewsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *AuthorizationV1beta1ClusterClient) SelfSubjectRulesReviews() SelfSubjectRulesReviewsClusterInterface {
+func (c *AuthorizationV1beta1ClusterClient) SelfSubjectRulesReviews() SelfSubjectRulesReviewClusterInterface {
 	return &selfSubjectRulesReviewsClusterInterface{clientCache: c.clientCache}
 }
 

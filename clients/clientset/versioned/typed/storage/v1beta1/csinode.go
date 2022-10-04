@@ -33,15 +33,15 @@ import (
 	storagev1beta1client "k8s.io/client-go/kubernetes/typed/storage/v1beta1"
 )
 
-// CSINodesClusterGetter has a method to return a CSINodesClusterInterface.
+// CSINodesClusterGetter has a method to return a CSINodeClusterInterface.
 // A group's cluster client should implement this interface.
 type CSINodesClusterGetter interface {
-	CSINodes() CSINodesClusterInterface
+	CSINodes() CSINodeClusterInterface
 }
 
-// CSINodesClusterInterface can operate on CSINodes across all clusters,
+// CSINodeClusterInterface can operate on CSINodes across all clusters,
 // or scope down to one cluster and return a storagev1beta1client.CSINodeInterface.
-type CSINodesClusterInterface interface {
+type CSINodeClusterInterface interface {
 	Cluster(logicalcluster.Name) storagev1beta1client.CSINodeInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*storagev1beta1.CSINodeList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

@@ -51,7 +51,7 @@ func (c *InternalV1alpha1ClusterClient) Cluster(name logicalcluster.Name) intern
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *InternalV1alpha1ClusterClient) StorageVersions() StorageVersionsClusterInterface {
+func (c *InternalV1alpha1ClusterClient) StorageVersions() StorageVersionClusterInterface {
 	return &storageVersionsClusterInterface{clientCache: c.clientCache}
 }
 

@@ -33,15 +33,15 @@ import (
 	appsv1beta2client "k8s.io/client-go/kubernetes/typed/apps/v1beta2"
 )
 
-// ControllerRevisionsClusterGetter has a method to return a ControllerRevisionsClusterInterface.
+// ControllerRevisionsClusterGetter has a method to return a ControllerRevisionClusterInterface.
 // A group's cluster client should implement this interface.
 type ControllerRevisionsClusterGetter interface {
-	ControllerRevisions() ControllerRevisionsClusterInterface
+	ControllerRevisions() ControllerRevisionClusterInterface
 }
 
-// ControllerRevisionsClusterInterface can operate on ControllerRevisions across all clusters,
+// ControllerRevisionClusterInterface can operate on ControllerRevisions across all clusters,
 // or scope down to one cluster and return a ControllerRevisionsNamespacer.
-type ControllerRevisionsClusterInterface interface {
+type ControllerRevisionClusterInterface interface {
 	Cluster(logicalcluster.Name) ControllerRevisionsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*appsv1beta2.ControllerRevisionList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

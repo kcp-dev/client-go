@@ -56,27 +56,27 @@ func (c *ExtensionsV1beta1ClusterClient) Cluster(name logicalcluster.Name) exten
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *ExtensionsV1beta1ClusterClient) Deployments() DeploymentsClusterInterface {
+func (c *ExtensionsV1beta1ClusterClient) Deployments() DeploymentClusterInterface {
 	return &deploymentsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *ExtensionsV1beta1ClusterClient) DaemonSets() DaemonSetsClusterInterface {
+func (c *ExtensionsV1beta1ClusterClient) DaemonSets() DaemonSetClusterInterface {
 	return &daemonSetsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *ExtensionsV1beta1ClusterClient) Ingresses() IngressesClusterInterface {
+func (c *ExtensionsV1beta1ClusterClient) Ingresses() IngressClusterInterface {
 	return &ingressesClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *ExtensionsV1beta1ClusterClient) ReplicaSets() ReplicaSetsClusterInterface {
+func (c *ExtensionsV1beta1ClusterClient) ReplicaSets() ReplicaSetClusterInterface {
 	return &replicaSetsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *ExtensionsV1beta1ClusterClient) PodSecurityPolicies() PodSecurityPoliciesClusterInterface {
+func (c *ExtensionsV1beta1ClusterClient) PodSecurityPolicies() PodSecurityPolicyClusterInterface {
 	return &podSecurityPoliciesClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *ExtensionsV1beta1ClusterClient) NetworkPolicies() NetworkPoliciesClusterInterface {
+func (c *ExtensionsV1beta1ClusterClient) NetworkPolicies() NetworkPolicyClusterInterface {
 	return &networkPoliciesClusterInterface{clientCache: c.clientCache}
 }
 

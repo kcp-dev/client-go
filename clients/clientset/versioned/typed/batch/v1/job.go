@@ -33,15 +33,15 @@ import (
 	batchv1client "k8s.io/client-go/kubernetes/typed/batch/v1"
 )
 
-// JobsClusterGetter has a method to return a JobsClusterInterface.
+// JobsClusterGetter has a method to return a JobClusterInterface.
 // A group's cluster client should implement this interface.
 type JobsClusterGetter interface {
-	Jobs() JobsClusterInterface
+	Jobs() JobClusterInterface
 }
 
-// JobsClusterInterface can operate on Jobs across all clusters,
+// JobClusterInterface can operate on Jobs across all clusters,
 // or scope down to one cluster and return a JobsNamespacer.
-type JobsClusterInterface interface {
+type JobClusterInterface interface {
 	Cluster(logicalcluster.Name) JobsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*batchv1.JobList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

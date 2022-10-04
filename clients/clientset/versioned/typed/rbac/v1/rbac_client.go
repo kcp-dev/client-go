@@ -54,19 +54,19 @@ func (c *RbacV1ClusterClient) Cluster(name logicalcluster.Name) rbacv1.RbacV1Int
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *RbacV1ClusterClient) Roles() RolesClusterInterface {
+func (c *RbacV1ClusterClient) Roles() RoleClusterInterface {
 	return &rolesClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *RbacV1ClusterClient) RoleBindings() RoleBindingsClusterInterface {
+func (c *RbacV1ClusterClient) RoleBindings() RoleBindingClusterInterface {
 	return &roleBindingsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *RbacV1ClusterClient) ClusterRoles() ClusterRolesClusterInterface {
+func (c *RbacV1ClusterClient) ClusterRoles() ClusterRoleClusterInterface {
 	return &clusterRolesClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *RbacV1ClusterClient) ClusterRoleBindings() ClusterRoleBindingsClusterInterface {
+func (c *RbacV1ClusterClient) ClusterRoleBindings() ClusterRoleBindingClusterInterface {
 	return &clusterRoleBindingsClusterInterface{clientCache: c.clientCache}
 }
 

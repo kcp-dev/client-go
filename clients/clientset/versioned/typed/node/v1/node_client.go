@@ -51,7 +51,7 @@ func (c *NodeV1ClusterClient) Cluster(name logicalcluster.Name) nodev1.NodeV1Int
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *NodeV1ClusterClient) RuntimeClasses() RuntimeClassesClusterInterface {
+func (c *NodeV1ClusterClient) RuntimeClasses() RuntimeClassClusterInterface {
 	return &runtimeClassesClusterInterface{clientCache: c.clientCache}
 }
 

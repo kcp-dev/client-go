@@ -51,7 +51,7 @@ func (c *BatchV1beta1ClusterClient) Cluster(name logicalcluster.Name) batchv1bet
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *BatchV1beta1ClusterClient) CronJobs() CronJobsClusterInterface {
+func (c *BatchV1beta1ClusterClient) CronJobs() CronJobClusterInterface {
 	return &cronJobsClusterInterface{clientCache: c.clientCache}
 }
 

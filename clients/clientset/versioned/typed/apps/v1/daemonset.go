@@ -33,15 +33,15 @@ import (
 	appsv1client "k8s.io/client-go/kubernetes/typed/apps/v1"
 )
 
-// DaemonSetsClusterGetter has a method to return a DaemonSetsClusterInterface.
+// DaemonSetsClusterGetter has a method to return a DaemonSetClusterInterface.
 // A group's cluster client should implement this interface.
 type DaemonSetsClusterGetter interface {
-	DaemonSets() DaemonSetsClusterInterface
+	DaemonSets() DaemonSetClusterInterface
 }
 
-// DaemonSetsClusterInterface can operate on DaemonSets across all clusters,
+// DaemonSetClusterInterface can operate on DaemonSets across all clusters,
 // or scope down to one cluster and return a DaemonSetsNamespacer.
-type DaemonSetsClusterInterface interface {
+type DaemonSetClusterInterface interface {
 	Cluster(logicalcluster.Name) DaemonSetsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*appsv1.DaemonSetList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

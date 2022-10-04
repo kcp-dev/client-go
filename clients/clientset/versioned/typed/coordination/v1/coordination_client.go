@@ -51,7 +51,7 @@ func (c *CoordinationV1ClusterClient) Cluster(name logicalcluster.Name) coordina
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *CoordinationV1ClusterClient) Leases() LeasesClusterInterface {
+func (c *CoordinationV1ClusterClient) Leases() LeaseClusterInterface {
 	return &leasesClusterInterface{clientCache: c.clientCache}
 }
 

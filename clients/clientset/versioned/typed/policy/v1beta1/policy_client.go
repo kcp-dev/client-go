@@ -52,11 +52,11 @@ func (c *PolicyV1beta1ClusterClient) Cluster(name logicalcluster.Name) policyv1b
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *PolicyV1beta1ClusterClient) PodDisruptionBudgets() PodDisruptionBudgetsClusterInterface {
+func (c *PolicyV1beta1ClusterClient) PodDisruptionBudgets() PodDisruptionBudgetClusterInterface {
 	return &podDisruptionBudgetsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *PolicyV1beta1ClusterClient) PodSecurityPolicies() PodSecurityPoliciesClusterInterface {
+func (c *PolicyV1beta1ClusterClient) PodSecurityPolicies() PodSecurityPolicyClusterInterface {
 	return &podSecurityPoliciesClusterInterface{clientCache: c.clientCache}
 }
 

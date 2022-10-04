@@ -33,15 +33,15 @@ import (
 	networkingv1client "k8s.io/client-go/kubernetes/typed/networking/v1"
 )
 
-// IngressesClusterGetter has a method to return a IngressesClusterInterface.
+// IngressesClusterGetter has a method to return a IngressClusterInterface.
 // A group's cluster client should implement this interface.
 type IngressesClusterGetter interface {
-	Ingresses() IngressesClusterInterface
+	Ingresses() IngressClusterInterface
 }
 
-// IngressesClusterInterface can operate on Ingresses across all clusters,
+// IngressClusterInterface can operate on Ingresses across all clusters,
 // or scope down to one cluster and return a IngressesNamespacer.
-type IngressesClusterInterface interface {
+type IngressClusterInterface interface {
 	Cluster(logicalcluster.Name) IngressesNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*networkingv1.IngressList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

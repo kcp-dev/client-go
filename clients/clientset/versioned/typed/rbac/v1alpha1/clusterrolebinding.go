@@ -33,15 +33,15 @@ import (
 	rbacv1alpha1client "k8s.io/client-go/kubernetes/typed/rbac/v1alpha1"
 )
 
-// ClusterRoleBindingsClusterGetter has a method to return a ClusterRoleBindingsClusterInterface.
+// ClusterRoleBindingsClusterGetter has a method to return a ClusterRoleBindingClusterInterface.
 // A group's cluster client should implement this interface.
 type ClusterRoleBindingsClusterGetter interface {
-	ClusterRoleBindings() ClusterRoleBindingsClusterInterface
+	ClusterRoleBindings() ClusterRoleBindingClusterInterface
 }
 
-// ClusterRoleBindingsClusterInterface can operate on ClusterRoleBindings across all clusters,
+// ClusterRoleBindingClusterInterface can operate on ClusterRoleBindings across all clusters,
 // or scope down to one cluster and return a rbacv1alpha1client.ClusterRoleBindingInterface.
-type ClusterRoleBindingsClusterInterface interface {
+type ClusterRoleBindingClusterInterface interface {
 	Cluster(logicalcluster.Name) rbacv1alpha1client.ClusterRoleBindingInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*rbacv1alpha1.ClusterRoleBindingList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
