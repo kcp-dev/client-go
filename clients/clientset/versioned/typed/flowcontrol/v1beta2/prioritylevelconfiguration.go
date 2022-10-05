@@ -33,15 +33,15 @@ import (
 	flowcontrolv1beta2client "k8s.io/client-go/kubernetes/typed/flowcontrol/v1beta2"
 )
 
-// PriorityLevelConfigurationsClusterGetter has a method to return a PriorityLevelConfigurationsClusterInterface.
+// PriorityLevelConfigurationsClusterGetter has a method to return a PriorityLevelConfigurationClusterInterface.
 // A group's cluster client should implement this interface.
 type PriorityLevelConfigurationsClusterGetter interface {
-	PriorityLevelConfigurations() PriorityLevelConfigurationsClusterInterface
+	PriorityLevelConfigurations() PriorityLevelConfigurationClusterInterface
 }
 
-// PriorityLevelConfigurationsClusterInterface can operate on PriorityLevelConfigurations across all clusters,
+// PriorityLevelConfigurationClusterInterface can operate on PriorityLevelConfigurations across all clusters,
 // or scope down to one cluster and return a flowcontrolv1beta2client.PriorityLevelConfigurationInterface.
-type PriorityLevelConfigurationsClusterInterface interface {
+type PriorityLevelConfigurationClusterInterface interface {
 	Cluster(logicalcluster.Name) flowcontrolv1beta2client.PriorityLevelConfigurationInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*flowcontrolv1beta2.PriorityLevelConfigurationList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

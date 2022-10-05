@@ -33,15 +33,15 @@ import (
 	appsv1beta2client "k8s.io/client-go/kubernetes/typed/apps/v1beta2"
 )
 
-// DeploymentsClusterGetter has a method to return a DeploymentsClusterInterface.
+// DeploymentsClusterGetter has a method to return a DeploymentClusterInterface.
 // A group's cluster client should implement this interface.
 type DeploymentsClusterGetter interface {
-	Deployments() DeploymentsClusterInterface
+	Deployments() DeploymentClusterInterface
 }
 
-// DeploymentsClusterInterface can operate on Deployments across all clusters,
+// DeploymentClusterInterface can operate on Deployments across all clusters,
 // or scope down to one cluster and return a DeploymentsNamespacer.
-type DeploymentsClusterInterface interface {
+type DeploymentClusterInterface interface {
 	Cluster(logicalcluster.Name) DeploymentsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*appsv1beta2.DeploymentList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

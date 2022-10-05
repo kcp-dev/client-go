@@ -33,15 +33,15 @@ import (
 	storagev1alpha1client "k8s.io/client-go/kubernetes/typed/storage/v1alpha1"
 )
 
-// VolumeAttachmentsClusterGetter has a method to return a VolumeAttachmentsClusterInterface.
+// VolumeAttachmentsClusterGetter has a method to return a VolumeAttachmentClusterInterface.
 // A group's cluster client should implement this interface.
 type VolumeAttachmentsClusterGetter interface {
-	VolumeAttachments() VolumeAttachmentsClusterInterface
+	VolumeAttachments() VolumeAttachmentClusterInterface
 }
 
-// VolumeAttachmentsClusterInterface can operate on VolumeAttachments across all clusters,
+// VolumeAttachmentClusterInterface can operate on VolumeAttachments across all clusters,
 // or scope down to one cluster and return a storagev1alpha1client.VolumeAttachmentInterface.
-type VolumeAttachmentsClusterInterface interface {
+type VolumeAttachmentClusterInterface interface {
 	Cluster(logicalcluster.Name) storagev1alpha1client.VolumeAttachmentInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*storagev1alpha1.VolumeAttachmentList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

@@ -33,15 +33,15 @@ import (
 	autoscalingv2beta1client "k8s.io/client-go/kubernetes/typed/autoscaling/v2beta1"
 )
 
-// HorizontalPodAutoscalersClusterGetter has a method to return a HorizontalPodAutoscalersClusterInterface.
+// HorizontalPodAutoscalersClusterGetter has a method to return a HorizontalPodAutoscalerClusterInterface.
 // A group's cluster client should implement this interface.
 type HorizontalPodAutoscalersClusterGetter interface {
-	HorizontalPodAutoscalers() HorizontalPodAutoscalersClusterInterface
+	HorizontalPodAutoscalers() HorizontalPodAutoscalerClusterInterface
 }
 
-// HorizontalPodAutoscalersClusterInterface can operate on HorizontalPodAutoscalers across all clusters,
+// HorizontalPodAutoscalerClusterInterface can operate on HorizontalPodAutoscalers across all clusters,
 // or scope down to one cluster and return a HorizontalPodAutoscalersNamespacer.
-type HorizontalPodAutoscalersClusterInterface interface {
+type HorizontalPodAutoscalerClusterInterface interface {
 	Cluster(logicalcluster.Name) HorizontalPodAutoscalersNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*autoscalingv2beta1.HorizontalPodAutoscalerList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

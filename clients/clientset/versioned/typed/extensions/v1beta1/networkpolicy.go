@@ -33,15 +33,15 @@ import (
 	extensionsv1beta1client "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
 )
 
-// NetworkPoliciesClusterGetter has a method to return a NetworkPoliciesClusterInterface.
+// NetworkPoliciesClusterGetter has a method to return a NetworkPolicyClusterInterface.
 // A group's cluster client should implement this interface.
 type NetworkPoliciesClusterGetter interface {
-	NetworkPolicies() NetworkPoliciesClusterInterface
+	NetworkPolicies() NetworkPolicyClusterInterface
 }
 
-// NetworkPoliciesClusterInterface can operate on NetworkPolicies across all clusters,
+// NetworkPolicyClusterInterface can operate on NetworkPolicies across all clusters,
 // or scope down to one cluster and return a NetworkPoliciesNamespacer.
-type NetworkPoliciesClusterInterface interface {
+type NetworkPolicyClusterInterface interface {
 	Cluster(logicalcluster.Name) NetworkPoliciesNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*extensionsv1beta1.NetworkPolicyList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

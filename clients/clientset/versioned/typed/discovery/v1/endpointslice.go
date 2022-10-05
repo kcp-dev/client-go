@@ -33,15 +33,15 @@ import (
 	discoveryv1client "k8s.io/client-go/kubernetes/typed/discovery/v1"
 )
 
-// EndpointSlicesClusterGetter has a method to return a EndpointSlicesClusterInterface.
+// EndpointSlicesClusterGetter has a method to return a EndpointSliceClusterInterface.
 // A group's cluster client should implement this interface.
 type EndpointSlicesClusterGetter interface {
-	EndpointSlices() EndpointSlicesClusterInterface
+	EndpointSlices() EndpointSliceClusterInterface
 }
 
-// EndpointSlicesClusterInterface can operate on EndpointSlices across all clusters,
+// EndpointSliceClusterInterface can operate on EndpointSlices across all clusters,
 // or scope down to one cluster and return a EndpointSlicesNamespacer.
-type EndpointSlicesClusterInterface interface {
+type EndpointSliceClusterInterface interface {
 	Cluster(logicalcluster.Name) EndpointSlicesNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*discoveryv1.EndpointSliceList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

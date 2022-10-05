@@ -33,15 +33,15 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-// PodTemplatesClusterGetter has a method to return a PodTemplatesClusterInterface.
+// PodTemplatesClusterGetter has a method to return a PodTemplateClusterInterface.
 // A group's cluster client should implement this interface.
 type PodTemplatesClusterGetter interface {
-	PodTemplates() PodTemplatesClusterInterface
+	PodTemplates() PodTemplateClusterInterface
 }
 
-// PodTemplatesClusterInterface can operate on PodTemplates across all clusters,
+// PodTemplateClusterInterface can operate on PodTemplates across all clusters,
 // or scope down to one cluster and return a PodTemplatesNamespacer.
-type PodTemplatesClusterInterface interface {
+type PodTemplateClusterInterface interface {
 	Cluster(logicalcluster.Name) PodTemplatesNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.PodTemplateList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

@@ -51,7 +51,7 @@ func (c *SchedulingV1alpha1ClusterClient) Cluster(name logicalcluster.Name) sche
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *SchedulingV1alpha1ClusterClient) PriorityClasses() PriorityClassesClusterInterface {
+func (c *SchedulingV1alpha1ClusterClient) PriorityClasses() PriorityClassClusterInterface {
 	return &priorityClassesClusterInterface{clientCache: c.clientCache}
 }
 

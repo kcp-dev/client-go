@@ -33,15 +33,15 @@ import (
 	admissionregistrationv1client "k8s.io/client-go/kubernetes/typed/admissionregistration/v1"
 )
 
-// ValidatingWebhookConfigurationsClusterGetter has a method to return a ValidatingWebhookConfigurationsClusterInterface.
+// ValidatingWebhookConfigurationsClusterGetter has a method to return a ValidatingWebhookConfigurationClusterInterface.
 // A group's cluster client should implement this interface.
 type ValidatingWebhookConfigurationsClusterGetter interface {
-	ValidatingWebhookConfigurations() ValidatingWebhookConfigurationsClusterInterface
+	ValidatingWebhookConfigurations() ValidatingWebhookConfigurationClusterInterface
 }
 
-// ValidatingWebhookConfigurationsClusterInterface can operate on ValidatingWebhookConfigurations across all clusters,
+// ValidatingWebhookConfigurationClusterInterface can operate on ValidatingWebhookConfigurations across all clusters,
 // or scope down to one cluster and return a admissionregistrationv1client.ValidatingWebhookConfigurationInterface.
-type ValidatingWebhookConfigurationsClusterInterface interface {
+type ValidatingWebhookConfigurationClusterInterface interface {
 	Cluster(logicalcluster.Name) admissionregistrationv1client.ValidatingWebhookConfigurationInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*admissionregistrationv1.ValidatingWebhookConfigurationList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

@@ -33,15 +33,15 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-// ComponentStatusesClusterGetter has a method to return a ComponentStatusesClusterInterface.
+// ComponentStatusesClusterGetter has a method to return a ComponentStatusClusterInterface.
 // A group's cluster client should implement this interface.
 type ComponentStatusesClusterGetter interface {
-	ComponentStatuses() ComponentStatusesClusterInterface
+	ComponentStatuses() ComponentStatusClusterInterface
 }
 
-// ComponentStatusesClusterInterface can operate on ComponentStatuses across all clusters,
+// ComponentStatusClusterInterface can operate on ComponentStatuses across all clusters,
 // or scope down to one cluster and return a corev1client.ComponentStatusInterface.
-type ComponentStatusesClusterInterface interface {
+type ComponentStatusClusterInterface interface {
 	Cluster(logicalcluster.Name) corev1client.ComponentStatusInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.ComponentStatusList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

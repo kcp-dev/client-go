@@ -33,15 +33,15 @@ import (
 	storagev1client "k8s.io/client-go/kubernetes/typed/storage/v1"
 )
 
-// CSIDriversClusterGetter has a method to return a CSIDriversClusterInterface.
+// CSIDriversClusterGetter has a method to return a CSIDriverClusterInterface.
 // A group's cluster client should implement this interface.
 type CSIDriversClusterGetter interface {
-	CSIDrivers() CSIDriversClusterInterface
+	CSIDrivers() CSIDriverClusterInterface
 }
 
-// CSIDriversClusterInterface can operate on CSIDrivers across all clusters,
+// CSIDriverClusterInterface can operate on CSIDrivers across all clusters,
 // or scope down to one cluster and return a storagev1client.CSIDriverInterface.
-type CSIDriversClusterInterface interface {
+type CSIDriverClusterInterface interface {
 	Cluster(logicalcluster.Name) storagev1client.CSIDriverInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*storagev1.CSIDriverList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

@@ -33,15 +33,15 @@ import (
 	appsv1client "k8s.io/client-go/kubernetes/typed/apps/v1"
 )
 
-// StatefulSetsClusterGetter has a method to return a StatefulSetsClusterInterface.
+// StatefulSetsClusterGetter has a method to return a StatefulSetClusterInterface.
 // A group's cluster client should implement this interface.
 type StatefulSetsClusterGetter interface {
-	StatefulSets() StatefulSetsClusterInterface
+	StatefulSets() StatefulSetClusterInterface
 }
 
-// StatefulSetsClusterInterface can operate on StatefulSets across all clusters,
+// StatefulSetClusterInterface can operate on StatefulSets across all clusters,
 // or scope down to one cluster and return a StatefulSetsNamespacer.
-type StatefulSetsClusterInterface interface {
+type StatefulSetClusterInterface interface {
 	Cluster(logicalcluster.Name) StatefulSetsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*appsv1.StatefulSetList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

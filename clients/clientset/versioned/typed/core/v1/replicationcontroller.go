@@ -33,15 +33,15 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-// ReplicationControllersClusterGetter has a method to return a ReplicationControllersClusterInterface.
+// ReplicationControllersClusterGetter has a method to return a ReplicationControllerClusterInterface.
 // A group's cluster client should implement this interface.
 type ReplicationControllersClusterGetter interface {
-	ReplicationControllers() ReplicationControllersClusterInterface
+	ReplicationControllers() ReplicationControllerClusterInterface
 }
 
-// ReplicationControllersClusterInterface can operate on ReplicationControllers across all clusters,
+// ReplicationControllerClusterInterface can operate on ReplicationControllers across all clusters,
 // or scope down to one cluster and return a ReplicationControllersNamespacer.
-type ReplicationControllersClusterInterface interface {
+type ReplicationControllerClusterInterface interface {
 	Cluster(logicalcluster.Name) ReplicationControllersNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.ReplicationControllerList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

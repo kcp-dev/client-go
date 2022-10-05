@@ -52,11 +52,11 @@ func (c *FlowcontrolV1alpha1ClusterClient) Cluster(name logicalcluster.Name) flo
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *FlowcontrolV1alpha1ClusterClient) FlowSchemas() FlowSchemasClusterInterface {
+func (c *FlowcontrolV1alpha1ClusterClient) FlowSchemas() FlowSchemaClusterInterface {
 	return &flowSchemasClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *FlowcontrolV1alpha1ClusterClient) PriorityLevelConfigurations() PriorityLevelConfigurationsClusterInterface {
+func (c *FlowcontrolV1alpha1ClusterClient) PriorityLevelConfigurations() PriorityLevelConfigurationClusterInterface {
 	return &priorityLevelConfigurationsClusterInterface{clientCache: c.clientCache}
 }
 

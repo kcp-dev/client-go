@@ -33,15 +33,15 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-// NodesClusterGetter has a method to return a NodesClusterInterface.
+// NodesClusterGetter has a method to return a NodeClusterInterface.
 // A group's cluster client should implement this interface.
 type NodesClusterGetter interface {
-	Nodes() NodesClusterInterface
+	Nodes() NodeClusterInterface
 }
 
-// NodesClusterInterface can operate on Nodes across all clusters,
+// NodeClusterInterface can operate on Nodes across all clusters,
 // or scope down to one cluster and return a corev1client.NodeInterface.
-type NodesClusterInterface interface {
+type NodeClusterInterface interface {
 	Cluster(logicalcluster.Name) corev1client.NodeInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.NodeList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

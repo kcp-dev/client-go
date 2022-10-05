@@ -33,15 +33,15 @@ import (
 	schedulingv1alpha1client "k8s.io/client-go/kubernetes/typed/scheduling/v1alpha1"
 )
 
-// PriorityClassesClusterGetter has a method to return a PriorityClassesClusterInterface.
+// PriorityClassesClusterGetter has a method to return a PriorityClassClusterInterface.
 // A group's cluster client should implement this interface.
 type PriorityClassesClusterGetter interface {
-	PriorityClasses() PriorityClassesClusterInterface
+	PriorityClasses() PriorityClassClusterInterface
 }
 
-// PriorityClassesClusterInterface can operate on PriorityClasses across all clusters,
+// PriorityClassClusterInterface can operate on PriorityClasses across all clusters,
 // or scope down to one cluster and return a schedulingv1alpha1client.PriorityClassInterface.
-type PriorityClassesClusterInterface interface {
+type PriorityClassClusterInterface interface {
 	Cluster(logicalcluster.Name) schedulingv1alpha1client.PriorityClassInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*schedulingv1alpha1.PriorityClassList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

@@ -33,15 +33,15 @@ import (
 	nodev1client "k8s.io/client-go/kubernetes/typed/node/v1"
 )
 
-// RuntimeClassesClusterGetter has a method to return a RuntimeClassesClusterInterface.
+// RuntimeClassesClusterGetter has a method to return a RuntimeClassClusterInterface.
 // A group's cluster client should implement this interface.
 type RuntimeClassesClusterGetter interface {
-	RuntimeClasses() RuntimeClassesClusterInterface
+	RuntimeClasses() RuntimeClassClusterInterface
 }
 
-// RuntimeClassesClusterInterface can operate on RuntimeClasses across all clusters,
+// RuntimeClassClusterInterface can operate on RuntimeClasses across all clusters,
 // or scope down to one cluster and return a nodev1client.RuntimeClassInterface.
-type RuntimeClassesClusterInterface interface {
+type RuntimeClassClusterInterface interface {
 	Cluster(logicalcluster.Name) nodev1client.RuntimeClassInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*nodev1.RuntimeClassList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

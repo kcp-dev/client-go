@@ -33,15 +33,15 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-// NamespacesClusterGetter has a method to return a NamespacesClusterInterface.
+// NamespacesClusterGetter has a method to return a NamespaceClusterInterface.
 // A group's cluster client should implement this interface.
 type NamespacesClusterGetter interface {
-	Namespaces() NamespacesClusterInterface
+	Namespaces() NamespaceClusterInterface
 }
 
-// NamespacesClusterInterface can operate on Namespaces across all clusters,
+// NamespaceClusterInterface can operate on Namespaces across all clusters,
 // or scope down to one cluster and return a corev1client.NamespaceInterface.
-type NamespacesClusterInterface interface {
+type NamespaceClusterInterface interface {
 	Cluster(logicalcluster.Name) corev1client.NamespaceInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.NamespaceList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

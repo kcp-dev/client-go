@@ -33,15 +33,15 @@ import (
 	internalv1alpha1client "k8s.io/client-go/kubernetes/typed/apiserverinternal/v1alpha1"
 )
 
-// StorageVersionsClusterGetter has a method to return a StorageVersionsClusterInterface.
+// StorageVersionsClusterGetter has a method to return a StorageVersionClusterInterface.
 // A group's cluster client should implement this interface.
 type StorageVersionsClusterGetter interface {
-	StorageVersions() StorageVersionsClusterInterface
+	StorageVersions() StorageVersionClusterInterface
 }
 
-// StorageVersionsClusterInterface can operate on StorageVersions across all clusters,
+// StorageVersionClusterInterface can operate on StorageVersions across all clusters,
 // or scope down to one cluster and return a internalv1alpha1client.StorageVersionInterface.
-type StorageVersionsClusterInterface interface {
+type StorageVersionClusterInterface interface {
 	Cluster(logicalcluster.Name) internalv1alpha1client.StorageVersionInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*internalv1alpha1.StorageVersionList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

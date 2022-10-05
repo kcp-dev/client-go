@@ -33,15 +33,15 @@ import (
 	batchv1client "k8s.io/client-go/kubernetes/typed/batch/v1"
 )
 
-// CronJobsClusterGetter has a method to return a CronJobsClusterInterface.
+// CronJobsClusterGetter has a method to return a CronJobClusterInterface.
 // A group's cluster client should implement this interface.
 type CronJobsClusterGetter interface {
-	CronJobs() CronJobsClusterInterface
+	CronJobs() CronJobClusterInterface
 }
 
-// CronJobsClusterInterface can operate on CronJobs across all clusters,
+// CronJobClusterInterface can operate on CronJobs across all clusters,
 // or scope down to one cluster and return a CronJobsNamespacer.
-type CronJobsClusterInterface interface {
+type CronJobClusterInterface interface {
 	Cluster(logicalcluster.Name) CronJobsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*batchv1.CronJobList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

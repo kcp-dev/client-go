@@ -33,15 +33,15 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-// ResourceQuotasClusterGetter has a method to return a ResourceQuotasClusterInterface.
+// ResourceQuotasClusterGetter has a method to return a ResourceQuotaClusterInterface.
 // A group's cluster client should implement this interface.
 type ResourceQuotasClusterGetter interface {
-	ResourceQuotas() ResourceQuotasClusterInterface
+	ResourceQuotas() ResourceQuotaClusterInterface
 }
 
-// ResourceQuotasClusterInterface can operate on ResourceQuotas across all clusters,
+// ResourceQuotaClusterInterface can operate on ResourceQuotas across all clusters,
 // or scope down to one cluster and return a ResourceQuotasNamespacer.
-type ResourceQuotasClusterInterface interface {
+type ResourceQuotaClusterInterface interface {
 	Cluster(logicalcluster.Name) ResourceQuotasNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.ResourceQuotaList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

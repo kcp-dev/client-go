@@ -52,11 +52,11 @@ func (c *StorageV1alpha1ClusterClient) Cluster(name logicalcluster.Name) storage
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *StorageV1alpha1ClusterClient) VolumeAttachments() VolumeAttachmentsClusterInterface {
+func (c *StorageV1alpha1ClusterClient) VolumeAttachments() VolumeAttachmentClusterInterface {
 	return &volumeAttachmentsClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *StorageV1alpha1ClusterClient) CSIStorageCapacities() CSIStorageCapacitiesClusterInterface {
+func (c *StorageV1alpha1ClusterClient) CSIStorageCapacities() CSIStorageCapacityClusterInterface {
 	return &cSIStorageCapacitiesClusterInterface{clientCache: c.clientCache}
 }
 

@@ -33,15 +33,15 @@ import (
 	admissionregistrationv1client "k8s.io/client-go/kubernetes/typed/admissionregistration/v1"
 )
 
-// MutatingWebhookConfigurationsClusterGetter has a method to return a MutatingWebhookConfigurationsClusterInterface.
+// MutatingWebhookConfigurationsClusterGetter has a method to return a MutatingWebhookConfigurationClusterInterface.
 // A group's cluster client should implement this interface.
 type MutatingWebhookConfigurationsClusterGetter interface {
-	MutatingWebhookConfigurations() MutatingWebhookConfigurationsClusterInterface
+	MutatingWebhookConfigurations() MutatingWebhookConfigurationClusterInterface
 }
 
-// MutatingWebhookConfigurationsClusterInterface can operate on MutatingWebhookConfigurations across all clusters,
+// MutatingWebhookConfigurationClusterInterface can operate on MutatingWebhookConfigurations across all clusters,
 // or scope down to one cluster and return a admissionregistrationv1client.MutatingWebhookConfigurationInterface.
-type MutatingWebhookConfigurationsClusterInterface interface {
+type MutatingWebhookConfigurationClusterInterface interface {
 	Cluster(logicalcluster.Name) admissionregistrationv1client.MutatingWebhookConfigurationInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*admissionregistrationv1.MutatingWebhookConfigurationList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

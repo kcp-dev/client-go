@@ -33,15 +33,15 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-// ServicesClusterGetter has a method to return a ServicesClusterInterface.
+// ServicesClusterGetter has a method to return a ServiceClusterInterface.
 // A group's cluster client should implement this interface.
 type ServicesClusterGetter interface {
-	Services() ServicesClusterInterface
+	Services() ServiceClusterInterface
 }
 
-// ServicesClusterInterface can operate on Services across all clusters,
+// ServiceClusterInterface can operate on Services across all clusters,
 // or scope down to one cluster and return a ServicesNamespacer.
-type ServicesClusterInterface interface {
+type ServiceClusterInterface interface {
 	Cluster(logicalcluster.Name) ServicesNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.ServiceList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

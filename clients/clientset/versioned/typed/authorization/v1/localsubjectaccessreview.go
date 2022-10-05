@@ -28,14 +28,14 @@ import (
 	authorizationv1client "k8s.io/client-go/kubernetes/typed/authorization/v1"
 )
 
-// LocalSubjectAccessReviewsClusterGetter has a method to return a LocalSubjectAccessReviewsClusterInterface.
+// LocalSubjectAccessReviewsClusterGetter has a method to return a LocalSubjectAccessReviewClusterInterface.
 // A group's cluster client should implement this interface.
 type LocalSubjectAccessReviewsClusterGetter interface {
-	LocalSubjectAccessReviews() LocalSubjectAccessReviewsClusterInterface
+	LocalSubjectAccessReviews() LocalSubjectAccessReviewClusterInterface
 }
 
-// LocalSubjectAccessReviewsClusterInterface can scope down to one cluster and return a LocalSubjectAccessReviewsNamespacer.
-type LocalSubjectAccessReviewsClusterInterface interface {
+// LocalSubjectAccessReviewClusterInterface can scope down to one cluster and return a LocalSubjectAccessReviewsNamespacer.
+type LocalSubjectAccessReviewClusterInterface interface {
 	Cluster(logicalcluster.Name) LocalSubjectAccessReviewsNamespacer
 }
 

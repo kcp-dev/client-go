@@ -33,15 +33,15 @@ import (
 	coordinationv1beta1client "k8s.io/client-go/kubernetes/typed/coordination/v1beta1"
 )
 
-// LeasesClusterGetter has a method to return a LeasesClusterInterface.
+// LeasesClusterGetter has a method to return a LeaseClusterInterface.
 // A group's cluster client should implement this interface.
 type LeasesClusterGetter interface {
-	Leases() LeasesClusterInterface
+	Leases() LeaseClusterInterface
 }
 
-// LeasesClusterInterface can operate on Leases across all clusters,
+// LeaseClusterInterface can operate on Leases across all clusters,
 // or scope down to one cluster and return a LeasesNamespacer.
-type LeasesClusterInterface interface {
+type LeaseClusterInterface interface {
 	Cluster(logicalcluster.Name) LeasesNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*coordinationv1beta1.LeaseList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

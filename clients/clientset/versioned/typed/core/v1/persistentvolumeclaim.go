@@ -33,15 +33,15 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-// PersistentVolumeClaimsClusterGetter has a method to return a PersistentVolumeClaimsClusterInterface.
+// PersistentVolumeClaimsClusterGetter has a method to return a PersistentVolumeClaimClusterInterface.
 // A group's cluster client should implement this interface.
 type PersistentVolumeClaimsClusterGetter interface {
-	PersistentVolumeClaims() PersistentVolumeClaimsClusterInterface
+	PersistentVolumeClaims() PersistentVolumeClaimClusterInterface
 }
 
-// PersistentVolumeClaimsClusterInterface can operate on PersistentVolumeClaims across all clusters,
+// PersistentVolumeClaimClusterInterface can operate on PersistentVolumeClaims across all clusters,
 // or scope down to one cluster and return a PersistentVolumeClaimsNamespacer.
-type PersistentVolumeClaimsClusterInterface interface {
+type PersistentVolumeClaimClusterInterface interface {
 	Cluster(logicalcluster.Name) PersistentVolumeClaimsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.PersistentVolumeClaimList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

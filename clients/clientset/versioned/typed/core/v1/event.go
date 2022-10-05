@@ -33,15 +33,15 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-// EventsClusterGetter has a method to return a EventsClusterInterface.
+// EventsClusterGetter has a method to return a EventClusterInterface.
 // A group's cluster client should implement this interface.
 type EventsClusterGetter interface {
-	Events() EventsClusterInterface
+	Events() EventClusterInterface
 }
 
-// EventsClusterInterface can operate on Events across all clusters,
+// EventClusterInterface can operate on Events across all clusters,
 // or scope down to one cluster and return a EventsNamespacer.
-type EventsClusterInterface interface {
+type EventClusterInterface interface {
 	Cluster(logicalcluster.Name) EventsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.EventList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

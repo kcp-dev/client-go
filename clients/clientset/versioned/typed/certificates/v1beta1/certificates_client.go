@@ -51,7 +51,7 @@ func (c *CertificatesV1beta1ClusterClient) Cluster(name logicalcluster.Name) cer
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *CertificatesV1beta1ClusterClient) CertificateSigningRequests() CertificateSigningRequestsClusterInterface {
+func (c *CertificatesV1beta1ClusterClient) CertificateSigningRequests() CertificateSigningRequestClusterInterface {
 	return &certificateSigningRequestsClusterInterface{clientCache: c.clientCache}
 }
 

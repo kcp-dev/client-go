@@ -28,14 +28,14 @@ import (
 	authenticationv1beta1client "k8s.io/client-go/kubernetes/typed/authentication/v1beta1"
 )
 
-// TokenReviewsClusterGetter has a method to return a TokenReviewsClusterInterface.
+// TokenReviewsClusterGetter has a method to return a TokenReviewClusterInterface.
 // A group's cluster client should implement this interface.
 type TokenReviewsClusterGetter interface {
-	TokenReviews() TokenReviewsClusterInterface
+	TokenReviews() TokenReviewClusterInterface
 }
 
-// TokenReviewsClusterInterface can scope down to one cluster and return a authenticationv1beta1client.TokenReviewInterface.
-type TokenReviewsClusterInterface interface {
+// TokenReviewClusterInterface can scope down to one cluster and return a authenticationv1beta1client.TokenReviewInterface.
+type TokenReviewClusterInterface interface {
 	Cluster(logicalcluster.Name) authenticationv1beta1client.TokenReviewInterface
 }
 

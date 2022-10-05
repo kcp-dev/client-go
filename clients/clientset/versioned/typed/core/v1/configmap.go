@@ -33,15 +33,15 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-// ConfigMapsClusterGetter has a method to return a ConfigMapsClusterInterface.
+// ConfigMapsClusterGetter has a method to return a ConfigMapClusterInterface.
 // A group's cluster client should implement this interface.
 type ConfigMapsClusterGetter interface {
-	ConfigMaps() ConfigMapsClusterInterface
+	ConfigMaps() ConfigMapClusterInterface
 }
 
-// ConfigMapsClusterInterface can operate on ConfigMaps across all clusters,
+// ConfigMapClusterInterface can operate on ConfigMaps across all clusters,
 // or scope down to one cluster and return a ConfigMapsNamespacer.
-type ConfigMapsClusterInterface interface {
+type ConfigMapClusterInterface interface {
 	Cluster(logicalcluster.Name) ConfigMapsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.ConfigMapList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

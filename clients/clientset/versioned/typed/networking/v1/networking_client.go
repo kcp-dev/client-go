@@ -53,15 +53,15 @@ func (c *NetworkingV1ClusterClient) Cluster(name logicalcluster.Name) networking
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *NetworkingV1ClusterClient) NetworkPolicies() NetworkPoliciesClusterInterface {
+func (c *NetworkingV1ClusterClient) NetworkPolicies() NetworkPolicyClusterInterface {
 	return &networkPoliciesClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *NetworkingV1ClusterClient) Ingresses() IngressesClusterInterface {
+func (c *NetworkingV1ClusterClient) Ingresses() IngressClusterInterface {
 	return &ingressesClusterInterface{clientCache: c.clientCache}
 }
 
-func (c *NetworkingV1ClusterClient) IngressClasses() IngressClassesClusterInterface {
+func (c *NetworkingV1ClusterClient) IngressClasses() IngressClassClusterInterface {
 	return &ingressClassesClusterInterface{clientCache: c.clientCache}
 }
 

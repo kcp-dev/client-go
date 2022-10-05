@@ -51,7 +51,7 @@ func (c *AuthenticationV1ClusterClient) Cluster(name logicalcluster.Name) authen
 	return c.clientCache.ClusterOrDie(name)
 }
 
-func (c *AuthenticationV1ClusterClient) TokenReviews() TokenReviewsClusterInterface {
+func (c *AuthenticationV1ClusterClient) TokenReviews() TokenReviewClusterInterface {
 	return &tokenReviewsClusterInterface{clientCache: c.clientCache}
 }
 

@@ -33,15 +33,15 @@ import (
 	flowcontrolv1beta2client "k8s.io/client-go/kubernetes/typed/flowcontrol/v1beta2"
 )
 
-// FlowSchemasClusterGetter has a method to return a FlowSchemasClusterInterface.
+// FlowSchemasClusterGetter has a method to return a FlowSchemaClusterInterface.
 // A group's cluster client should implement this interface.
 type FlowSchemasClusterGetter interface {
-	FlowSchemas() FlowSchemasClusterInterface
+	FlowSchemas() FlowSchemaClusterInterface
 }
 
-// FlowSchemasClusterInterface can operate on FlowSchemas across all clusters,
+// FlowSchemaClusterInterface can operate on FlowSchemas across all clusters,
 // or scope down to one cluster and return a flowcontrolv1beta2client.FlowSchemaInterface.
-type FlowSchemasClusterInterface interface {
+type FlowSchemaClusterInterface interface {
 	Cluster(logicalcluster.Name) flowcontrolv1beta2client.FlowSchemaInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*flowcontrolv1beta2.FlowSchemaList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

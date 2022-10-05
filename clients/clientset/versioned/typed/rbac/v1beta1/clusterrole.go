@@ -33,15 +33,15 @@ import (
 	rbacv1beta1client "k8s.io/client-go/kubernetes/typed/rbac/v1beta1"
 )
 
-// ClusterRolesClusterGetter has a method to return a ClusterRolesClusterInterface.
+// ClusterRolesClusterGetter has a method to return a ClusterRoleClusterInterface.
 // A group's cluster client should implement this interface.
 type ClusterRolesClusterGetter interface {
-	ClusterRoles() ClusterRolesClusterInterface
+	ClusterRoles() ClusterRoleClusterInterface
 }
 
-// ClusterRolesClusterInterface can operate on ClusterRoles across all clusters,
+// ClusterRoleClusterInterface can operate on ClusterRoles across all clusters,
 // or scope down to one cluster and return a rbacv1beta1client.ClusterRoleInterface.
-type ClusterRolesClusterInterface interface {
+type ClusterRoleClusterInterface interface {
 	Cluster(logicalcluster.Name) rbacv1beta1client.ClusterRoleInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*rbacv1beta1.ClusterRoleList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

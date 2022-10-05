@@ -33,15 +33,15 @@ import (
 	corev1client "k8s.io/client-go/kubernetes/typed/core/v1"
 )
 
-// SecretsClusterGetter has a method to return a SecretsClusterInterface.
+// SecretsClusterGetter has a method to return a SecretClusterInterface.
 // A group's cluster client should implement this interface.
 type SecretsClusterGetter interface {
-	Secrets() SecretsClusterInterface
+	Secrets() SecretClusterInterface
 }
 
-// SecretsClusterInterface can operate on Secrets across all clusters,
+// SecretClusterInterface can operate on Secrets across all clusters,
 // or scope down to one cluster and return a SecretsNamespacer.
-type SecretsClusterInterface interface {
+type SecretClusterInterface interface {
 	Cluster(logicalcluster.Name) SecretsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.SecretList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)

@@ -28,14 +28,14 @@ import (
 	authorizationv1client "k8s.io/client-go/kubernetes/typed/authorization/v1"
 )
 
-// SelfSubjectRulesReviewsClusterGetter has a method to return a SelfSubjectRulesReviewsClusterInterface.
+// SelfSubjectRulesReviewsClusterGetter has a method to return a SelfSubjectRulesReviewClusterInterface.
 // A group's cluster client should implement this interface.
 type SelfSubjectRulesReviewsClusterGetter interface {
-	SelfSubjectRulesReviews() SelfSubjectRulesReviewsClusterInterface
+	SelfSubjectRulesReviews() SelfSubjectRulesReviewClusterInterface
 }
 
-// SelfSubjectRulesReviewsClusterInterface can scope down to one cluster and return a authorizationv1client.SelfSubjectRulesReviewInterface.
-type SelfSubjectRulesReviewsClusterInterface interface {
+// SelfSubjectRulesReviewClusterInterface can scope down to one cluster and return a authorizationv1client.SelfSubjectRulesReviewInterface.
+type SelfSubjectRulesReviewClusterInterface interface {
 	Cluster(logicalcluster.Name) authorizationv1client.SelfSubjectRulesReviewInterface
 }
 
