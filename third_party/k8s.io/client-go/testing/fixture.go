@@ -1,5 +1,6 @@
 /*
 Copyright 2015 The Kubernetes Authors.
+Modifications Copyright 2022 The KCP Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,6 +25,7 @@ import (
 	"sync"
 
 	jsonpatch "github.com/evanphx/json-patch"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
@@ -37,10 +39,42 @@ import (
 	restclient "k8s.io/client-go/rest"
 )
 
+type ClusterNamespacedName struct {
+	Cluster logicalcluster.Name
+	types.NamespacedName
+}
+
+func (c ClusterNamespacedName) String() string {
+	return c.Cluster.String() + "|" + c.NamespacedName.String()
+}
+
 // ObjectTracker keeps track of objects. It is intended to be used to
 // fake calls to a server by returning objects based on their kind,
 // namespace and name.
 type ObjectTracker interface {
+	Cluster(name logicalcluster.Name) ScopedObjectTracker
+
+	// List retrieves all objects of a given kind in the given
+	// namespace. Only non-List kinds are accepted.
+	List(gvr schema.GroupVersionResource, gvk schema.GroupVersionKind, ns string) (runtime.Object, error)
+
+	// Watch watches objects from the tracker. Watch returns a channel
+	// which will push added / modified / deleted object.
+	Watch(gvr schema.GroupVersionResource, ns string) (watch.Interface, error)
+}
+
+// ScopedObjectTracker keeps track of objects in one cluster. It is intended to be used to
+// fake calls to a server by returning objects based on their kind,
+// namespace and name.
+type ScopedObjectTracker interface {
+	// List retrieves all objects of a given kind in the given
+	// namespace. Only non-List kinds are accepted.
+	List(gvr schema.GroupVersionResource, gvk schema.GroupVersionKind, ns string) (runtime.Object, error)
+
+	// Watch watches objects from the tracker. Watch returns a channel
+	// which will push added / modified / deleted object.
+	Watch(gvr schema.GroupVersionResource, ns string) (watch.Interface, error)
+
 	// Add adds an object to the tracker. If object being added
 	// is a list, its items are added separately.
 	Add(obj runtime.Object) error
@@ -54,18 +88,10 @@ type ObjectTracker interface {
 	// Update updates an existing object in the tracker in the specified namespace.
 	Update(gvr schema.GroupVersionResource, obj runtime.Object, ns string) error
 
-	// List retrieves all objects of a given kind in the given
-	// namespace. Only non-List kinds are accepted.
-	List(gvr schema.GroupVersionResource, gvk schema.GroupVersionKind, ns string) (runtime.Object, error)
-
 	// Delete deletes an existing object from the tracker. If object
 	// didn't exist in the tracker prior to deletion, Delete returns
 	// no error.
 	Delete(gvr schema.GroupVersionResource, ns, name string) error
-
-	// Watch watches objects from the tracker. Watch returns a channel
-	// which will push added / modified / deleted object.
-	Watch(gvr schema.GroupVersionResource, ns string) (watch.Interface, error)
 }
 
 // ObjectScheme abstracts the implementation of common operations on objects.
@@ -87,11 +113,18 @@ func ObjectReaction(tracker ObjectTracker) ReactionFunc {
 		switch action := action.(type) {
 
 		case ListActionImpl:
-			obj, err := tracker.List(gvr, action.GetKind(), ns)
+			var obj runtime.Object
+			var err error
+			switch action.GetCluster() {
+			case logicalcluster.Wildcard:
+				obj, err = tracker.List(gvr, action.GetKind(), ns)
+			default:
+				obj, err = tracker.Cluster(action.GetCluster()).List(gvr, action.GetKind(), ns)
+			}
 			return true, obj, err
 
 		case GetActionImpl:
-			obj, err := tracker.Get(gvr, ns, action.GetName())
+			obj, err := tracker.Cluster(action.GetCluster()).Get(gvr, ns, action.GetName())
 			return true, obj, err
 
 		case CreateActionImpl:
@@ -100,17 +133,17 @@ func ObjectReaction(tracker ObjectTracker) ReactionFunc {
 				return true, nil, err
 			}
 			if action.GetSubresource() == "" {
-				err = tracker.Create(gvr, action.GetObject(), ns)
+				err = tracker.Cluster(action.GetCluster()).Create(gvr, action.GetObject(), ns)
 			} else {
 				// TODO: Currently we're handling subresource creation as an update
 				// on the enclosing resource. This works for some subresources but
 				// might not be generic enough.
-				err = tracker.Update(gvr, action.GetObject(), ns)
+				err = tracker.Cluster(action.GetCluster()).Update(gvr, action.GetObject(), ns)
 			}
 			if err != nil {
 				return true, nil, err
 			}
-			obj, err := tracker.Get(gvr, ns, objMeta.GetName())
+			obj, err := tracker.Cluster(action.GetCluster()).Get(gvr, ns, objMeta.GetName())
 			return true, obj, err
 
 		case UpdateActionImpl:
@@ -118,22 +151,22 @@ func ObjectReaction(tracker ObjectTracker) ReactionFunc {
 			if err != nil {
 				return true, nil, err
 			}
-			err = tracker.Update(gvr, action.GetObject(), ns)
+			err = tracker.Cluster(action.GetCluster()).Update(gvr, action.GetObject(), ns)
 			if err != nil {
 				return true, nil, err
 			}
-			obj, err := tracker.Get(gvr, ns, objMeta.GetName())
+			obj, err := tracker.Cluster(action.GetCluster()).Get(gvr, ns, objMeta.GetName())
 			return true, obj, err
 
 		case DeleteActionImpl:
-			err := tracker.Delete(gvr, ns, action.GetName())
+			err := tracker.Cluster(action.GetCluster()).Delete(gvr, ns, action.GetName())
 			if err != nil {
 				return true, nil, err
 			}
 			return true, nil, nil
 
 		case PatchActionImpl:
-			obj, err := tracker.Get(gvr, ns, action.GetName())
+			obj, err := tracker.Cluster(action.GetCluster()).Get(gvr, ns, action.GetName())
 			if err != nil {
 				return true, nil, err
 			}
@@ -183,7 +216,7 @@ func ObjectReaction(tracker ObjectTracker) ReactionFunc {
 				return true, nil, fmt.Errorf("PatchType is not supported")
 			}
 
-			if err = tracker.Update(gvr, obj, ns); err != nil {
+			if err = tracker.Cluster(action.GetCluster()).Update(gvr, obj, ns); err != nil {
 				return true, nil, err
 			}
 
@@ -195,17 +228,54 @@ func ObjectReaction(tracker ObjectTracker) ReactionFunc {
 	}
 }
 
+// WatchReaction returns a WatchReactionFunc that applies core.Action to
+// the given tracker.
+func WatchReaction(tracker ObjectTracker) WatchReactionFunc {
+	return func(action Action) (bool, watch.Interface, error) {
+		cluster := action.GetCluster()
+		gvr := action.GetResource()
+		ns := action.GetNamespace()
+		var watcher watch.Interface
+		var err error
+		switch cluster {
+		case logicalcluster.Wildcard:
+			watcher, err = tracker.Watch(gvr, ns)
+		default:
+			watcher, err = tracker.Cluster(cluster).Watch(gvr, ns)
+		}
+		if err != nil {
+			return false, nil, err
+		}
+		return true, watcher, nil
+	}
+}
+
 type tracker struct {
 	scheme  ObjectScheme
 	decoder runtime.Decoder
 	lock    sync.RWMutex
-	objects map[schema.GroupVersionResource]map[types.NamespacedName]runtime.Object
+	objects map[schema.GroupVersionResource]map[ClusterNamespacedName]runtime.Object
 	// The value type of watchers is a map of which the key is either a namespace or
 	// all/non namespace aka "" and its value is list of fake watchers.
 	// Manipulations on resources will broadcast the notification events into the
 	// watchers' channel. Note that too many unhandled events (currently 100,
 	// see apimachinery/pkg/watch.DefaultChanSize) will cause a panic.
-	watchers map[schema.GroupVersionResource]map[string][]*watch.RaceFreeFakeWatcher
+	watchers map[schema.GroupVersionResource]map[logicalcluster.Name]map[string][]*watch.RaceFreeFakeWatcher
+}
+
+func (t *tracker) Cluster(name logicalcluster.Name) ScopedObjectTracker {
+	if name == logicalcluster.Wildcard {
+		panic("cannot scope to the wildcard cluster!")
+	}
+	return &scopedTracker{
+		tracker: t,
+		cluster: name,
+	}
+}
+
+type scopedTracker struct {
+	*tracker
+	cluster logicalcluster.Name
 }
 
 var _ ObjectTracker = &tracker{}
@@ -216,9 +286,28 @@ func NewObjectTracker(scheme ObjectScheme, decoder runtime.Decoder) ObjectTracke
 	return &tracker{
 		scheme:   scheme,
 		decoder:  decoder,
-		objects:  make(map[schema.GroupVersionResource]map[types.NamespacedName]runtime.Object),
-		watchers: make(map[schema.GroupVersionResource]map[string][]*watch.RaceFreeFakeWatcher),
+		objects:  make(map[schema.GroupVersionResource]map[ClusterNamespacedName]runtime.Object),
+		watchers: make(map[schema.GroupVersionResource]map[logicalcluster.Name]map[string][]*watch.RaceFreeFakeWatcher),
 	}
+}
+
+func (t *scopedTracker) List(gvr schema.GroupVersionResource, gvk schema.GroupVersionKind, ns string) (runtime.Object, error) {
+	list, err := t.tracker.List(gvr, gvk, ns)
+	if err != nil {
+		return list, err
+	}
+	objs, err := meta.ExtractList(list)
+	if err != nil {
+		return nil, err
+	}
+	matchingObjs, err := filterByCluster(objs, t.cluster)
+	if err != nil {
+		return nil, err
+	}
+	if err := meta.SetList(list, matchingObjs); err != nil {
+		return nil, err
+	}
+	return list.DeepCopyObject(), nil
 }
 
 func (t *tracker) List(gvr schema.GroupVersionResource, gvk schema.GroupVersionKind, ns string) (runtime.Object, error) {
@@ -260,20 +349,31 @@ func (t *tracker) List(gvr schema.GroupVersionResource, gvk schema.GroupVersionK
 	return list.DeepCopyObject(), nil
 }
 
+func (t *scopedTracker) Watch(gvr schema.GroupVersionResource, ns string) (watch.Interface, error) {
+	return t.tracker.watch(gvr, t.cluster, ns)
+}
+
 func (t *tracker) Watch(gvr schema.GroupVersionResource, ns string) (watch.Interface, error) {
+	return t.watch(gvr, logicalcluster.Wildcard, ns)
+}
+
+func (t *tracker) watch(gvr schema.GroupVersionResource, cluster logicalcluster.Name, ns string) (watch.Interface, error) {
 	t.lock.Lock()
 	defer t.lock.Unlock()
 
 	fakewatcher := watch.NewRaceFreeFake()
 
 	if _, exists := t.watchers[gvr]; !exists {
-		t.watchers[gvr] = make(map[string][]*watch.RaceFreeFakeWatcher)
+		t.watchers[gvr] = make(map[logicalcluster.Name]map[string][]*watch.RaceFreeFakeWatcher)
 	}
-	t.watchers[gvr][ns] = append(t.watchers[gvr][ns], fakewatcher)
+	if _, exists := t.watchers[gvr][cluster]; !exists {
+		t.watchers[gvr][cluster] = make(map[string][]*watch.RaceFreeFakeWatcher)
+	}
+	t.watchers[gvr][cluster][ns] = append(t.watchers[gvr][cluster][ns], fakewatcher)
 	return fakewatcher, nil
 }
 
-func (t *tracker) Get(gvr schema.GroupVersionResource, ns, name string) (runtime.Object, error) {
+func (t *scopedTracker) Get(gvr schema.GroupVersionResource, ns, name string) (runtime.Object, error) {
 	errNotFound := errors.NewNotFound(gvr.GroupResource(), name)
 
 	t.lock.RLock()
@@ -284,7 +384,7 @@ func (t *tracker) Get(gvr schema.GroupVersionResource, ns, name string) (runtime
 		return nil, errNotFound
 	}
 
-	matchingObj, ok := objs[types.NamespacedName{Namespace: ns, Name: name}]
+	matchingObj, ok := objs[ClusterNamespacedName{Cluster: t.cluster, NamespacedName: types.NamespacedName{Namespace: ns, Name: name}}]
 	if !ok {
 		return nil, errNotFound
 	}
@@ -302,7 +402,7 @@ func (t *tracker) Get(gvr schema.GroupVersionResource, ns, name string) (runtime
 	return obj, nil
 }
 
-func (t *tracker) Add(obj runtime.Object) error {
+func (t *scopedTracker) Add(obj runtime.Object) error {
 	if meta.IsListType(obj) {
 		return t.addList(obj, false)
 	}
@@ -342,30 +442,45 @@ func (t *tracker) Add(obj runtime.Object) error {
 	return nil
 }
 
-func (t *tracker) Create(gvr schema.GroupVersionResource, obj runtime.Object, ns string) error {
+func (t *scopedTracker) Create(gvr schema.GroupVersionResource, obj runtime.Object, ns string) error {
 	return t.add(gvr, obj, ns, false)
 }
 
-func (t *tracker) Update(gvr schema.GroupVersionResource, obj runtime.Object, ns string) error {
+func (t *scopedTracker) Update(gvr schema.GroupVersionResource, obj runtime.Object, ns string) error {
 	return t.add(gvr, obj, ns, true)
 }
 
-func (t *tracker) getWatches(gvr schema.GroupVersionResource, ns string) []*watch.RaceFreeFakeWatcher {
+func (t *tracker) getWatches(gvr schema.GroupVersionResource, cluster logicalcluster.Name, ns string) []*watch.RaceFreeFakeWatcher {
 	watches := []*watch.RaceFreeFakeWatcher{}
-	if t.watchers[gvr] != nil {
-		if w := t.watchers[gvr][ns]; w != nil {
+	gvrWatchers, ok := t.watchers[gvr]
+	if !ok {
+		return watches
+	}
+	// wildcard watchers always get events
+	if namespacedWatchers, ok := gvrWatchers[logicalcluster.Wildcard]; ok {
+		if w := namespacedWatchers[metav1.NamespaceAll]; w != nil {
 			watches = append(watches, w...)
 		}
-		if ns != metav1.NamespaceAll {
-			if w := t.watchers[gvr][metav1.NamespaceAll]; w != nil {
-				watches = append(watches, w...)
-			}
-		}
+	}
+	clusterWatchers, ok := gvrWatchers[cluster]
+	if !ok {
+		return watches
+	}
+	// cross-namespace watchers always get events
+	if w := clusterWatchers[metav1.NamespaceAll]; w != nil {
+		watches = append(watches, w...)
+	}
+	// then, also add anyone watching the particular cluster & namespace
+	if w := clusterWatchers[ns]; w != nil {
+		watches = append(watches, w...)
 	}
 	return watches
 }
 
-func (t *tracker) add(gvr schema.GroupVersionResource, obj runtime.Object, ns string, replaceExisting bool) error {
+func (t *scopedTracker) add(gvr schema.GroupVersionResource, obj runtime.Object, ns string, replaceExisting bool) error {
+	if ns == metav1.NamespaceAll {
+		return fmt.Errorf("cannot add in namespace %q", ns)
+	}
 	t.lock.Lock()
 	defer t.lock.Unlock()
 
@@ -393,13 +508,13 @@ func (t *tracker) add(gvr schema.GroupVersionResource, obj runtime.Object, ns st
 
 	_, ok := t.objects[gvr]
 	if !ok {
-		t.objects[gvr] = make(map[types.NamespacedName]runtime.Object)
+		t.objects[gvr] = make(map[ClusterNamespacedName]runtime.Object)
 	}
 
-	namespacedName := types.NamespacedName{Namespace: newMeta.GetNamespace(), Name: newMeta.GetName()}
+	namespacedName := ClusterNamespacedName{Cluster: logicalcluster.From(newMeta), NamespacedName: types.NamespacedName{Namespace: newMeta.GetNamespace(), Name: newMeta.GetName()}}
 	if _, ok = t.objects[gvr][namespacedName]; ok {
 		if replaceExisting {
-			for _, w := range t.getWatches(gvr, ns) {
+			for _, w := range t.getWatches(gvr, t.cluster, ns) {
 				// To avoid the object from being accidentally modified by watcher
 				w.Modify(obj.DeepCopyObject())
 			}
@@ -416,7 +531,7 @@ func (t *tracker) add(gvr schema.GroupVersionResource, obj runtime.Object, ns st
 
 	t.objects[gvr][namespacedName] = obj
 
-	for _, w := range t.getWatches(gvr, ns) {
+	for _, w := range t.getWatches(gvr, t.cluster, ns) {
 		// To avoid the object from being accidentally modified by watcher
 		w.Add(obj.DeepCopyObject())
 	}
@@ -424,7 +539,7 @@ func (t *tracker) add(gvr schema.GroupVersionResource, obj runtime.Object, ns st
 	return nil
 }
 
-func (t *tracker) addList(obj runtime.Object, replaceExisting bool) error {
+func (t *scopedTracker) addList(obj runtime.Object, replaceExisting bool) error {
 	list, err := meta.ExtractList(obj)
 	if err != nil {
 		return err
@@ -441,7 +556,10 @@ func (t *tracker) addList(obj runtime.Object, replaceExisting bool) error {
 	return nil
 }
 
-func (t *tracker) Delete(gvr schema.GroupVersionResource, ns, name string) error {
+func (t *scopedTracker) Delete(gvr schema.GroupVersionResource, ns, name string) error {
+	if ns == metav1.NamespaceAll {
+		return fmt.Errorf("cannot add in namespace %q", ns)
+	}
 	t.lock.Lock()
 	defer t.lock.Unlock()
 
@@ -450,14 +568,14 @@ func (t *tracker) Delete(gvr schema.GroupVersionResource, ns, name string) error
 		return errors.NewNotFound(gvr.GroupResource(), name)
 	}
 
-	namespacedName := types.NamespacedName{Namespace: ns, Name: name}
+	namespacedName := ClusterNamespacedName{Cluster: t.cluster, NamespacedName: types.NamespacedName{Namespace: ns, Name: name}}
 	obj, ok := objs[namespacedName]
 	if !ok {
 		return errors.NewNotFound(gvr.GroupResource(), name)
 	}
 
 	delete(objs, namespacedName)
-	for _, w := range t.getWatches(gvr, ns) {
+	for _, w := range t.getWatches(gvr, t.cluster, ns) {
 		w.Delete(obj.DeepCopyObject())
 	}
 	return nil
@@ -466,7 +584,7 @@ func (t *tracker) Delete(gvr schema.GroupVersionResource, ns, name string) error
 // filterByNamespace returns all objects in the collection that
 // match provided namespace. Empty namespace matches
 // non-namespaced objects.
-func filterByNamespace(objs map[types.NamespacedName]runtime.Object, ns string) ([]runtime.Object, error) {
+func filterByNamespace(objs map[ClusterNamespacedName]runtime.Object, ns string) ([]runtime.Object, error) {
 	var res []runtime.Object
 
 	for _, obj := range objs {
@@ -475,6 +593,35 @@ func filterByNamespace(objs map[types.NamespacedName]runtime.Object, ns string) 
 			return nil, err
 		}
 		if ns != "" && acc.GetNamespace() != ns {
+			continue
+		}
+		res = append(res, obj)
+	}
+
+	// Sort res to get deterministic order.
+	sort.Slice(res, func(i, j int) bool {
+		acc1, _ := meta.Accessor(res[i])
+		acc2, _ := meta.Accessor(res[j])
+		if acc1.GetNamespace() != acc2.GetNamespace() {
+			return acc1.GetNamespace() < acc2.GetNamespace()
+		}
+		return acc1.GetName() < acc2.GetName()
+	})
+	return res, nil
+}
+
+// filterByCluster returns all objects in the collection that
+// match provided namespace. Empty namespace matches
+// non-namespaced objects.
+func filterByCluster(objs []runtime.Object, cluster logicalcluster.Name) ([]runtime.Object, error) {
+	var res []runtime.Object
+
+	for _, obj := range objs {
+		acc, err := meta.Accessor(obj)
+		if err != nil {
+			return nil, err
+		}
+		if logicalcluster.From(acc) != cluster {
 			continue
 		}
 		res = append(res, obj)

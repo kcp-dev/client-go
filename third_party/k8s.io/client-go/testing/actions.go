@@ -1,5 +1,6 @@
 /*
 Copyright 2015 The Kubernetes Authors.
+Modifications Copyright 2022 The KCP Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,6 +22,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/kcp-dev/logicalcluster/v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/labels"
@@ -29,50 +31,55 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-func NewRootGetAction(resource schema.GroupVersionResource, name string) GetActionImpl {
+func NewRootGetAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, name string) GetActionImpl {
 	action := GetActionImpl{}
 	action.Verb = "get"
 	action.Resource = resource
 	action.Name = name
+	action.Cluster = cluster
 
 	return action
 }
 
-func NewGetAction(resource schema.GroupVersionResource, namespace, name string) GetActionImpl {
+func NewGetAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, namespace, name string) GetActionImpl {
 	action := GetActionImpl{}
 	action.Verb = "get"
 	action.Resource = resource
 	action.Namespace = namespace
 	action.Name = name
+	action.Cluster = cluster
 
 	return action
 }
 
-func NewGetSubresourceAction(resource schema.GroupVersionResource, namespace, subresource, name string) GetActionImpl {
+func NewGetSubresourceAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, namespace, subresource, name string) GetActionImpl {
 	action := GetActionImpl{}
 	action.Verb = "get"
 	action.Resource = resource
 	action.Subresource = subresource
 	action.Namespace = namespace
 	action.Name = name
+	action.Cluster = cluster
 
 	return action
 }
 
-func NewRootGetSubresourceAction(resource schema.GroupVersionResource, subresource, name string) GetActionImpl {
+func NewRootGetSubresourceAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, subresource, name string) GetActionImpl {
 	action := GetActionImpl{}
 	action.Verb = "get"
 	action.Resource = resource
 	action.Subresource = subresource
 	action.Name = name
+	action.Cluster = cluster
 
 	return action
 }
 
-func NewRootListAction(resource schema.GroupVersionResource, kind schema.GroupVersionKind, opts interface{}) ListActionImpl {
+func NewRootListAction(resource schema.GroupVersionResource, kind schema.GroupVersionKind, cluster logicalcluster.Name, opts interface{}) ListActionImpl {
 	action := ListActionImpl{}
 	action.Verb = "list"
 	action.Resource = resource
+	action.Cluster = cluster
 	action.Kind = kind
 	labelSelector, fieldSelector, _ := ExtractFromListOptions(opts)
 	action.ListRestrictions = ListRestrictions{labelSelector, fieldSelector}
@@ -80,10 +87,11 @@ func NewRootListAction(resource schema.GroupVersionResource, kind schema.GroupVe
 	return action
 }
 
-func NewListAction(resource schema.GroupVersionResource, kind schema.GroupVersionKind, namespace string, opts interface{}) ListActionImpl {
+func NewListAction(resource schema.GroupVersionResource, kind schema.GroupVersionKind, cluster logicalcluster.Name, namespace string, opts interface{}) ListActionImpl {
 	action := ListActionImpl{}
 	action.Verb = "list"
 	action.Resource = resource
+	action.Cluster = cluster
 	action.Kind = kind
 	action.Namespace = namespace
 	labelSelector, fieldSelector, _ := ExtractFromListOptions(opts)
@@ -92,128 +100,140 @@ func NewListAction(resource schema.GroupVersionResource, kind schema.GroupVersio
 	return action
 }
 
-func NewRootCreateAction(resource schema.GroupVersionResource, object runtime.Object) CreateActionImpl {
+func NewRootCreateAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, object runtime.Object) CreateActionImpl {
 	action := CreateActionImpl{}
 	action.Verb = "create"
 	action.Resource = resource
+	action.Cluster = cluster
 	action.Object = object
 
 	return action
 }
 
-func NewCreateAction(resource schema.GroupVersionResource, namespace string, object runtime.Object) CreateActionImpl {
+func NewCreateAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, namespace string, object runtime.Object) CreateActionImpl {
 	action := CreateActionImpl{}
 	action.Verb = "create"
 	action.Resource = resource
+	action.Cluster = cluster
 	action.Namespace = namespace
 	action.Object = object
 
 	return action
 }
 
-func NewRootCreateSubresourceAction(resource schema.GroupVersionResource, name, subresource string, object runtime.Object) CreateActionImpl {
+func NewRootCreateSubresourceAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, name, subresource string, object runtime.Object) CreateActionImpl {
 	action := CreateActionImpl{}
 	action.Verb = "create"
 	action.Resource = resource
 	action.Subresource = subresource
 	action.Name = name
+	action.Cluster = cluster
 	action.Object = object
 
 	return action
 }
 
-func NewCreateSubresourceAction(resource schema.GroupVersionResource, name, subresource, namespace string, object runtime.Object) CreateActionImpl {
+func NewCreateSubresourceAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, name, subresource, namespace string, object runtime.Object) CreateActionImpl {
 	action := CreateActionImpl{}
 	action.Verb = "create"
 	action.Resource = resource
 	action.Namespace = namespace
 	action.Subresource = subresource
 	action.Name = name
+	action.Cluster = cluster
 	action.Object = object
 
 	return action
 }
 
-func NewRootUpdateAction(resource schema.GroupVersionResource, object runtime.Object) UpdateActionImpl {
+func NewRootUpdateAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, object runtime.Object) UpdateActionImpl {
 	action := UpdateActionImpl{}
 	action.Verb = "update"
 	action.Resource = resource
+	action.Cluster = cluster
 	action.Object = object
 
 	return action
 }
 
-func NewUpdateAction(resource schema.GroupVersionResource, namespace string, object runtime.Object) UpdateActionImpl {
+func NewUpdateAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, namespace string, object runtime.Object) UpdateActionImpl {
 	action := UpdateActionImpl{}
 	action.Verb = "update"
 	action.Resource = resource
+	action.Cluster = cluster
 	action.Namespace = namespace
 	action.Object = object
 
 	return action
 }
 
-func NewRootPatchAction(resource schema.GroupVersionResource, name string, pt types.PatchType, patch []byte) PatchActionImpl {
+func NewRootPatchAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, name string, pt types.PatchType, patch []byte) PatchActionImpl {
 	action := PatchActionImpl{}
 	action.Verb = "patch"
 	action.Resource = resource
 	action.Name = name
+	action.Cluster = cluster
 	action.PatchType = pt
 	action.Patch = patch
 
 	return action
 }
 
-func NewPatchAction(resource schema.GroupVersionResource, namespace string, name string, pt types.PatchType, patch []byte) PatchActionImpl {
+func NewPatchAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, namespace string, name string, pt types.PatchType, patch []byte) PatchActionImpl {
 	action := PatchActionImpl{}
 	action.Verb = "patch"
 	action.Resource = resource
 	action.Namespace = namespace
 	action.Name = name
+	action.Cluster = cluster
 	action.PatchType = pt
 	action.Patch = patch
 
 	return action
 }
 
-func NewRootPatchSubresourceAction(resource schema.GroupVersionResource, name string, pt types.PatchType, patch []byte, subresources ...string) PatchActionImpl {
-	action := PatchActionImpl{}
-	action.Verb = "patch"
-	action.Resource = resource
-	action.Subresource = path.Join(subresources...)
-	action.Name = name
-	action.PatchType = pt
-	action.Patch = patch
-
-	return action
-}
-
-func NewPatchSubresourceAction(resource schema.GroupVersionResource, namespace, name string, pt types.PatchType, patch []byte, subresources ...string) PatchActionImpl {
+func NewRootPatchSubresourceAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, name string, pt types.PatchType, patch []byte, subresources ...string) PatchActionImpl {
 	action := PatchActionImpl{}
 	action.Verb = "patch"
 	action.Resource = resource
 	action.Subresource = path.Join(subresources...)
-	action.Namespace = namespace
 	action.Name = name
+	action.Cluster = cluster
 	action.PatchType = pt
 	action.Patch = patch
 
 	return action
 }
 
-func NewRootUpdateSubresourceAction(resource schema.GroupVersionResource, subresource string, object runtime.Object) UpdateActionImpl {
+func NewPatchSubresourceAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, namespace, name string, pt types.PatchType, patch []byte, subresources ...string) PatchActionImpl {
+	action := PatchActionImpl{}
+	action.Verb = "patch"
+	action.Resource = resource
+	action.Subresource = path.Join(subresources...)
+	action.Namespace = namespace
+	action.Name = name
+	action.Cluster = cluster
+	action.PatchType = pt
+	action.Patch = patch
+
+	return action
+}
+
+func NewRootUpdateSubresourceAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, subresource string, object runtime.Object) UpdateActionImpl {
 	action := UpdateActionImpl{}
 	action.Verb = "update"
 	action.Resource = resource
+	action.Cluster = cluster
 	action.Subresource = subresource
 	action.Object = object
 
 	return action
 }
-func NewUpdateSubresourceAction(resource schema.GroupVersionResource, subresource string, namespace string, object runtime.Object) UpdateActionImpl {
+func NewUpdateSubresourceAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, subresource string, namespace string, object runtime.Object) UpdateActionImpl {
 	action := UpdateActionImpl{}
 	action.Verb = "update"
 	action.Resource = resource
+	action.Cluster = cluster
 	action.Subresource = subresource
 	action.Namespace = namespace
 	action.Object = object
@@ -221,70 +241,76 @@ func NewUpdateSubresourceAction(resource schema.GroupVersionResource, subresourc
 	return action
 }
 
-func NewRootDeleteAction(resource schema.GroupVersionResource, name string) DeleteActionImpl {
-	return NewRootDeleteActionWithOptions(resource, name, metav1.DeleteOptions{})
+func NewRootDeleteAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, name string) DeleteActionImpl {
+	return NewRootDeleteActionWithOptions(resource, cluster, name, metav1.DeleteOptions{})
 }
 
-func NewRootDeleteActionWithOptions(resource schema.GroupVersionResource, name string, opts metav1.DeleteOptions) DeleteActionImpl {
+func NewRootDeleteActionWithOptions(resource schema.GroupVersionResource, cluster logicalcluster.Name, name string, opts metav1.DeleteOptions) DeleteActionImpl {
 	action := DeleteActionImpl{}
 	action.Verb = "delete"
 	action.Resource = resource
 	action.Name = name
+	action.Cluster = cluster
 	action.DeleteOptions = opts
 
 	return action
 }
 
-func NewRootDeleteSubresourceAction(resource schema.GroupVersionResource, subresource string, name string) DeleteActionImpl {
+func NewRootDeleteSubresourceAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, subresource string, name string) DeleteActionImpl {
 	action := DeleteActionImpl{}
 	action.Verb = "delete"
 	action.Resource = resource
 	action.Subresource = subresource
 	action.Name = name
+	action.Cluster = cluster
 
 	return action
 }
 
-func NewDeleteAction(resource schema.GroupVersionResource, namespace, name string) DeleteActionImpl {
-	return NewDeleteActionWithOptions(resource, namespace, name, metav1.DeleteOptions{})
+func NewDeleteAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, namespace, name string) DeleteActionImpl {
+	return NewDeleteActionWithOptions(resource, cluster, namespace, name, metav1.DeleteOptions{})
 }
 
-func NewDeleteActionWithOptions(resource schema.GroupVersionResource, namespace, name string, opts metav1.DeleteOptions) DeleteActionImpl {
+func NewDeleteActionWithOptions(resource schema.GroupVersionResource, cluster logicalcluster.Name, namespace, name string, opts metav1.DeleteOptions) DeleteActionImpl {
 	action := DeleteActionImpl{}
 	action.Verb = "delete"
 	action.Resource = resource
 	action.Namespace = namespace
 	action.Name = name
+	action.Cluster = cluster
 	action.DeleteOptions = opts
 
 	return action
 }
 
-func NewDeleteSubresourceAction(resource schema.GroupVersionResource, subresource, namespace, name string) DeleteActionImpl {
+func NewDeleteSubresourceAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, subresource, namespace, name string) DeleteActionImpl {
 	action := DeleteActionImpl{}
 	action.Verb = "delete"
 	action.Resource = resource
 	action.Subresource = subresource
 	action.Namespace = namespace
 	action.Name = name
+	action.Cluster = cluster
 
 	return action
 }
 
-func NewRootDeleteCollectionAction(resource schema.GroupVersionResource, opts interface{}) DeleteCollectionActionImpl {
+func NewRootDeleteCollectionAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, opts interface{}) DeleteCollectionActionImpl {
 	action := DeleteCollectionActionImpl{}
 	action.Verb = "delete-collection"
 	action.Resource = resource
+	action.Cluster = cluster
 	labelSelector, fieldSelector, _ := ExtractFromListOptions(opts)
 	action.ListRestrictions = ListRestrictions{labelSelector, fieldSelector}
 
 	return action
 }
 
-func NewDeleteCollectionAction(resource schema.GroupVersionResource, namespace string, opts interface{}) DeleteCollectionActionImpl {
+func NewDeleteCollectionAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, namespace string, opts interface{}) DeleteCollectionActionImpl {
 	action := DeleteCollectionActionImpl{}
 	action.Verb = "delete-collection"
 	action.Resource = resource
+	action.Cluster = cluster
 	action.Namespace = namespace
 	labelSelector, fieldSelector, _ := ExtractFromListOptions(opts)
 	action.ListRestrictions = ListRestrictions{labelSelector, fieldSelector}
@@ -292,10 +318,11 @@ func NewDeleteCollectionAction(resource schema.GroupVersionResource, namespace s
 	return action
 }
 
-func NewRootWatchAction(resource schema.GroupVersionResource, opts interface{}) WatchActionImpl {
+func NewRootWatchAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, opts interface{}) WatchActionImpl {
 	action := WatchActionImpl{}
 	action.Verb = "watch"
 	action.Resource = resource
+	action.Cluster = cluster
 	labelSelector, fieldSelector, resourceVersion := ExtractFromListOptions(opts)
 	action.WatchRestrictions = WatchRestrictions{labelSelector, fieldSelector, resourceVersion}
 
@@ -327,10 +354,11 @@ func ExtractFromListOptions(opts interface{}) (labelSelector labels.Selector, fi
 	return labelSelector, fieldSelector, resourceVersion
 }
 
-func NewWatchAction(resource schema.GroupVersionResource, namespace string, opts interface{}) WatchActionImpl {
+func NewWatchAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, namespace string, opts interface{}) WatchActionImpl {
 	action := WatchActionImpl{}
 	action.Verb = "watch"
 	action.Resource = resource
+	action.Cluster = cluster
 	action.Namespace = namespace
 	labelSelector, fieldSelector, resourceVersion := ExtractFromListOptions(opts)
 	action.WatchRestrictions = WatchRestrictions{labelSelector, fieldSelector, resourceVersion}
@@ -338,13 +366,14 @@ func NewWatchAction(resource schema.GroupVersionResource, namespace string, opts
 	return action
 }
 
-func NewProxyGetAction(resource schema.GroupVersionResource, namespace, scheme, name, port, path string, params map[string]string) ProxyGetActionImpl {
+func NewProxyGetAction(resource schema.GroupVersionResource, cluster logicalcluster.Name, namespace, scheme, name, port, path string, params map[string]string) ProxyGetActionImpl {
 	action := ProxyGetActionImpl{}
 	action.Verb = "get"
 	action.Resource = resource
 	action.Namespace = namespace
 	action.Scheme = scheme
 	action.Name = name
+	action.Cluster = cluster
 	action.Port = port
 	action.Path = path
 	action.Params = params
@@ -362,6 +391,7 @@ type WatchRestrictions struct {
 }
 
 type Action interface {
+	GetCluster() logicalcluster.Name
 	GetNamespace() string
 	GetVerb() string
 	GetResource() schema.GroupVersionResource
@@ -431,10 +461,15 @@ type ProxyGetAction interface {
 }
 
 type ActionImpl struct {
+	Cluster     logicalcluster.Name
 	Namespace   string
 	Verb        string
 	Resource    schema.GroupVersionResource
 	Subresource string
+}
+
+func (a ActionImpl) GetCluster() logicalcluster.Name {
+	return a.Cluster
 }
 
 func (a ActionImpl) GetNamespace() string {
