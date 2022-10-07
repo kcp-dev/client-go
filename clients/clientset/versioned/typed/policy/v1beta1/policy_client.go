@@ -34,6 +34,7 @@ import (
 type PolicyV1beta1ClusterInterface interface {
 	PolicyV1beta1ClusterScoper
 	PodDisruptionBudgetsClusterGetter
+	EvictionsClusterGetter
 	PodSecurityPoliciesClusterGetter
 }
 
@@ -54,6 +55,10 @@ func (c *PolicyV1beta1ClusterClient) Cluster(name logicalcluster.Name) policyv1b
 
 func (c *PolicyV1beta1ClusterClient) PodDisruptionBudgets() PodDisruptionBudgetClusterInterface {
 	return &podDisruptionBudgetsClusterInterface{clientCache: c.clientCache}
+}
+
+func (c *PolicyV1beta1ClusterClient) Evictions() EvictionClusterInterface {
+	return &evictionsClusterInterface{clientCache: c.clientCache}
 }
 
 func (c *PolicyV1beta1ClusterClient) PodSecurityPolicies() PodSecurityPolicyClusterInterface {

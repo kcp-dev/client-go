@@ -25,7 +25,7 @@ if [[ -z "${MAKELEVEL:-}" ]]; then
 fi
 
 ${CODE_GENERATOR} \
-  "client:outputPackagePath=github.com/kcp-dev/client-go,name=kubernetes,apiPackagePath=k8s.io/api,singleClusterClientPackagePath=k8s.io/client-go/kubernetes,headerFile=./hack/boilerplate/boilerplate.go.txt" \
+  "client:outputPackagePath=github.com/kcp-dev/client-go,name=kubernetes,apiPackagePath=k8s.io/api,singleClusterClientPackagePath=k8s.io/client-go/kubernetes,singleClusterApplyConfigurationsPackagePath=k8s.io/client-go/applyconfigurations,headerFile=./hack/boilerplate/boilerplate.go.txt" \
   "lister:apiPackagePath=k8s.io/api,singleClusterListerPackagePath=k8s.io/client-go/listers,headerFile=./hack/boilerplate/boilerplate.go.txt" \
   "informer:outputPackagePath=github.com/kcp-dev/client-go,apiPackagePath=k8s.io/api,headerFile=./hack/boilerplate/boilerplate.go.txt" \
   "paths=$( go list -m -json k8s.io/api | jq --raw-output .Dir )/..." \
