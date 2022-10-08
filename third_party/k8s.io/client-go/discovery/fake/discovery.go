@@ -22,7 +22,6 @@ import (
 	"net/http"
 
 	openapi_v2 "github.com/google/gnostic/openapiv2"
-	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 	"github.com/kcp-dev/logicalcluster/v2"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -32,6 +31,8 @@ import (
 	"k8s.io/client-go/openapi"
 	kubeversion "k8s.io/client-go/pkg/version"
 	restclient "k8s.io/client-go/rest"
+
+	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
 // FakeDiscovery implements discovery.DiscoveryInterface and sometimes calls kcptesting.Fake.Invoke with an action,
