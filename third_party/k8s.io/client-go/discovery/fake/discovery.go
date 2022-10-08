@@ -1,5 +1,6 @@
 /*
 Copyright 2016 The Kubernetes Authors.
+Modifications Copyright 2022 The KCP Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,6 +22,8 @@ import (
 	"net/http"
 
 	openapi_v2 "github.com/google/gnostic/openapiv2"
+	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -29,22 +32,23 @@ import (
 	"k8s.io/client-go/openapi"
 	kubeversion "k8s.io/client-go/pkg/version"
 	restclient "k8s.io/client-go/rest"
-	"k8s.io/client-go/testing"
 )
 
-// FakeDiscovery implements discovery.DiscoveryInterface and sometimes calls testing.Fake.Invoke with an action,
+// FakeDiscovery implements discovery.DiscoveryInterface and sometimes calls kcptesting.Fake.Invoke with an action,
 // but doesn't respect the return value if any. There is a way to fake static values like ServerVersion by using the Faked... fields on the struct.
 type FakeDiscovery struct {
-	*testing.Fake
+	*kcptesting.Fake
 	FakedServerVersion *version.Info
+	Cluster            logicalcluster.Name
 }
 
 // ServerResourcesForGroupVersion returns the supported resources for a group
 // and version.
 func (c *FakeDiscovery) ServerResourcesForGroupVersion(groupVersion string) (*metav1.APIResourceList, error) {
-	action := testing.ActionImpl{
+	action := kcptesting.ActionImpl{
 		Verb:     "get",
 		Resource: schema.GroupVersionResource{Resource: "resource"},
+		Cluster:  c.Cluster,
 	}
 	c.Invokes(action, nil)
 	for _, resourceList := range c.Resources {
@@ -72,9 +76,10 @@ func (c *FakeDiscovery) ServerGroupsAndResources() ([]*metav1.APIGroup, []*metav
 		resultGroups = append(resultGroups, &sgs.Groups[i])
 	}
 
-	action := testing.ActionImpl{
+	action := kcptesting.ActionImpl{
 		Verb:     "get",
 		Resource: schema.GroupVersionResource{Resource: "resource"},
+		Cluster:  c.Cluster,
 	}
 	c.Invokes(action, nil)
 	return resultGroups, c.Resources, nil
@@ -95,9 +100,10 @@ func (c *FakeDiscovery) ServerPreferredNamespacedResources() ([]*metav1.APIResou
 // ServerGroups returns the supported groups, with information like supported
 // versions and the preferred version.
 func (c *FakeDiscovery) ServerGroups() (*metav1.APIGroupList, error) {
-	action := testing.ActionImpl{
+	action := kcptesting.ActionImpl{
 		Verb:     "get",
 		Resource: schema.GroupVersionResource{Resource: "group"},
+		Cluster:  c.Cluster,
 	}
 	c.Invokes(action, nil)
 
@@ -137,9 +143,10 @@ func (c *FakeDiscovery) ServerGroups() (*metav1.APIGroupList, error) {
 
 // ServerVersion retrieves and parses the server's version.
 func (c *FakeDiscovery) ServerVersion() (*version.Info, error) {
-	action := testing.ActionImpl{}
+	action := kcptesting.ActionImpl{}
 	action.Verb = "get"
 	action.Resource = schema.GroupVersionResource{Resource: "version"}
+	action.Cluster = c.Cluster
 	c.Invokes(action, nil)
 
 	if c.FakedServerVersion != nil {
