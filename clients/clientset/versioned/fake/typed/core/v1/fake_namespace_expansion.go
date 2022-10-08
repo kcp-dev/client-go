@@ -1,5 +1,6 @@
 /*
 Copyright 2014 The Kubernetes Authors.
+Modifications Copyright 2022 The KCP Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,22 +15,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package fake
+package v1
 
 import (
 	"context"
 
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	core "k8s.io/client-go/testing"
+
+	core "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-func (c *FakeNamespaces) Finalize(ctx context.Context, namespace *v1.Namespace, opts metav1.UpdateOptions) (*v1.Namespace, error) {
+func (c *namespacesClient) Finalize(ctx context.Context, namespace *v1.Namespace, opts metav1.UpdateOptions) (*v1.Namespace, error) {
 	action := core.CreateActionImpl{}
 	action.Verb = "create"
 	action.Resource = namespacesResource
 	action.Subresource = "finalize"
 	action.Object = namespace
+	action.Cluster = c.Cluster
 
 	obj, err := c.Fake.Invokes(action, namespace)
 	if obj == nil {

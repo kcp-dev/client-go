@@ -1,5 +1,6 @@
 /*
 Copyright 2019 The Kubernetes Authors.
+Modifications Copyright 2022 The KCP Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,19 +15,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package fake
+package v1beta1
 
 import (
-	v1beta1 "k8s.io/api/events/v1beta1"
-	types "k8s.io/apimachinery/pkg/types"
-	core "k8s.io/client-go/testing"
+	"k8s.io/api/events/v1beta1"
+	"k8s.io/apimachinery/pkg/types"
+
+	core "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
 // CreateWithEventNamespace creats a new event. Returns the copy of the event the server returns, or an error.
-func (c *FakeEvents) CreateWithEventNamespace(event *v1beta1.Event) (*v1beta1.Event, error) {
-	action := core.NewRootCreateAction(eventsResource, event)
-	if c.ns != "" {
-		action = core.NewCreateAction(eventsResource, c.ns, event)
+func (c *eventsClient) CreateWithEventNamespace(event *v1beta1.Event) (*v1beta1.Event, error) {
+	action := core.NewRootCreateAction(eventsResource, c.Cluster, event)
+	if c.Namespace != "" {
+		action = core.NewCreateAction(eventsResource, c.Cluster, c.Namespace, event)
 	}
 	obj, err := c.Fake.Invokes(action, event)
 	if obj == nil {
@@ -37,10 +39,10 @@ func (c *FakeEvents) CreateWithEventNamespace(event *v1beta1.Event) (*v1beta1.Ev
 }
 
 // UpdateWithEventNamespace replaces an existing event. Returns the copy of the event the server returns, or an error.
-func (c *FakeEvents) UpdateWithEventNamespace(event *v1beta1.Event) (*v1beta1.Event, error) {
-	action := core.NewRootUpdateAction(eventsResource, event)
-	if c.ns != "" {
-		action = core.NewUpdateAction(eventsResource, c.ns, event)
+func (c *eventsClient) UpdateWithEventNamespace(event *v1beta1.Event) (*v1beta1.Event, error) {
+	action := core.NewRootUpdateAction(eventsResource, c.Cluster, event)
+	if c.Namespace != "" {
+		action = core.NewUpdateAction(eventsResource, c.Cluster, c.Namespace, event)
 	}
 	obj, err := c.Fake.Invokes(action, event)
 	if obj == nil {
@@ -51,11 +53,11 @@ func (c *FakeEvents) UpdateWithEventNamespace(event *v1beta1.Event) (*v1beta1.Ev
 }
 
 // PatchWithEventNamespace patches an existing event. Returns the copy of the event the server returns, or an error.
-func (c *FakeEvents) PatchWithEventNamespace(event *v1beta1.Event, data []byte) (*v1beta1.Event, error) {
+func (c *eventsClient) PatchWithEventNamespace(event *v1beta1.Event, data []byte) (*v1beta1.Event, error) {
 	pt := types.StrategicMergePatchType
-	action := core.NewRootPatchAction(eventsResource, event.Name, pt, data)
-	if c.ns != "" {
-		action = core.NewPatchAction(eventsResource, c.ns, event.Name, pt, data)
+	action := core.NewRootPatchAction(eventsResource, c.Cluster, event.Name, pt, data)
+	if c.Namespace != "" {
+		action = core.NewPatchAction(eventsResource, c.Cluster, c.Namespace, event.Name, pt, data)
 	}
 	obj, err := c.Fake.Invokes(action, event)
 	if obj == nil {

@@ -1,5 +1,6 @@
 /*
 Copyright 2014 The Kubernetes Authors.
+Modifications Copyright 2022 The KCP Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,21 +15,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package fake
+package v1
 
 import (
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
-	types "k8s.io/apimachinery/pkg/types"
-	core "k8s.io/client-go/testing"
+	"k8s.io/apimachinery/pkg/types"
+
+	core "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-func (c *FakeEvents) CreateWithEventNamespace(event *v1.Event) (*v1.Event, error) {
-	action := core.NewRootCreateAction(eventsResource, event)
-	if c.ns != "" {
-		action = core.NewCreateAction(eventsResource, c.ns, event)
+func (c *eventsClient) CreateWithEventNamespace(event *v1.Event) (*v1.Event, error) {
+	action := core.NewRootCreateAction(eventsResource, c.Cluster, event)
+	if c.Namespace != "" {
+		action = core.NewCreateAction(eventsResource, c.Cluster, c.Namespace, event)
 	}
 	obj, err := c.Fake.Invokes(action, event)
 	if obj == nil {
@@ -39,10 +41,10 @@ func (c *FakeEvents) CreateWithEventNamespace(event *v1.Event) (*v1.Event, error
 }
 
 // Update replaces an existing event. Returns the copy of the event the server returns, or an error.
-func (c *FakeEvents) UpdateWithEventNamespace(event *v1.Event) (*v1.Event, error) {
-	action := core.NewRootUpdateAction(eventsResource, event)
-	if c.ns != "" {
-		action = core.NewUpdateAction(eventsResource, c.ns, event)
+func (c *eventsClient) UpdateWithEventNamespace(event *v1.Event) (*v1.Event, error) {
+	action := core.NewRootUpdateAction(eventsResource, c.Cluster, event)
+	if c.Namespace != "" {
+		action = core.NewUpdateAction(eventsResource, c.Cluster, c.Namespace, event)
 	}
 	obj, err := c.Fake.Invokes(action, event)
 	if obj == nil {
@@ -54,12 +56,12 @@ func (c *FakeEvents) UpdateWithEventNamespace(event *v1.Event) (*v1.Event, error
 
 // PatchWithEventNamespace patches an existing event. Returns the copy of the event the server returns, or an error.
 // TODO: Should take a PatchType as an argument probably.
-func (c *FakeEvents) PatchWithEventNamespace(event *v1.Event, data []byte) (*v1.Event, error) {
+func (c *eventsClient) PatchWithEventNamespace(event *v1.Event, data []byte) (*v1.Event, error) {
 	// TODO: Should be configurable to support additional patch strategies.
 	pt := types.StrategicMergePatchType
-	action := core.NewRootPatchAction(eventsResource, event.Name, pt, data)
-	if c.ns != "" {
-		action = core.NewPatchAction(eventsResource, c.ns, event.Name, pt, data)
+	action := core.NewRootPatchAction(eventsResource, c.Cluster, event.Name, pt, data)
+	if c.Namespace != "" {
+		action = core.NewPatchAction(eventsResource, c.Cluster, c.Namespace, event.Name, pt, data)
 	}
 	obj, err := c.Fake.Invokes(action, event)
 	if obj == nil {
@@ -70,10 +72,10 @@ func (c *FakeEvents) PatchWithEventNamespace(event *v1.Event, data []byte) (*v1.
 }
 
 // Search returns a list of events matching the specified object.
-func (c *FakeEvents) Search(scheme *runtime.Scheme, objOrRef runtime.Object) (*v1.EventList, error) {
-	action := core.NewRootListAction(eventsResource, eventsKind, metav1.ListOptions{})
-	if c.ns != "" {
-		action = core.NewListAction(eventsResource, eventsKind, c.ns, metav1.ListOptions{})
+func (c *eventsClient) Search(scheme *runtime.Scheme, objOrRef runtime.Object) (*v1.EventList, error) {
+	action := core.NewRootListAction(eventsResource, eventsKind, c.Cluster, metav1.ListOptions{})
+	if c.Namespace != "" {
+		action = core.NewListAction(eventsResource, eventsKind, c.Cluster, c.Namespace, metav1.ListOptions{})
 	}
 	obj, err := c.Fake.Invokes(action, &v1.EventList{})
 	if obj == nil {
@@ -83,11 +85,12 @@ func (c *FakeEvents) Search(scheme *runtime.Scheme, objOrRef runtime.Object) (*v
 	return obj.(*v1.EventList), err
 }
 
-func (c *FakeEvents) GetFieldSelector(involvedObjectName, involvedObjectNamespace, involvedObjectKind, involvedObjectUID *string) fields.Selector {
+func (c *eventsClient) GetFieldSelector(involvedObjectName, involvedObjectNamespace, involvedObjectKind, involvedObjectUID *string) fields.Selector {
 	action := core.GenericActionImpl{}
 	action.Verb = "get-field-selector"
 	action.Resource = eventsResource
+	action.Cluster = c.Cluster
 
-	c.Fake.Invokes(action, nil)
+	_, _ = c.Fake.Invokes(action, nil)
 	return fields.Everything()
 }

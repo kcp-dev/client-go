@@ -1,5 +1,6 @@
 /*
 Copyright 2017 The Kubernetes Authors.
+Modifications Copyright 2022 The KCP Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,19 +15,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package fake
+package v1beta1
 
 import (
 	"context"
 
 	certificates "k8s.io/api/certificates/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	core "k8s.io/client-go/testing"
+
+	core "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-func (c *FakeCertificateSigningRequests) UpdateApproval(ctx context.Context, certificateSigningRequest *certificates.CertificateSigningRequest, opts metav1.UpdateOptions) (result *certificates.CertificateSigningRequest, err error) {
-	obj, err := c.Fake.
-		Invokes(core.NewRootUpdateSubresourceAction(certificatesigningrequestsResource, "approval", certificateSigningRequest), &certificates.CertificateSigningRequest{})
+func (c *certificateSigningRequestsClient) UpdateApproval(ctx context.Context, certificateSigningRequest *certificates.CertificateSigningRequest, opts metav1.UpdateOptions) (result *certificates.CertificateSigningRequest, err error) {
+	obj, err := c.Fake.Invokes(core.NewRootUpdateSubresourceAction(certificateSigningRequestsResource, c.Cluster, "approval", certificateSigningRequest), &certificates.CertificateSigningRequest{})
 	if obj == nil {
 		return nil, err
 	}

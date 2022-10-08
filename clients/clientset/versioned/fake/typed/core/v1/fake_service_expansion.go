@@ -1,5 +1,6 @@
 /*
 Copyright 2014 The Kubernetes Authors.
+Modifications Copyright 2022 The KCP Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,13 +15,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package fake
+package v1
 
 import (
 	restclient "k8s.io/client-go/rest"
-	core "k8s.io/client-go/testing"
+
+	core "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-func (c *FakeServices) ProxyGet(scheme, name, port, path string, params map[string]string) restclient.ResponseWrapper {
-	return c.Fake.InvokesProxy(core.NewProxyGetAction(servicesResource, c.ns, scheme, name, port, path, params))
+func (c *servicesClient) ProxyGet(scheme, name, port, path string, params map[string]string) restclient.ResponseWrapper {
+	return c.Fake.InvokesProxy(core.NewProxyGetAction(servicesResource, c.Cluster, c.Namespace, scheme, name, port, path, params))
 }

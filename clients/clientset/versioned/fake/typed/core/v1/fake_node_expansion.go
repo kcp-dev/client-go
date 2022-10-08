@@ -1,5 +1,6 @@
 /*
 Copyright 2016 The Kubernetes Authors.
+Modifications Copyright 2022 The KCP Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,22 +15,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package fake
+package v1
 
 import (
 	"context"
 
 	v1 "k8s.io/api/core/v1"
-	types "k8s.io/apimachinery/pkg/types"
-	core "k8s.io/client-go/testing"
+	"k8s.io/apimachinery/pkg/types"
+
+	core "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
 // TODO: Should take a PatchType as an argument probably.
-func (c *FakeNodes) PatchStatus(_ context.Context, nodeName string, data []byte) (*v1.Node, error) {
+func (c *nodesClient) PatchStatus(_ context.Context, nodeName string, data []byte) (*v1.Node, error) {
 	// TODO: Should be configurable to support additional patch strategies.
 	pt := types.StrategicMergePatchType
-	obj, err := c.Fake.Invokes(
-		core.NewRootPatchSubresourceAction(nodesResource, nodeName, pt, data, "status"), &v1.Node{})
+	obj, err := c.Fake.Invokes(core.NewRootPatchSubresourceAction(nodesResource, c.Cluster, nodeName, pt, data, "status"), &v1.Node{})
 	if obj == nil {
 		return nil, err
 	}
