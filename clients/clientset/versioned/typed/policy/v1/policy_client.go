@@ -34,6 +34,7 @@ import (
 type PolicyV1ClusterInterface interface {
 	PolicyV1ClusterScoper
 	PodDisruptionBudgetsClusterGetter
+	EvictionsClusterGetter
 }
 
 type PolicyV1ClusterScoper interface {
@@ -53,6 +54,10 @@ func (c *PolicyV1ClusterClient) Cluster(name logicalcluster.Name) policyv1.Polic
 
 func (c *PolicyV1ClusterClient) PodDisruptionBudgets() PodDisruptionBudgetClusterInterface {
 	return &podDisruptionBudgetsClusterInterface{clientCache: c.clientCache}
+}
+
+func (c *PolicyV1ClusterClient) Evictions() EvictionClusterInterface {
+	return &evictionsClusterInterface{clientCache: c.clientCache}
 }
 
 // NewForConfig creates a new PolicyV1ClusterClient for the given config.

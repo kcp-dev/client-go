@@ -44,8 +44,15 @@ sink_dir="./third_party/k8s.io/client-go/discovery/fake"
 mkdir -p "${sink_dir}"
 cp "${source_dir}/discovery/fake/discovery.go" "${sink_dir}"
 
-for extension in $( find "${source_dir}/listers" -type f -name '*_expansion.go' ); do
-  sink="./clients/${extension##"${source_dir}/"}"
+for expansion in $( find "${source_dir}/listers" -type f -name '*_expansion.go' ); do
+  sink="./clients/${expansion##"${source_dir}/"}"
   mkdir -p "$( dirname "${sink}" )"
-  cp "${extension}" "${sink}"
+  cp "${expansion}" "${sink}"
+done
+
+for expansion in $( find "${source_dir}/kubernetes" -type f -name 'fake_*_expansion.go' ); do
+  expansion_without_fake="${expansion/"/fake"/}"
+  sink="./clients/clientset/versioned/fake/${expansion_without_fake##"${source_dir}/kubernetes/"}"
+  mkdir -p "$( dirname "${sink}" )"
+  cp "${expansion}" "${sink}"
 done
