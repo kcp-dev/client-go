@@ -34,6 +34,16 @@ sink_dir="./third_party/k8s.io/client-go/tools/cache"
 mkdir -p "${sink_dir}"
 cp "${source_dir}/tools/cache/mutation_cache.go" "${sink_dir}/mutation_cache.go"
 
+sink_dir="./third_party/k8s.io/client-go/testing/"
+mkdir -p "${sink_dir}"
+for file in actions fake fixture interface; do
+  cp "${source_dir}/testing/${file}.go" "${sink_dir}"
+done
+
+sink_dir="./third_party/k8s.io/client-go/discovery/fake"
+mkdir -p "${sink_dir}"
+cp "${source_dir}/discovery/fake/discovery.go" "${sink_dir}"
+
 for extension in $( find "${source_dir}/listers" -type f -name '*_expansion.go' ); do
   sink="./clients/${extension##"${source_dir}/"}"
   mkdir -p "$( dirname "${sink}" )"
