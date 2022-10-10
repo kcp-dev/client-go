@@ -44,6 +44,10 @@ sink_dir="./third_party/k8s.io/client-go/discovery/fake"
 mkdir -p "${sink_dir}"
 cp "${source_dir}/discovery/fake/discovery.go" "${sink_dir}"
 
+sink_dir="./third_party/k8s.io/client-go/metadata/fake"
+mkdir -p "${sink_dir}"
+cp "${source_dir}/metadata/fake/simple.go" "${sink_dir}"
+
 for expansion in $( find "${source_dir}/listers" -type f -name '*_expansion.go' ); do
   sink="./clients/${expansion##"${source_dir}/"}"
   mkdir -p "$( dirname "${sink}" )"
