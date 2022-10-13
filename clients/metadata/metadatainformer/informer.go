@@ -101,11 +101,11 @@ func (f *sharedInformerFactory) Start(stopCh <-chan struct{}) {
 
 // WaitForCacheSync waits for all started informers' cache were synced.
 func (f *sharedInformerFactory) WaitForCacheSync(stopCh <-chan struct{}) map[schema.GroupVersionResource]bool {
-	informers := func() map[schema.GroupVersionResource]cache.SharedIndexInformer {
+	informers := func() map[schema.GroupVersionResource]kcpcache.ScopeableSharedIndexInformer {
 		f.lock.Lock()
 		defer f.lock.Unlock()
 
-		informers := map[schema.GroupVersionResource]cache.SharedIndexInformer{}
+		informers := map[schema.GroupVersionResource]kcpcache.ScopeableSharedIndexInformer{}
 		for informerType, informer := range f.informers {
 			if f.startedInformers[informerType] {
 				informers[informerType] = informer.Informer()
@@ -148,13 +148,13 @@ func NewFilteredDynamicInformer(client kcpmetadata.ClusterInterface, gvr schema.
 }
 
 type dynamicInformer struct {
-	informer cache.SharedIndexInformer
+	informer kcpcache.ScopeableSharedIndexInformer
 	gvr      schema.GroupVersionResource
 }
 
 var _ kcpinformers.GenericClusterInformer = &dynamicInformer{}
 
-func (d *dynamicInformer) Informer() cache.SharedIndexInformer {
+func (d *dynamicInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return d.informer
 }
 
