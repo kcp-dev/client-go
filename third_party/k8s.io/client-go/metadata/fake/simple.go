@@ -74,7 +74,7 @@ func NewSimpleMetadataClient(scheme *runtime.Scheme, objects ...runtime.Object) 
 		}
 	}
 
-	cs := &FakeMetadataClusterClientset{tracker: o, scheme: scheme}
+	cs := &FakeMetadataClusterClientset{Fake: &kcptesting.Fake{}, tracker: o, scheme: scheme}
 	cs.AddReactor("*", "*", kcptesting.ObjectReaction(o))
 	cs.AddWatchReactor("*", kcptesting.WatchReaction(o))
 
@@ -101,6 +101,10 @@ func (c *FakeMetadataClusterClientset) Cluster(cluster logicalcluster.Name) meta
 	if cluster == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
+	return c.cluster(cluster)
+}
+
+func (c *FakeMetadataClusterClientset) cluster(cluster logicalcluster.Name) metadata.Interface {
 	return &FakeMetadataClient{
 		Fake:    c.Fake,
 		tracker: c.tracker.Cluster(cluster),
@@ -125,6 +129,13 @@ type FakeMetadataClusterClient struct {
 }
 
 func (f *FakeMetadataClusterClient) Cluster(name logicalcluster.Name) metadata.Getter {
+	if name == logicalcluster.Wildcard {
+		panic("A specific cluster must be provided when scoping, not the wildcard.")
+	}
+	return f.cluster(name)
+}
+
+func (f *FakeMetadataClusterClient) cluster(name logicalcluster.Name) metadata.Getter {
 	return &metadataResourceClient{
 		client: &FakeMetadataClient{
 			Fake:    f.Fake,
@@ -137,11 +148,11 @@ func (f *FakeMetadataClusterClient) Cluster(name logicalcluster.Name) metadata.G
 }
 
 func (f *FakeMetadataClusterClient) List(ctx context.Context, opts metav1.ListOptions) (*metav1.PartialObjectMetadataList, error) {
-	return f.Cluster(logicalcluster.Wildcard).List(ctx, opts)
+	return f.cluster(logicalcluster.Wildcard).List(ctx, opts)
 }
 
 func (f *FakeMetadataClusterClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return f.Cluster(logicalcluster.Wildcard).Watch(ctx, opts)
+	return f.cluster(logicalcluster.Wildcard).Watch(ctx, opts)
 }
 
 type FakeMetadataClient struct {

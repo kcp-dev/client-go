@@ -120,14 +120,17 @@ func NewSimpleDynamicClientWithCustomListKinds(scheme *runtime.Scheme, gvrToList
 		}
 	}
 
-	cs := &FakeDynamicClusterClientset{tracker: o, scheme: scheme, gvrToListKind: completeGVRToListKind}
+	cs := &FakeDynamicClusterClientset{Fake: &kcptesting.Fake{}, tracker: o, scheme: scheme, gvrToListKind: completeGVRToListKind}
 	cs.AddReactor("*", "*", kcptesting.ObjectReaction(o))
 	cs.AddWatchReactor("*", kcptesting.WatchReaction(o))
 
 	return cs
 }
 
-var _ kcpdynamic.ClusterInterface = (*FakeDynamicClusterClientset)(nil)
+var (
+	_ kcpdynamic.ClusterInterface = &FakeDynamicClusterClientset{}
+	_ kcptesting.FakeClient       = &FakeDynamicClusterClientset{}
+)
 
 // Clientset implements clientset.Interface. Meant to be embedded into a
 // struct to get a default implementation. This makes faking out just the method
@@ -137,6 +140,10 @@ type FakeDynamicClusterClientset struct {
 	scheme        *runtime.Scheme
 	gvrToListKind map[schema.GroupVersionResource]string
 	tracker       kcptesting.ObjectTracker
+}
+
+func (c *FakeDynamicClusterClientset) Tracker() kcptesting.ObjectTracker {
+	return c.tracker
 }
 
 func (c *FakeDynamicClusterClientset) Cluster(cluster logicalcluster.Name) dynamic.Interface {
@@ -179,6 +186,13 @@ func (f *FakeDynamicClusterClient) Tracker() kcptesting.ObjectTracker {
 }
 
 func (f *FakeDynamicClusterClient) Cluster(cluster logicalcluster.Name) dynamic.NamespaceableResourceInterface {
+	if cluster == logicalcluster.Wildcard {
+		panic("A specific cluster must be provided when scoping, not the wildcard.")
+	}
+	return f.cluster(cluster)
+}
+
+func (f *FakeDynamicClusterClient) cluster(cluster logicalcluster.Name) dynamic.NamespaceableResourceInterface {
 	return &dynamicResourceClient{
 		client: &FakeDynamicClient{
 			Fake:          f.Fake,
@@ -192,11 +206,11 @@ func (f *FakeDynamicClusterClient) Cluster(cluster logicalcluster.Name) dynamic.
 }
 
 func (f *FakeDynamicClusterClient) List(ctx context.Context, opts metav1.ListOptions) (*unstructured.UnstructuredList, error) {
-	return f.Cluster(logicalcluster.Wildcard).List(ctx, opts)
+	return f.cluster(logicalcluster.Wildcard).List(ctx, opts)
 }
 
 func (f *FakeDynamicClusterClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return f.Cluster(logicalcluster.Wildcard).Watch(ctx, opts)
+	return f.cluster(logicalcluster.Wildcard).Watch(ctx, opts)
 }
 
 var (
