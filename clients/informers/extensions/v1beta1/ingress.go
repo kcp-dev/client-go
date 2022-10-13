@@ -42,7 +42,7 @@ import (
 // IngressClusterInformer provides access to a shared informer and lister for
 // Ingresses.
 type IngressClusterInformer interface {
-	Informer() cache.SharedIndexInformer
+	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() extensionsv1beta1listers.IngressClusterLister
 }
 
@@ -54,14 +54,14 @@ type ingressClusterInformer struct {
 // NewIngressClusterInformer constructs a new informer for Ingress type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewIngressClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+func NewIngressClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredIngressClusterInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredIngressClusterInformer constructs a new informer for Ingress type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredIngressClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredIngressClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) kcpcache.ScopeableSharedIndexInformer {
 	return kcpinformers.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
@@ -83,7 +83,7 @@ func NewFilteredIngressClusterInformer(client clientset.ClusterInterface, resync
 	)
 }
 
-func (f *ingressClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+func (f *ingressClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredIngressClusterInformer(client, resyncPeriod, cache.Indexers{
 		kcpcache.ClusterIndexName:             kcpcache.ClusterIndexFunc,
 		kcpcache.ClusterAndNamespaceIndexName: kcpcache.ClusterAndNamespaceIndexFunc},
@@ -91,7 +91,7 @@ func (f *ingressClusterInformer) defaultInformer(client clientset.ClusterInterfa
 	)
 }
 
-func (f *ingressClusterInformer) Informer() cache.SharedIndexInformer {
+func (f *ingressClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return f.factory.InformerFor(&extensionsv1beta1.Ingress{}, f.defaultInformer)
 }
 

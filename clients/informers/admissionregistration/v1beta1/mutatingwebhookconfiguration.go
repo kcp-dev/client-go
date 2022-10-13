@@ -42,7 +42,7 @@ import (
 // MutatingWebhookConfigurationClusterInformer provides access to a shared informer and lister for
 // MutatingWebhookConfigurations.
 type MutatingWebhookConfigurationClusterInformer interface {
-	Informer() cache.SharedIndexInformer
+	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() admissionregistrationv1beta1listers.MutatingWebhookConfigurationClusterLister
 }
 
@@ -54,14 +54,14 @@ type mutatingWebhookConfigurationClusterInformer struct {
 // NewMutatingWebhookConfigurationClusterInformer constructs a new informer for MutatingWebhookConfiguration type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewMutatingWebhookConfigurationClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+func NewMutatingWebhookConfigurationClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredMutatingWebhookConfigurationClusterInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredMutatingWebhookConfigurationClusterInformer constructs a new informer for MutatingWebhookConfiguration type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredMutatingWebhookConfigurationClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredMutatingWebhookConfigurationClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) kcpcache.ScopeableSharedIndexInformer {
 	return kcpinformers.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
@@ -83,7 +83,7 @@ func NewFilteredMutatingWebhookConfigurationClusterInformer(client clientset.Clu
 	)
 }
 
-func (f *mutatingWebhookConfigurationClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+func (f *mutatingWebhookConfigurationClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredMutatingWebhookConfigurationClusterInformer(client, resyncPeriod, cache.Indexers{
 		kcpcache.ClusterIndexName: kcpcache.ClusterIndexFunc,
 	},
@@ -91,7 +91,7 @@ func (f *mutatingWebhookConfigurationClusterInformer) defaultInformer(client cli
 	)
 }
 
-func (f *mutatingWebhookConfigurationClusterInformer) Informer() cache.SharedIndexInformer {
+func (f *mutatingWebhookConfigurationClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return f.factory.InformerFor(&admissionregistrationv1beta1.MutatingWebhookConfiguration{}, f.defaultInformer)
 }
 

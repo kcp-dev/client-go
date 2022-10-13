@@ -41,8 +41,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var priorityClassesResource = schema.GroupVersionResource{Group: "scheduling.k8s.io", Version: "V1", Resource: "priorityclasses"}
-var priorityClassesKind = schema.GroupVersionKind{Group: "scheduling.k8s.io", Version: "V1", Kind: "PriorityClass"}
+var priorityClassesResource = schema.GroupVersionResource{Group: "scheduling.k8s.io", Version: "v1", Resource: "priorityclasses"}
+var priorityClassesKind = schema.GroupVersionKind{Group: "scheduling.k8s.io", Version: "v1", Kind: "PriorityClass"}
 
 type priorityClassesClusterClient struct {
 	*kcptesting.Fake

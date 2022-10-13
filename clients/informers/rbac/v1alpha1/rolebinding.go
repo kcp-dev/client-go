@@ -42,7 +42,7 @@ import (
 // RoleBindingClusterInformer provides access to a shared informer and lister for
 // RoleBindings.
 type RoleBindingClusterInformer interface {
-	Informer() cache.SharedIndexInformer
+	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() rbacv1alpha1listers.RoleBindingClusterLister
 }
 
@@ -54,14 +54,14 @@ type roleBindingClusterInformer struct {
 // NewRoleBindingClusterInformer constructs a new informer for RoleBinding type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewRoleBindingClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+func NewRoleBindingClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredRoleBindingClusterInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredRoleBindingClusterInformer constructs a new informer for RoleBinding type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredRoleBindingClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredRoleBindingClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) kcpcache.ScopeableSharedIndexInformer {
 	return kcpinformers.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
@@ -83,7 +83,7 @@ func NewFilteredRoleBindingClusterInformer(client clientset.ClusterInterface, re
 	)
 }
 
-func (f *roleBindingClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+func (f *roleBindingClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredRoleBindingClusterInformer(client, resyncPeriod, cache.Indexers{
 		kcpcache.ClusterIndexName:             kcpcache.ClusterIndexFunc,
 		kcpcache.ClusterAndNamespaceIndexName: kcpcache.ClusterAndNamespaceIndexFunc},
@@ -91,7 +91,7 @@ func (f *roleBindingClusterInformer) defaultInformer(client clientset.ClusterInt
 	)
 }
 
-func (f *roleBindingClusterInformer) Informer() cache.SharedIndexInformer {
+func (f *roleBindingClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return f.factory.InformerFor(&rbacv1alpha1.RoleBinding{}, f.defaultInformer)
 }
 

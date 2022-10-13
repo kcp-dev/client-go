@@ -43,8 +43,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var replicationControllersResource = schema.GroupVersionResource{Group: "core", Version: "V1", Resource: "replicationcontrollers"}
-var replicationControllersKind = schema.GroupVersionKind{Group: "core", Version: "V1", Kind: "ReplicationController"}
+var replicationControllersResource = schema.GroupVersionResource{Group: "", Version: "v1", Resource: "replicationcontrollers"}
+var replicationControllersKind = schema.GroupVersionKind{Group: "", Version: "v1", Kind: "ReplicationController"}
 
 type replicationControllersClusterClient struct {
 	*kcptesting.Fake

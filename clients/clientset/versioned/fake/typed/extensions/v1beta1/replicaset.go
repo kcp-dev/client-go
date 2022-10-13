@@ -42,8 +42,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var replicaSetsResource = schema.GroupVersionResource{Group: "extensions", Version: "V1beta1", Resource: "replicasets"}
-var replicaSetsKind = schema.GroupVersionKind{Group: "extensions", Version: "V1beta1", Kind: "ReplicaSet"}
+var replicaSetsResource = schema.GroupVersionResource{Group: "extensions", Version: "v1beta1", Resource: "replicasets"}
+var replicaSetsKind = schema.GroupVersionKind{Group: "extensions", Version: "v1beta1", Kind: "ReplicaSet"}
 
 type replicaSetsClusterClient struct {
 	*kcptesting.Fake

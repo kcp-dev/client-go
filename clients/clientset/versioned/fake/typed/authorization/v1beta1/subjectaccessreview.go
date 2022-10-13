@@ -34,8 +34,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var subjectAccessReviewsResource = schema.GroupVersionResource{Group: "authorization.k8s.io", Version: "V1beta1", Resource: "subjectaccessreviews"}
-var subjectAccessReviewsKind = schema.GroupVersionKind{Group: "authorization.k8s.io", Version: "V1beta1", Kind: "SubjectAccessReview"}
+var subjectAccessReviewsResource = schema.GroupVersionResource{Group: "authorization.k8s.io", Version: "v1beta1", Resource: "subjectaccessreviews"}
+var subjectAccessReviewsKind = schema.GroupVersionKind{Group: "authorization.k8s.io", Version: "v1beta1", Kind: "SubjectAccessReview"}
 
 type subjectAccessReviewsClusterClient struct {
 	*kcptesting.Fake

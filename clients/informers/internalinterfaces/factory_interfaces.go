@@ -24,20 +24,21 @@ package internalinterfaces
 import (
 	time "time"
 
+	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
+
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
-	cache "k8s.io/client-go/tools/cache"
 
 	client "github.com/kcp-dev/client-go/clients/clientset/versioned"
 )
 
-// NewInformerFunc takes client.ClusterInterface and time.Duration to return a SharedIndexInformer.
-type NewInformerFunc func(client.ClusterInterface, time.Duration) cache.SharedIndexInformer
+// NewInformerFunc takes client.ClusterInterface and time.Duration to return a ScopeableSharedIndexInformer.
+type NewInformerFunc func(client.ClusterInterface, time.Duration) kcpcache.ScopeableSharedIndexInformer
 
 // SharedInformerFactory a small interface to allow for adding an informer without an import cycle
 type SharedInformerFactory interface {
 	Start(stopCh <-chan struct{})
-	InformerFor(obj runtime.Object, newFunc NewInformerFunc) cache.SharedIndexInformer
+	InformerFor(obj runtime.Object, newFunc NewInformerFunc) kcpcache.ScopeableSharedIndexInformer
 }
 
 // TweakListOptionsFunc is a function that transforms a v1.ListOptions.

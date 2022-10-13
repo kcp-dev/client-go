@@ -42,8 +42,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var rolesResource = schema.GroupVersionResource{Group: "rbac.authorization.k8s.io", Version: "V1beta1", Resource: "roles"}
-var rolesKind = schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "V1beta1", Kind: "Role"}
+var rolesResource = schema.GroupVersionResource{Group: "rbac.authorization.k8s.io", Version: "v1beta1", Resource: "roles"}
+var rolesKind = schema.GroupVersionKind{Group: "rbac.authorization.k8s.io", Version: "v1beta1", Kind: "Role"}
 
 type rolesClusterClient struct {
 	*kcptesting.Fake

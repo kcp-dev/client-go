@@ -41,8 +41,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var ingressClassesResource = schema.GroupVersionResource{Group: "networking.k8s.io", Version: "V1", Resource: "ingressclasses"}
-var ingressClassesKind = schema.GroupVersionKind{Group: "networking.k8s.io", Version: "V1", Kind: "IngressClass"}
+var ingressClassesResource = schema.GroupVersionResource{Group: "networking.k8s.io", Version: "v1", Resource: "ingressclasses"}
+var ingressClassesKind = schema.GroupVersionKind{Group: "networking.k8s.io", Version: "v1", Kind: "IngressClass"}
 
 type ingressClassesClusterClient struct {
 	*kcptesting.Fake

@@ -42,7 +42,7 @@ import (
 // NetworkPolicyClusterInformer provides access to a shared informer and lister for
 // NetworkPolicies.
 type NetworkPolicyClusterInformer interface {
-	Informer() cache.SharedIndexInformer
+	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() networkingv1listers.NetworkPolicyClusterLister
 }
 
@@ -54,14 +54,14 @@ type networkPolicyClusterInformer struct {
 // NewNetworkPolicyClusterInformer constructs a new informer for NetworkPolicy type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewNetworkPolicyClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+func NewNetworkPolicyClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredNetworkPolicyClusterInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredNetworkPolicyClusterInformer constructs a new informer for NetworkPolicy type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredNetworkPolicyClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredNetworkPolicyClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) kcpcache.ScopeableSharedIndexInformer {
 	return kcpinformers.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
@@ -83,7 +83,7 @@ func NewFilteredNetworkPolicyClusterInformer(client clientset.ClusterInterface, 
 	)
 }
 
-func (f *networkPolicyClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+func (f *networkPolicyClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredNetworkPolicyClusterInformer(client, resyncPeriod, cache.Indexers{
 		kcpcache.ClusterIndexName:             kcpcache.ClusterIndexFunc,
 		kcpcache.ClusterAndNamespaceIndexName: kcpcache.ClusterAndNamespaceIndexFunc},
@@ -91,7 +91,7 @@ func (f *networkPolicyClusterInformer) defaultInformer(client clientset.ClusterI
 	)
 }
 
-func (f *networkPolicyClusterInformer) Informer() cache.SharedIndexInformer {
+func (f *networkPolicyClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return f.factory.InformerFor(&networkingv1.NetworkPolicy{}, f.defaultInformer)
 }
 

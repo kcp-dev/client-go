@@ -41,8 +41,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var volumeAttachmentsResource = schema.GroupVersionResource{Group: "storage.k8s.io", Version: "V1alpha1", Resource: "volumeattachments"}
-var volumeAttachmentsKind = schema.GroupVersionKind{Group: "storage.k8s.io", Version: "V1alpha1", Kind: "VolumeAttachment"}
+var volumeAttachmentsResource = schema.GroupVersionResource{Group: "storage.k8s.io", Version: "v1alpha1", Resource: "volumeattachments"}
+var volumeAttachmentsKind = schema.GroupVersionKind{Group: "storage.k8s.io", Version: "v1alpha1", Kind: "VolumeAttachment"}
 
 type volumeAttachmentsClusterClient struct {
 	*kcptesting.Fake

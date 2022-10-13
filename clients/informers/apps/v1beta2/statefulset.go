@@ -42,7 +42,7 @@ import (
 // StatefulSetClusterInformer provides access to a shared informer and lister for
 // StatefulSets.
 type StatefulSetClusterInformer interface {
-	Informer() cache.SharedIndexInformer
+	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() appsv1beta2listers.StatefulSetClusterLister
 }
 
@@ -54,14 +54,14 @@ type statefulSetClusterInformer struct {
 // NewStatefulSetClusterInformer constructs a new informer for StatefulSet type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewStatefulSetClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+func NewStatefulSetClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredStatefulSetClusterInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredStatefulSetClusterInformer constructs a new informer for StatefulSet type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredStatefulSetClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredStatefulSetClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) kcpcache.ScopeableSharedIndexInformer {
 	return kcpinformers.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
@@ -83,7 +83,7 @@ func NewFilteredStatefulSetClusterInformer(client clientset.ClusterInterface, re
 	)
 }
 
-func (f *statefulSetClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+func (f *statefulSetClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredStatefulSetClusterInformer(client, resyncPeriod, cache.Indexers{
 		kcpcache.ClusterIndexName:             kcpcache.ClusterIndexFunc,
 		kcpcache.ClusterAndNamespaceIndexName: kcpcache.ClusterAndNamespaceIndexFunc},
@@ -91,7 +91,7 @@ func (f *statefulSetClusterInformer) defaultInformer(client clientset.ClusterInt
 	)
 }
 
-func (f *statefulSetClusterInformer) Informer() cache.SharedIndexInformer {
+func (f *statefulSetClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return f.factory.InformerFor(&appsv1beta2.StatefulSet{}, f.defaultInformer)
 }
 

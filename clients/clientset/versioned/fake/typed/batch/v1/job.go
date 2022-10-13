@@ -42,8 +42,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var jobsResource = schema.GroupVersionResource{Group: "batch", Version: "V1", Resource: "jobs"}
-var jobsKind = schema.GroupVersionKind{Group: "batch", Version: "V1", Kind: "Job"}
+var jobsResource = schema.GroupVersionResource{Group: "batch", Version: "v1", Resource: "jobs"}
+var jobsKind = schema.GroupVersionKind{Group: "batch", Version: "v1", Kind: "Job"}
 
 type jobsClusterClient struct {
 	*kcptesting.Fake

@@ -41,8 +41,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var priorityLevelConfigurationsResource = schema.GroupVersionResource{Group: "flowcontrol.apiserver.k8s.io", Version: "V1alpha1", Resource: "prioritylevelconfigurations"}
-var priorityLevelConfigurationsKind = schema.GroupVersionKind{Group: "flowcontrol.apiserver.k8s.io", Version: "V1alpha1", Kind: "PriorityLevelConfiguration"}
+var priorityLevelConfigurationsResource = schema.GroupVersionResource{Group: "flowcontrol.apiserver.k8s.io", Version: "v1alpha1", Resource: "prioritylevelconfigurations"}
+var priorityLevelConfigurationsKind = schema.GroupVersionKind{Group: "flowcontrol.apiserver.k8s.io", Version: "v1alpha1", Kind: "PriorityLevelConfiguration"}
 
 type priorityLevelConfigurationsClusterClient struct {
 	*kcptesting.Fake

@@ -26,6 +26,8 @@ import (
 	"sync"
 	"time"
 
+	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -63,7 +65,7 @@ type sharedInformerFactory struct {
 	defaultResync    time.Duration
 	customResync     map[reflect.Type]time.Duration
 
-	informers map[reflect.Type]cache.SharedIndexInformer
+	informers map[reflect.Type]kcpcache.ScopeableSharedIndexInformer
 	// startedInformers is used for tracking which informers have been started.
 	// This allows Start() to be called multiple times safely.
 	startedInformers map[reflect.Type]bool
@@ -97,7 +99,7 @@ func NewSharedInformerFactoryWithOptions(client clientset.ClusterInterface, defa
 	factory := &sharedInformerFactory{
 		client:           client,
 		defaultResync:    defaultResync,
-		informers:        make(map[reflect.Type]cache.SharedIndexInformer),
+		informers:        make(map[reflect.Type]kcpcache.ScopeableSharedIndexInformer),
 		startedInformers: make(map[reflect.Type]bool),
 		customResync:     make(map[reflect.Type]time.Duration),
 	}
@@ -125,11 +127,11 @@ func (f *sharedInformerFactory) Start(stopCh <-chan struct{}) {
 
 // WaitForCacheSync waits for all started informers' cache were synced.
 func (f *sharedInformerFactory) WaitForCacheSync(stopCh <-chan struct{}) map[reflect.Type]bool {
-	informers := func() map[reflect.Type]cache.SharedIndexInformer {
+	informers := func() map[reflect.Type]kcpcache.ScopeableSharedIndexInformer {
 		f.lock.Lock()
 		defer f.lock.Unlock()
 
-		informers := map[reflect.Type]cache.SharedIndexInformer{}
+		informers := map[reflect.Type]kcpcache.ScopeableSharedIndexInformer{}
 		for informerType, informer := range f.informers {
 			if f.startedInformers[informerType] {
 				informers[informerType] = informer
@@ -147,7 +149,7 @@ func (f *sharedInformerFactory) WaitForCacheSync(stopCh <-chan struct{}) map[ref
 
 // InternalInformerFor returns the SharedIndexInformer for obj using an internal
 // client.
-func (f *sharedInformerFactory) InformerFor(obj runtime.Object, newFunc internalinterfaces.NewInformerFunc) cache.SharedIndexInformer {
+func (f *sharedInformerFactory) InformerFor(obj runtime.Object, newFunc internalinterfaces.NewInformerFunc) kcpcache.ScopeableSharedIndexInformer {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 

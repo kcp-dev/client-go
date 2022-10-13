@@ -41,8 +41,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var runtimeClassesResource = schema.GroupVersionResource{Group: "node.k8s.io", Version: "V1beta1", Resource: "runtimeclasses"}
-var runtimeClassesKind = schema.GroupVersionKind{Group: "node.k8s.io", Version: "V1beta1", Kind: "RuntimeClass"}
+var runtimeClassesResource = schema.GroupVersionResource{Group: "node.k8s.io", Version: "v1beta1", Resource: "runtimeclasses"}
+var runtimeClassesKind = schema.GroupVersionKind{Group: "node.k8s.io", Version: "v1beta1", Kind: "RuntimeClass"}
 
 type runtimeClassesClusterClient struct {
 	*kcptesting.Fake

@@ -42,7 +42,7 @@ import (
 // CertificateSigningRequestClusterInformer provides access to a shared informer and lister for
 // CertificateSigningRequests.
 type CertificateSigningRequestClusterInformer interface {
-	Informer() cache.SharedIndexInformer
+	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() certificatesv1listers.CertificateSigningRequestClusterLister
 }
 
@@ -54,14 +54,14 @@ type certificateSigningRequestClusterInformer struct {
 // NewCertificateSigningRequestClusterInformer constructs a new informer for CertificateSigningRequest type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewCertificateSigningRequestClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+func NewCertificateSigningRequestClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredCertificateSigningRequestClusterInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredCertificateSigningRequestClusterInformer constructs a new informer for CertificateSigningRequest type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredCertificateSigningRequestClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredCertificateSigningRequestClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) kcpcache.ScopeableSharedIndexInformer {
 	return kcpinformers.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
@@ -83,7 +83,7 @@ func NewFilteredCertificateSigningRequestClusterInformer(client clientset.Cluste
 	)
 }
 
-func (f *certificateSigningRequestClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+func (f *certificateSigningRequestClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredCertificateSigningRequestClusterInformer(client, resyncPeriod, cache.Indexers{
 		kcpcache.ClusterIndexName: kcpcache.ClusterIndexFunc,
 	},
@@ -91,7 +91,7 @@ func (f *certificateSigningRequestClusterInformer) defaultInformer(client client
 	)
 }
 
-func (f *certificateSigningRequestClusterInformer) Informer() cache.SharedIndexInformer {
+func (f *certificateSigningRequestClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return f.factory.InformerFor(&certificatesv1.CertificateSigningRequest{}, f.defaultInformer)
 }
 

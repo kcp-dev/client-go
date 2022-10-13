@@ -41,8 +41,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var mutatingWebhookConfigurationsResource = schema.GroupVersionResource{Group: "admissionregistration.k8s.io", Version: "V1beta1", Resource: "mutatingwebhookconfigurations"}
-var mutatingWebhookConfigurationsKind = schema.GroupVersionKind{Group: "admissionregistration.k8s.io", Version: "V1beta1", Kind: "MutatingWebhookConfiguration"}
+var mutatingWebhookConfigurationsResource = schema.GroupVersionResource{Group: "admissionregistration.k8s.io", Version: "v1beta1", Resource: "mutatingwebhookconfigurations"}
+var mutatingWebhookConfigurationsKind = schema.GroupVersionKind{Group: "admissionregistration.k8s.io", Version: "v1beta1", Kind: "MutatingWebhookConfiguration"}
 
 type mutatingWebhookConfigurationsClusterClient struct {
 	*kcptesting.Fake

@@ -42,7 +42,7 @@ import (
 // ClusterRoleClusterInformer provides access to a shared informer and lister for
 // ClusterRoles.
 type ClusterRoleClusterInformer interface {
-	Informer() cache.SharedIndexInformer
+	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() rbacv1beta1listers.ClusterRoleClusterLister
 }
 
@@ -54,14 +54,14 @@ type clusterRoleClusterInformer struct {
 // NewClusterRoleClusterInformer constructs a new informer for ClusterRole type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewClusterRoleClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+func NewClusterRoleClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredClusterRoleClusterInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredClusterRoleClusterInformer constructs a new informer for ClusterRole type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredClusterRoleClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredClusterRoleClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) kcpcache.ScopeableSharedIndexInformer {
 	return kcpinformers.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
@@ -83,7 +83,7 @@ func NewFilteredClusterRoleClusterInformer(client clientset.ClusterInterface, re
 	)
 }
 
-func (f *clusterRoleClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+func (f *clusterRoleClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredClusterRoleClusterInformer(client, resyncPeriod, cache.Indexers{
 		kcpcache.ClusterIndexName: kcpcache.ClusterIndexFunc,
 	},
@@ -91,7 +91,7 @@ func (f *clusterRoleClusterInformer) defaultInformer(client clientset.ClusterInt
 	)
 }
 
-func (f *clusterRoleClusterInformer) Informer() cache.SharedIndexInformer {
+func (f *clusterRoleClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return f.factory.InformerFor(&rbacv1beta1.ClusterRole{}, f.defaultInformer)
 }
 

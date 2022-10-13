@@ -41,8 +41,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var certificateSigningRequestsResource = schema.GroupVersionResource{Group: "certificates.k8s.io", Version: "V1beta1", Resource: "certificatesigningrequests"}
-var certificateSigningRequestsKind = schema.GroupVersionKind{Group: "certificates.k8s.io", Version: "V1beta1", Kind: "CertificateSigningRequest"}
+var certificateSigningRequestsResource = schema.GroupVersionResource{Group: "certificates.k8s.io", Version: "v1beta1", Resource: "certificatesigningrequests"}
+var certificateSigningRequestsKind = schema.GroupVersionKind{Group: "certificates.k8s.io", Version: "v1beta1", Kind: "CertificateSigningRequest"}
 
 type certificateSigningRequestsClusterClient struct {
 	*kcptesting.Fake

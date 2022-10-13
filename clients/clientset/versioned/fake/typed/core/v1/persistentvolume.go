@@ -41,8 +41,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var persistentVolumesResource = schema.GroupVersionResource{Group: "core", Version: "V1", Resource: "persistentvolumes"}
-var persistentVolumesKind = schema.GroupVersionKind{Group: "core", Version: "V1", Kind: "PersistentVolume"}
+var persistentVolumesResource = schema.GroupVersionResource{Group: "", Version: "v1", Resource: "persistentvolumes"}
+var persistentVolumesKind = schema.GroupVersionKind{Group: "", Version: "v1", Kind: "PersistentVolume"}
 
 type persistentVolumesClusterClient struct {
 	*kcptesting.Fake

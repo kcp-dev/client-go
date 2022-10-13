@@ -41,8 +41,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var cSINodesResource = schema.GroupVersionResource{Group: "storage.k8s.io", Version: "V1beta1", Resource: "csinodes"}
-var cSINodesKind = schema.GroupVersionKind{Group: "storage.k8s.io", Version: "V1beta1", Kind: "CSINode"}
+var cSINodesResource = schema.GroupVersionResource{Group: "storage.k8s.io", Version: "v1beta1", Resource: "csinodes"}
+var cSINodesKind = schema.GroupVersionKind{Group: "storage.k8s.io", Version: "v1beta1", Kind: "CSINode"}
 
 type cSINodesClusterClient struct {
 	*kcptesting.Fake

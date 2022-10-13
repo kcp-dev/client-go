@@ -42,7 +42,7 @@ import (
 // PriorityLevelConfigurationClusterInformer provides access to a shared informer and lister for
 // PriorityLevelConfigurations.
 type PriorityLevelConfigurationClusterInformer interface {
-	Informer() cache.SharedIndexInformer
+	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() flowcontrolv1beta2listers.PriorityLevelConfigurationClusterLister
 }
 
@@ -54,14 +54,14 @@ type priorityLevelConfigurationClusterInformer struct {
 // NewPriorityLevelConfigurationClusterInformer constructs a new informer for PriorityLevelConfiguration type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewPriorityLevelConfigurationClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+func NewPriorityLevelConfigurationClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredPriorityLevelConfigurationClusterInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredPriorityLevelConfigurationClusterInformer constructs a new informer for PriorityLevelConfiguration type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredPriorityLevelConfigurationClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredPriorityLevelConfigurationClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) kcpcache.ScopeableSharedIndexInformer {
 	return kcpinformers.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
@@ -83,7 +83,7 @@ func NewFilteredPriorityLevelConfigurationClusterInformer(client clientset.Clust
 	)
 }
 
-func (f *priorityLevelConfigurationClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+func (f *priorityLevelConfigurationClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredPriorityLevelConfigurationClusterInformer(client, resyncPeriod, cache.Indexers{
 		kcpcache.ClusterIndexName: kcpcache.ClusterIndexFunc,
 	},
@@ -91,7 +91,7 @@ func (f *priorityLevelConfigurationClusterInformer) defaultInformer(client clien
 	)
 }
 
-func (f *priorityLevelConfigurationClusterInformer) Informer() cache.SharedIndexInformer {
+func (f *priorityLevelConfigurationClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return f.factory.InformerFor(&flowcontrolv1beta2.PriorityLevelConfiguration{}, f.defaultInformer)
 }
 

@@ -42,7 +42,7 @@ import (
 // CSIStorageCapacityClusterInformer provides access to a shared informer and lister for
 // CSIStorageCapacities.
 type CSIStorageCapacityClusterInformer interface {
-	Informer() cache.SharedIndexInformer
+	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() storagev1alpha1listers.CSIStorageCapacityClusterLister
 }
 
@@ -54,14 +54,14 @@ type cSIStorageCapacityClusterInformer struct {
 // NewCSIStorageCapacityClusterInformer constructs a new informer for CSIStorageCapacity type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewCSIStorageCapacityClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+func NewCSIStorageCapacityClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredCSIStorageCapacityClusterInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredCSIStorageCapacityClusterInformer constructs a new informer for CSIStorageCapacity type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredCSIStorageCapacityClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredCSIStorageCapacityClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) kcpcache.ScopeableSharedIndexInformer {
 	return kcpinformers.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
@@ -83,7 +83,7 @@ func NewFilteredCSIStorageCapacityClusterInformer(client clientset.ClusterInterf
 	)
 }
 
-func (f *cSIStorageCapacityClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+func (f *cSIStorageCapacityClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredCSIStorageCapacityClusterInformer(client, resyncPeriod, cache.Indexers{
 		kcpcache.ClusterIndexName:             kcpcache.ClusterIndexFunc,
 		kcpcache.ClusterAndNamespaceIndexName: kcpcache.ClusterAndNamespaceIndexFunc},
@@ -91,7 +91,7 @@ func (f *cSIStorageCapacityClusterInformer) defaultInformer(client clientset.Clu
 	)
 }
 
-func (f *cSIStorageCapacityClusterInformer) Informer() cache.SharedIndexInformer {
+func (f *cSIStorageCapacityClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return f.factory.InformerFor(&storagev1alpha1.CSIStorageCapacity{}, f.defaultInformer)
 }
 

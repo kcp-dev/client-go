@@ -42,7 +42,7 @@ import (
 // PodDisruptionBudgetClusterInformer provides access to a shared informer and lister for
 // PodDisruptionBudgets.
 type PodDisruptionBudgetClusterInformer interface {
-	Informer() cache.SharedIndexInformer
+	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() policyv1listers.PodDisruptionBudgetClusterLister
 }
 
@@ -54,14 +54,14 @@ type podDisruptionBudgetClusterInformer struct {
 // NewPodDisruptionBudgetClusterInformer constructs a new informer for PodDisruptionBudget type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewPodDisruptionBudgetClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+func NewPodDisruptionBudgetClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredPodDisruptionBudgetClusterInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredPodDisruptionBudgetClusterInformer constructs a new informer for PodDisruptionBudget type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredPodDisruptionBudgetClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredPodDisruptionBudgetClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) kcpcache.ScopeableSharedIndexInformer {
 	return kcpinformers.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
@@ -83,7 +83,7 @@ func NewFilteredPodDisruptionBudgetClusterInformer(client clientset.ClusterInter
 	)
 }
 
-func (f *podDisruptionBudgetClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+func (f *podDisruptionBudgetClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredPodDisruptionBudgetClusterInformer(client, resyncPeriod, cache.Indexers{
 		kcpcache.ClusterIndexName:             kcpcache.ClusterIndexFunc,
 		kcpcache.ClusterAndNamespaceIndexName: kcpcache.ClusterAndNamespaceIndexFunc},
@@ -91,7 +91,7 @@ func (f *podDisruptionBudgetClusterInformer) defaultInformer(client clientset.Cl
 	)
 }
 
-func (f *podDisruptionBudgetClusterInformer) Informer() cache.SharedIndexInformer {
+func (f *podDisruptionBudgetClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return f.factory.InformerFor(&policyv1.PodDisruptionBudget{}, f.defaultInformer)
 }
 
