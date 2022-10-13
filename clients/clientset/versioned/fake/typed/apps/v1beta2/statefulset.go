@@ -42,8 +42,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var statefulSetsResource = schema.GroupVersionResource{Group: "apps", Version: "V1beta2", Resource: "statefulsets"}
-var statefulSetsKind = schema.GroupVersionKind{Group: "apps", Version: "V1beta2", Kind: "StatefulSet"}
+var statefulSetsResource = schema.GroupVersionResource{Group: "apps", Version: "v1beta2", Resource: "statefulsets"}
+var statefulSetsKind = schema.GroupVersionKind{Group: "apps", Version: "v1beta2", Kind: "StatefulSet"}
 
 type statefulSetsClusterClient struct {
 	*kcptesting.Fake

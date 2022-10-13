@@ -42,8 +42,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var deploymentsResource = schema.GroupVersionResource{Group: "extensions", Version: "V1beta1", Resource: "deployments"}
-var deploymentsKind = schema.GroupVersionKind{Group: "extensions", Version: "V1beta1", Kind: "Deployment"}
+var deploymentsResource = schema.GroupVersionResource{Group: "extensions", Version: "v1beta1", Resource: "deployments"}
+var deploymentsKind = schema.GroupVersionKind{Group: "extensions", Version: "v1beta1", Kind: "Deployment"}
 
 type deploymentsClusterClient struct {
 	*kcptesting.Fake

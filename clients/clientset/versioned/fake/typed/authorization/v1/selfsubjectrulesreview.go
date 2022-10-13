@@ -34,8 +34,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var selfSubjectRulesReviewsResource = schema.GroupVersionResource{Group: "authorization.k8s.io", Version: "V1", Resource: "selfsubjectrulesreviews"}
-var selfSubjectRulesReviewsKind = schema.GroupVersionKind{Group: "authorization.k8s.io", Version: "V1", Kind: "SelfSubjectRulesReview"}
+var selfSubjectRulesReviewsResource = schema.GroupVersionResource{Group: "authorization.k8s.io", Version: "v1", Resource: "selfsubjectrulesreviews"}
+var selfSubjectRulesReviewsKind = schema.GroupVersionKind{Group: "authorization.k8s.io", Version: "v1", Kind: "SelfSubjectRulesReview"}
 
 type selfSubjectRulesReviewsClusterClient struct {
 	*kcptesting.Fake

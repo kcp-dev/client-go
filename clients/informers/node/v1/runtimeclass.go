@@ -42,7 +42,7 @@ import (
 // RuntimeClassClusterInformer provides access to a shared informer and lister for
 // RuntimeClasses.
 type RuntimeClassClusterInformer interface {
-	Informer() cache.SharedIndexInformer
+	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() nodev1listers.RuntimeClassClusterLister
 }
 
@@ -54,14 +54,14 @@ type runtimeClassClusterInformer struct {
 // NewRuntimeClassClusterInformer constructs a new informer for RuntimeClass type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewRuntimeClassClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+func NewRuntimeClassClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredRuntimeClassClusterInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredRuntimeClassClusterInformer constructs a new informer for RuntimeClass type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredRuntimeClassClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredRuntimeClassClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) kcpcache.ScopeableSharedIndexInformer {
 	return kcpinformers.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
@@ -83,7 +83,7 @@ func NewFilteredRuntimeClassClusterInformer(client clientset.ClusterInterface, r
 	)
 }
 
-func (f *runtimeClassClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+func (f *runtimeClassClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredRuntimeClassClusterInformer(client, resyncPeriod, cache.Indexers{
 		kcpcache.ClusterIndexName: kcpcache.ClusterIndexFunc,
 	},
@@ -91,7 +91,7 @@ func (f *runtimeClassClusterInformer) defaultInformer(client clientset.ClusterIn
 	)
 }
 
-func (f *runtimeClassClusterInformer) Informer() cache.SharedIndexInformer {
+func (f *runtimeClassClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return f.factory.InformerFor(&nodev1.RuntimeClass{}, f.defaultInformer)
 }
 

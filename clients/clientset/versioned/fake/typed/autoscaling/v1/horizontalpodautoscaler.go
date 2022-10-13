@@ -42,8 +42,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var horizontalPodAutoscalersResource = schema.GroupVersionResource{Group: "autoscaling", Version: "V1", Resource: "horizontalpodautoscalers"}
-var horizontalPodAutoscalersKind = schema.GroupVersionKind{Group: "autoscaling", Version: "V1", Kind: "HorizontalPodAutoscaler"}
+var horizontalPodAutoscalersResource = schema.GroupVersionResource{Group: "autoscaling", Version: "v1", Resource: "horizontalpodautoscalers"}
+var horizontalPodAutoscalersKind = schema.GroupVersionKind{Group: "autoscaling", Version: "v1", Kind: "HorizontalPodAutoscaler"}
 
 type horizontalPodAutoscalersClusterClient struct {
 	*kcptesting.Fake

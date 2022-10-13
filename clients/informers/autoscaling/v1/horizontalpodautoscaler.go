@@ -42,7 +42,7 @@ import (
 // HorizontalPodAutoscalerClusterInformer provides access to a shared informer and lister for
 // HorizontalPodAutoscalers.
 type HorizontalPodAutoscalerClusterInformer interface {
-	Informer() cache.SharedIndexInformer
+	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() autoscalingv1listers.HorizontalPodAutoscalerClusterLister
 }
 
@@ -54,14 +54,14 @@ type horizontalPodAutoscalerClusterInformer struct {
 // NewHorizontalPodAutoscalerClusterInformer constructs a new informer for HorizontalPodAutoscaler type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewHorizontalPodAutoscalerClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+func NewHorizontalPodAutoscalerClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredHorizontalPodAutoscalerClusterInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredHorizontalPodAutoscalerClusterInformer constructs a new informer for HorizontalPodAutoscaler type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredHorizontalPodAutoscalerClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredHorizontalPodAutoscalerClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) kcpcache.ScopeableSharedIndexInformer {
 	return kcpinformers.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
@@ -83,7 +83,7 @@ func NewFilteredHorizontalPodAutoscalerClusterInformer(client clientset.ClusterI
 	)
 }
 
-func (f *horizontalPodAutoscalerClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+func (f *horizontalPodAutoscalerClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredHorizontalPodAutoscalerClusterInformer(client, resyncPeriod, cache.Indexers{
 		kcpcache.ClusterIndexName:             kcpcache.ClusterIndexFunc,
 		kcpcache.ClusterAndNamespaceIndexName: kcpcache.ClusterAndNamespaceIndexFunc},
@@ -91,7 +91,7 @@ func (f *horizontalPodAutoscalerClusterInformer) defaultInformer(client clientse
 	)
 }
 
-func (f *horizontalPodAutoscalerClusterInformer) Informer() cache.SharedIndexInformer {
+func (f *horizontalPodAutoscalerClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return f.factory.InformerFor(&autoscalingv1.HorizontalPodAutoscaler{}, f.defaultInformer)
 }
 

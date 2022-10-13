@@ -42,7 +42,7 @@ import (
 // StorageVersionClusterInformer provides access to a shared informer and lister for
 // StorageVersions.
 type StorageVersionClusterInformer interface {
-	Informer() cache.SharedIndexInformer
+	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() internalv1alpha1listers.StorageVersionClusterLister
 }
 
@@ -54,14 +54,14 @@ type storageVersionClusterInformer struct {
 // NewStorageVersionClusterInformer constructs a new informer for StorageVersion type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewStorageVersionClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+func NewStorageVersionClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredStorageVersionClusterInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredStorageVersionClusterInformer constructs a new informer for StorageVersion type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredStorageVersionClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredStorageVersionClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) kcpcache.ScopeableSharedIndexInformer {
 	return kcpinformers.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
@@ -83,7 +83,7 @@ func NewFilteredStorageVersionClusterInformer(client clientset.ClusterInterface,
 	)
 }
 
-func (f *storageVersionClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+func (f *storageVersionClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredStorageVersionClusterInformer(client, resyncPeriod, cache.Indexers{
 		kcpcache.ClusterIndexName: kcpcache.ClusterIndexFunc,
 	},
@@ -91,7 +91,7 @@ func (f *storageVersionClusterInformer) defaultInformer(client clientset.Cluster
 	)
 }
 
-func (f *storageVersionClusterInformer) Informer() cache.SharedIndexInformer {
+func (f *storageVersionClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return f.factory.InformerFor(&internalv1alpha1.StorageVersion{}, f.defaultInformer)
 }
 

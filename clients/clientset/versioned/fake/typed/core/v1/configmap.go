@@ -42,8 +42,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var configMapsResource = schema.GroupVersionResource{Group: "core", Version: "V1", Resource: "configmaps"}
-var configMapsKind = schema.GroupVersionKind{Group: "core", Version: "V1", Kind: "ConfigMap"}
+var configMapsResource = schema.GroupVersionResource{Group: "", Version: "v1", Resource: "configmaps"}
+var configMapsKind = schema.GroupVersionKind{Group: "", Version: "v1", Kind: "ConfigMap"}
 
 type configMapsClusterClient struct {
 	*kcptesting.Fake

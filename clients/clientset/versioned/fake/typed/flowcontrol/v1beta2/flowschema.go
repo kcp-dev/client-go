@@ -41,8 +41,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var flowSchemasResource = schema.GroupVersionResource{Group: "flowcontrol.apiserver.k8s.io", Version: "V1beta2", Resource: "flowschemas"}
-var flowSchemasKind = schema.GroupVersionKind{Group: "flowcontrol.apiserver.k8s.io", Version: "V1beta2", Kind: "FlowSchema"}
+var flowSchemasResource = schema.GroupVersionResource{Group: "flowcontrol.apiserver.k8s.io", Version: "v1beta2", Resource: "flowschemas"}
+var flowSchemasKind = schema.GroupVersionKind{Group: "flowcontrol.apiserver.k8s.io", Version: "v1beta2", Kind: "FlowSchema"}
 
 type flowSchemasClusterClient struct {
 	*kcptesting.Fake

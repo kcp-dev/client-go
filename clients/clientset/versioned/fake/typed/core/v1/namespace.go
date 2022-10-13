@@ -41,8 +41,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var namespacesResource = schema.GroupVersionResource{Group: "core", Version: "V1", Resource: "namespaces"}
-var namespacesKind = schema.GroupVersionKind{Group: "core", Version: "V1", Kind: "Namespace"}
+var namespacesResource = schema.GroupVersionResource{Group: "", Version: "v1", Resource: "namespaces"}
+var namespacesKind = schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Namespace"}
 
 type namespacesClusterClient struct {
 	*kcptesting.Fake

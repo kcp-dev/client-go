@@ -42,7 +42,7 @@ import (
 // VolumeAttachmentClusterInformer provides access to a shared informer and lister for
 // VolumeAttachments.
 type VolumeAttachmentClusterInformer interface {
-	Informer() cache.SharedIndexInformer
+	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() storagev1listers.VolumeAttachmentClusterLister
 }
 
@@ -54,14 +54,14 @@ type volumeAttachmentClusterInformer struct {
 // NewVolumeAttachmentClusterInformer constructs a new informer for VolumeAttachment type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewVolumeAttachmentClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+func NewVolumeAttachmentClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredVolumeAttachmentClusterInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredVolumeAttachmentClusterInformer constructs a new informer for VolumeAttachment type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredVolumeAttachmentClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredVolumeAttachmentClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) kcpcache.ScopeableSharedIndexInformer {
 	return kcpinformers.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
@@ -83,7 +83,7 @@ func NewFilteredVolumeAttachmentClusterInformer(client clientset.ClusterInterfac
 	)
 }
 
-func (f *volumeAttachmentClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+func (f *volumeAttachmentClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredVolumeAttachmentClusterInformer(client, resyncPeriod, cache.Indexers{
 		kcpcache.ClusterIndexName: kcpcache.ClusterIndexFunc,
 	},
@@ -91,7 +91,7 @@ func (f *volumeAttachmentClusterInformer) defaultInformer(client clientset.Clust
 	)
 }
 
-func (f *volumeAttachmentClusterInformer) Informer() cache.SharedIndexInformer {
+func (f *volumeAttachmentClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return f.factory.InformerFor(&storagev1.VolumeAttachment{}, f.defaultInformer)
 }
 

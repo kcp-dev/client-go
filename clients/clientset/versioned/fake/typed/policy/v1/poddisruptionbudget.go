@@ -42,8 +42,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var podDisruptionBudgetsResource = schema.GroupVersionResource{Group: "policy", Version: "V1", Resource: "poddisruptionbudgets"}
-var podDisruptionBudgetsKind = schema.GroupVersionKind{Group: "policy", Version: "V1", Kind: "PodDisruptionBudget"}
+var podDisruptionBudgetsResource = schema.GroupVersionResource{Group: "policy", Version: "v1", Resource: "poddisruptionbudgets"}
+var podDisruptionBudgetsKind = schema.GroupVersionKind{Group: "policy", Version: "v1", Kind: "PodDisruptionBudget"}
 
 type podDisruptionBudgetsClusterClient struct {
 	*kcptesting.Fake

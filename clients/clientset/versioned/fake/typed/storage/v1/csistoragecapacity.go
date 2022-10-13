@@ -42,8 +42,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var cSIStorageCapacitiesResource = schema.GroupVersionResource{Group: "storage.k8s.io", Version: "V1", Resource: "csistoragecapacities"}
-var cSIStorageCapacitiesKind = schema.GroupVersionKind{Group: "storage.k8s.io", Version: "V1", Kind: "CSIStorageCapacity"}
+var cSIStorageCapacitiesResource = schema.GroupVersionResource{Group: "storage.k8s.io", Version: "v1", Resource: "csistoragecapacities"}
+var cSIStorageCapacitiesKind = schema.GroupVersionKind{Group: "storage.k8s.io", Version: "v1", Kind: "CSIStorageCapacity"}
 
 type cSIStorageCapacitiesClusterClient struct {
 	*kcptesting.Fake

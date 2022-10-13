@@ -68,21 +68,20 @@ import (
 	storagev1alpha1 "k8s.io/api/storage/v1alpha1"
 	storagev1beta1 "k8s.io/api/storage/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/tools/cache"
 )
 
 type GenericClusterInformer interface {
-	Informer() cache.SharedIndexInformer
+	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() kcpcache.GenericClusterLister
 }
 
 type genericClusterInformer struct {
-	informer cache.SharedIndexInformer
+	informer kcpcache.ScopeableSharedIndexInformer
 	resource schema.GroupResource
 }
 
 // Informer returns the SharedIndexInformer.
-func (f *genericClusterInformer) Informer() cache.SharedIndexInformer {
+func (f *genericClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return f.informer
 }
 

@@ -42,8 +42,8 @@ import (
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var limitRangesResource = schema.GroupVersionResource{Group: "core", Version: "V1", Resource: "limitranges"}
-var limitRangesKind = schema.GroupVersionKind{Group: "core", Version: "V1", Kind: "LimitRange"}
+var limitRangesResource = schema.GroupVersionResource{Group: "", Version: "v1", Resource: "limitranges"}
+var limitRangesKind = schema.GroupVersionKind{Group: "", Version: "v1", Kind: "LimitRange"}
 
 type limitRangesClusterClient struct {
 	*kcptesting.Fake

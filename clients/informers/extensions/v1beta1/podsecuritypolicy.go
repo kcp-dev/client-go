@@ -42,7 +42,7 @@ import (
 // PodSecurityPolicyClusterInformer provides access to a shared informer and lister for
 // PodSecurityPolicies.
 type PodSecurityPolicyClusterInformer interface {
-	Informer() cache.SharedIndexInformer
+	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() extensionsv1beta1listers.PodSecurityPolicyClusterLister
 }
 
@@ -54,14 +54,14 @@ type podSecurityPolicyClusterInformer struct {
 // NewPodSecurityPolicyClusterInformer constructs a new informer for PodSecurityPolicy type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewPodSecurityPolicyClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) cache.SharedIndexInformer {
+func NewPodSecurityPolicyClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredPodSecurityPolicyClusterInformer(client, resyncPeriod, indexers, nil)
 }
 
 // NewFilteredPodSecurityPolicyClusterInformer constructs a new informer for PodSecurityPolicy type.
 // Always prefer using an informer factory to get a shared informer instead of getting an independent
 // one. This reduces memory footprint and number of connections to the server.
-func NewFilteredPodSecurityPolicyClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) cache.SharedIndexInformer {
+func NewFilteredPodSecurityPolicyClusterInformer(client clientset.ClusterInterface, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions internalinterfaces.TweakListOptionsFunc) kcpcache.ScopeableSharedIndexInformer {
 	return kcpinformers.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
@@ -83,7 +83,7 @@ func NewFilteredPodSecurityPolicyClusterInformer(client clientset.ClusterInterfa
 	)
 }
 
-func (f *podSecurityPolicyClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) cache.SharedIndexInformer {
+func (f *podSecurityPolicyClusterInformer) defaultInformer(client clientset.ClusterInterface, resyncPeriod time.Duration) kcpcache.ScopeableSharedIndexInformer {
 	return NewFilteredPodSecurityPolicyClusterInformer(client, resyncPeriod, cache.Indexers{
 		kcpcache.ClusterIndexName: kcpcache.ClusterIndexFunc,
 	},
@@ -91,7 +91,7 @@ func (f *podSecurityPolicyClusterInformer) defaultInformer(client clientset.Clus
 	)
 }
 
-func (f *podSecurityPolicyClusterInformer) Informer() cache.SharedIndexInformer {
+func (f *podSecurityPolicyClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return f.factory.InformerFor(&extensionsv1beta1.PodSecurityPolicy{}, f.defaultInformer)
 }
 
