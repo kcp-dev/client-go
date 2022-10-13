@@ -53,6 +53,7 @@ func (c ClusterNamespacedName) String() string {
 // namespace and name.
 type ObjectTracker interface {
 	Cluster(name logicalcluster.Name) ScopedObjectTracker
+	AddAll(objects ...runtime.Object) error
 
 	// List retrieves all objects of a given kind in the given
 	// namespace. Only non-List kinds are accepted.
@@ -264,9 +265,6 @@ type tracker struct {
 }
 
 func (t *tracker) Cluster(name logicalcluster.Name) ScopedObjectTracker {
-	if name == logicalcluster.Wildcard {
-		panic("cannot scope to the wildcard cluster!")
-	}
 	return &scopedTracker{
 		tracker: t,
 		cluster: name,
@@ -289,6 +287,40 @@ func NewObjectTracker(scheme ObjectScheme, decoder runtime.Decoder) ObjectTracke
 		objects:  make(map[schema.GroupVersionResource]map[ClusterNamespacedName]runtime.Object),
 		watchers: make(map[schema.GroupVersionResource]map[logicalcluster.Name]map[string][]*watch.RaceFreeFakeWatcher),
 	}
+}
+
+// AddAll handles adding the objects to the correct place in the tracker, whether they are
+// individual items or lists, and handling their logical cluster for you.
+func (t *tracker) AddAll(objects ...runtime.Object) error {
+	for _, obj := range objects {
+		var toAdd []runtime.Object
+		if meta.IsListType(obj) {
+			list, err := meta.ExtractList(obj)
+			if err != nil {
+				return err
+			}
+			errs := runtime.DecodeList(list, t.decoder)
+			if len(errs) > 0 {
+				return errs[0]
+			}
+			for _, item := range list {
+				toAdd = append(toAdd, item)
+			}
+		} else {
+			toAdd = append(toAdd, obj)
+		}
+
+		for i := range toAdd {
+			metaObj, ok := toAdd[i].(logicalcluster.Object)
+			if !ok {
+				return fmt.Errorf("cannot extract logical cluster from %T", toAdd[i])
+			}
+			if err := t.Cluster(logicalcluster.From(metaObj)).Add(toAdd[i]); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func (t *scopedTracker) List(gvr schema.GroupVersionResource, gvk schema.GroupVersionKind, ns string) (runtime.Object, error) {
@@ -478,9 +510,6 @@ func (t *tracker) getWatches(gvr schema.GroupVersionResource, cluster logicalclu
 }
 
 func (t *scopedTracker) add(gvr schema.GroupVersionResource, obj runtime.Object, ns string, replaceExisting bool) error {
-	if ns == metav1.NamespaceAll {
-		return fmt.Errorf("cannot add in namespace %q", ns)
-	}
 	t.lock.Lock()
 	defer t.lock.Unlock()
 
@@ -511,7 +540,12 @@ func (t *scopedTracker) add(gvr schema.GroupVersionResource, obj runtime.Object,
 		t.objects[gvr] = make(map[ClusterNamespacedName]runtime.Object)
 	}
 
-	namespacedName := ClusterNamespacedName{Cluster: logicalcluster.From(newMeta), NamespacedName: types.NamespacedName{Namespace: newMeta.GetNamespace(), Name: newMeta.GetName()}}
+	cluster := logicalcluster.From(newMeta)
+	if cluster.Empty() {
+		cluster = t.cluster
+	}
+
+	namespacedName := ClusterNamespacedName{Cluster: cluster, NamespacedName: types.NamespacedName{Namespace: newMeta.GetNamespace(), Name: newMeta.GetName()}}
 	if _, ok = t.objects[gvr][namespacedName]; ok {
 		if replaceExisting {
 			for _, w := range t.getWatches(gvr, t.cluster, ns) {
