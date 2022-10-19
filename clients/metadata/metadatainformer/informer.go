@@ -23,12 +23,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	thirdpartyinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreaminformers "k8s.io/client-go/informers"
 	"k8s.io/client-go/metadata/metadatainformer"
 	"k8s.io/client-go/tools/cache"
 
@@ -78,7 +80,7 @@ func (f *sharedInformerFactory) ForResource(gvr schema.GroupVersionResource) kcp
 		return informer
 	}
 
-	informer = NewFilteredDynamicInformer(f.client, gvr, f.defaultResync, cache.Indexers{
+	informer = NewFilteredMetadataInformer(f.client, gvr, f.defaultResync, cache.Indexers{
 		kcpcache.ClusterIndexName:             kcpcache.ClusterIndexFunc,
 		kcpcache.ClusterAndNamespaceIndexName: kcpcache.ClusterAndNamespaceIndexFunc}, f.tweakListOptions)
 	f.informers[key] = informer
@@ -121,9 +123,9 @@ func (f *sharedInformerFactory) WaitForCacheSync(stopCh <-chan struct{}) map[sch
 	return res
 }
 
-// NewFilteredDynamicInformer constructs a new informer for a dynamic type.
-func NewFilteredDynamicInformer(client kcpmetadata.ClusterInterface, gvr schema.GroupVersionResource, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions metadatainformer.TweakListOptionsFunc) kcpinformers.GenericClusterInformer {
-	return &dynamicInformer{
+// NewFilteredMetadataInformer constructs a new informer for a dynamic type.
+func NewFilteredMetadataInformer(client kcpmetadata.ClusterInterface, gvr schema.GroupVersionResource, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions metadatainformer.TweakListOptionsFunc) kcpinformers.GenericClusterInformer {
+	return &metadataClusterInformer{
 		gvr: gvr,
 		informer: thirdpartyinformers.NewSharedIndexInformer(
 			&cache.ListWatch{
@@ -147,17 +149,37 @@ func NewFilteredDynamicInformer(client kcpmetadata.ClusterInterface, gvr schema.
 	}
 }
 
-type dynamicInformer struct {
+type metadataClusterInformer struct {
 	informer kcpcache.ScopeableSharedIndexInformer
 	gvr      schema.GroupVersionResource
 }
 
-var _ kcpinformers.GenericClusterInformer = &dynamicInformer{}
+var _ kcpinformers.GenericClusterInformer = &metadataClusterInformer{}
 
-func (d *dynamicInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
+func (d *metadataClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return d.informer
 }
 
-func (d *dynamicInformer) Lister() kcpcache.GenericClusterLister {
+func (d *metadataClusterInformer) Lister() kcpcache.GenericClusterLister {
 	return kcpmetadatalisters.NewRuntimeObjectShim(kcpmetadatalisters.New(d.informer.GetIndexer(), d.gvr))
+}
+
+func (d *metadataClusterInformer) Cluster(cluster logicalcluster.Name) upstreaminformers.GenericInformer {
+	return &metadataInformer{
+		informer: d.Informer().Cluster(cluster),
+		lister:   d.Lister().ByCluster(cluster),
+	}
+}
+
+type metadataInformer struct {
+	informer cache.SharedIndexInformer
+	lister   cache.GenericLister
+}
+
+func (d *metadataInformer) Informer() cache.SharedIndexInformer {
+	return d.informer
+}
+
+func (d *metadataInformer) Lister() cache.GenericLister {
+	return d.lister
 }

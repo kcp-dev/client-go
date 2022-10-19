@@ -23,6 +23,7 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	thirdpartyinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -30,6 +31,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic/dynamicinformer"
+	upstreaminformers "k8s.io/client-go/informers"
 	"k8s.io/client-go/tools/cache"
 
 	kcpdynamic "github.com/kcp-dev/client-go/clients/dynamic"
@@ -123,7 +125,7 @@ func (f *dynamicSharedInformerFactory) WaitForCacheSync(stopCh <-chan struct{}) 
 
 // NewFilteredDynamicInformer constructs a new informer for a dynamic type.
 func NewFilteredDynamicInformer(client kcpdynamic.ClusterInterface, gvr schema.GroupVersionResource, resyncPeriod time.Duration, indexers cache.Indexers, tweakListOptions dynamicinformer.TweakListOptionsFunc) kcpinformers.GenericClusterInformer {
-	return &dynamicInformer{
+	return &dynamicClusterInformer{
 		gvr: gvr,
 		informer: thirdpartyinformers.NewSharedIndexInformer(
 			&cache.ListWatch{
@@ -147,17 +149,37 @@ func NewFilteredDynamicInformer(client kcpdynamic.ClusterInterface, gvr schema.G
 	}
 }
 
-type dynamicInformer struct {
+type dynamicClusterInformer struct {
 	informer kcpcache.ScopeableSharedIndexInformer
 	gvr      schema.GroupVersionResource
 }
 
-var _ kcpinformers.GenericClusterInformer = &dynamicInformer{}
+var _ kcpinformers.GenericClusterInformer = &dynamicClusterInformer{}
 
-func (d *dynamicInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
+func (d *dynamicClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 	return d.informer
 }
 
-func (d *dynamicInformer) Lister() kcpcache.GenericClusterLister {
+func (d *dynamicClusterInformer) Lister() kcpcache.GenericClusterLister {
 	return kcpdynamiclisters.NewRuntimeObjectShim(kcpdynamiclisters.New(d.informer.GetIndexer(), d.gvr))
+}
+
+func (d *dynamicClusterInformer) Cluster(cluster logicalcluster.Name) upstreaminformers.GenericInformer {
+	return &dynamicInformer{
+		informer: d.Informer().Cluster(cluster),
+		lister:   d.Lister().ByCluster(cluster),
+	}
+}
+
+type dynamicInformer struct {
+	informer cache.SharedIndexInformer
+	lister   cache.GenericLister
+}
+
+func (d *dynamicInformer) Informer() cache.SharedIndexInformer {
+	return d.informer
+}
+
+func (d *dynamicInformer) Lister() cache.GenericLister {
+	return d.lister
 }
