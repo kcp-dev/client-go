@@ -591,9 +591,6 @@ func (t *scopedTracker) addList(obj runtime.Object, replaceExisting bool) error 
 }
 
 func (t *scopedTracker) Delete(gvr schema.GroupVersionResource, ns, name string) error {
-	if ns == metav1.NamespaceAll {
-		return fmt.Errorf("cannot add in namespace %q", ns)
-	}
 	t.lock.Lock()
 	defer t.lock.Unlock()
 
