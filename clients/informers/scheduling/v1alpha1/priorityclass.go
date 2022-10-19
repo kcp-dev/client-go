@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	schedulingv1alpha1 "k8s.io/api/scheduling/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamschedulingv1alpha1informers "k8s.io/client-go/informers/scheduling/v1alpha1"
+	upstreamschedulingv1alpha1listers "k8s.io/client-go/listers/scheduling/v1alpha1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // PriorityClassClusterInformer provides access to a shared informer and lister for
 // PriorityClasses.
 type PriorityClassClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamschedulingv1alpha1informers.PriorityClassInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() schedulingv1alpha1listers.PriorityClassClusterLister
 }
@@ -97,4 +101,24 @@ func (f *priorityClassClusterInformer) Informer() kcpcache.ScopeableSharedIndexI
 
 func (f *priorityClassClusterInformer) Lister() schedulingv1alpha1listers.PriorityClassClusterLister {
 	return schedulingv1alpha1listers.NewPriorityClassClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *priorityClassClusterInformer) Cluster(cluster logicalcluster.Name) upstreamschedulingv1alpha1informers.PriorityClassInformer {
+	return &priorityClassInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type priorityClassInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamschedulingv1alpha1listers.PriorityClassLister
+}
+
+func (f *priorityClassInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *priorityClassInformer) Lister() upstreamschedulingv1alpha1listers.PriorityClassLister {
+	return f.lister
 }

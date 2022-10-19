@@ -21,6 +21,7 @@ import (
 	"github.com/kcp-dev/logicalcluster/v2"
 
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -114,7 +115,12 @@ type dynamicNamespaceLister struct {
 func (l *dynamicNamespaceLister) List(selector labels.Selector) (ret []*unstructured.Unstructured, err error) {
 	selectAll := selector == nil || selector.Empty()
 
-	list, err := l.indexer.ByIndex(kcpcache.ClusterAndNamespaceIndexName, kcpcache.ClusterAndNamespaceIndexKey(l.cluster, l.namespace))
+	var list []interface{}
+	if l.namespace == metav1.NamespaceAll {
+		list, err = l.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(l.cluster))
+	} else {
+		list, err = l.indexer.ByIndex(kcpcache.ClusterAndNamespaceIndexName, kcpcache.ClusterAndNamespaceIndexKey(l.cluster, l.namespace))
+	}
 	if err != nil {
 		return nil, err
 	}

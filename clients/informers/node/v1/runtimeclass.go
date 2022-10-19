@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	nodev1 "k8s.io/api/node/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamnodev1informers "k8s.io/client-go/informers/node/v1"
+	upstreamnodev1listers "k8s.io/client-go/listers/node/v1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // RuntimeClassClusterInformer provides access to a shared informer and lister for
 // RuntimeClasses.
 type RuntimeClassClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamnodev1informers.RuntimeClassInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() nodev1listers.RuntimeClassClusterLister
 }
@@ -97,4 +101,24 @@ func (f *runtimeClassClusterInformer) Informer() kcpcache.ScopeableSharedIndexIn
 
 func (f *runtimeClassClusterInformer) Lister() nodev1listers.RuntimeClassClusterLister {
 	return nodev1listers.NewRuntimeClassClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *runtimeClassClusterInformer) Cluster(cluster logicalcluster.Name) upstreamnodev1informers.RuntimeClassInformer {
+	return &runtimeClassInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type runtimeClassInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamnodev1listers.RuntimeClassLister
+}
+
+func (f *runtimeClassInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *runtimeClassInformer) Lister() upstreamnodev1listers.RuntimeClassLister {
+	return f.lister
 }

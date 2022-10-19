@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamcorev1informers "k8s.io/client-go/informers/core/v1"
+	upstreamcorev1listers "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // ServiceAccountClusterInformer provides access to a shared informer and lister for
 // ServiceAccounts.
 type ServiceAccountClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamcorev1informers.ServiceAccountInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() corev1listers.ServiceAccountClusterLister
 }
@@ -97,4 +101,24 @@ func (f *serviceAccountClusterInformer) Informer() kcpcache.ScopeableSharedIndex
 
 func (f *serviceAccountClusterInformer) Lister() corev1listers.ServiceAccountClusterLister {
 	return corev1listers.NewServiceAccountClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *serviceAccountClusterInformer) Cluster(cluster logicalcluster.Name) upstreamcorev1informers.ServiceAccountInformer {
+	return &serviceAccountInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type serviceAccountInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamcorev1listers.ServiceAccountLister
+}
+
+func (f *serviceAccountInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *serviceAccountInformer) Lister() upstreamcorev1listers.ServiceAccountLister {
+	return f.lister
 }

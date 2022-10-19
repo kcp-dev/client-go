@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamadmissionregistrationv1informers "k8s.io/client-go/informers/admissionregistration/v1"
+	upstreamadmissionregistrationv1listers "k8s.io/client-go/listers/admissionregistration/v1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // MutatingWebhookConfigurationClusterInformer provides access to a shared informer and lister for
 // MutatingWebhookConfigurations.
 type MutatingWebhookConfigurationClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamadmissionregistrationv1informers.MutatingWebhookConfigurationInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() admissionregistrationv1listers.MutatingWebhookConfigurationClusterLister
 }
@@ -97,4 +101,24 @@ func (f *mutatingWebhookConfigurationClusterInformer) Informer() kcpcache.Scopea
 
 func (f *mutatingWebhookConfigurationClusterInformer) Lister() admissionregistrationv1listers.MutatingWebhookConfigurationClusterLister {
 	return admissionregistrationv1listers.NewMutatingWebhookConfigurationClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *mutatingWebhookConfigurationClusterInformer) Cluster(cluster logicalcluster.Name) upstreamadmissionregistrationv1informers.MutatingWebhookConfigurationInformer {
+	return &mutatingWebhookConfigurationInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type mutatingWebhookConfigurationInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamadmissionregistrationv1listers.MutatingWebhookConfigurationLister
+}
+
+func (f *mutatingWebhookConfigurationInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *mutatingWebhookConfigurationInformer) Lister() upstreamadmissionregistrationv1listers.MutatingWebhookConfigurationLister {
+	return f.lister
 }

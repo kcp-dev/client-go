@@ -114,7 +114,12 @@ type dynamicNamespaceLister struct {
 func (l *dynamicNamespaceLister) List(selector labels.Selector) (ret []*metav1.PartialObjectMetadata, err error) {
 	selectAll := selector == nil || selector.Empty()
 
-	list, err := l.indexer.ByIndex(kcpcache.ClusterAndNamespaceIndexName, kcpcache.ClusterAndNamespaceIndexKey(l.cluster, l.namespace))
+	var list []interface{}
+	if l.namespace == metav1.NamespaceAll {
+		list, err = l.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(l.cluster))
+	} else {
+		list, err = l.indexer.ByIndex(kcpcache.ClusterAndNamespaceIndexName, kcpcache.ClusterAndNamespaceIndexKey(l.cluster, l.namespace))
+	}
 	if err != nil {
 		return nil, err
 	}

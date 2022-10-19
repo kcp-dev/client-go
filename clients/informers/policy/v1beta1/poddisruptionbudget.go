@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreampolicyv1beta1informers "k8s.io/client-go/informers/policy/v1beta1"
+	upstreampolicyv1beta1listers "k8s.io/client-go/listers/policy/v1beta1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // PodDisruptionBudgetClusterInformer provides access to a shared informer and lister for
 // PodDisruptionBudgets.
 type PodDisruptionBudgetClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreampolicyv1beta1informers.PodDisruptionBudgetInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() policyv1beta1listers.PodDisruptionBudgetClusterLister
 }
@@ -97,4 +101,24 @@ func (f *podDisruptionBudgetClusterInformer) Informer() kcpcache.ScopeableShared
 
 func (f *podDisruptionBudgetClusterInformer) Lister() policyv1beta1listers.PodDisruptionBudgetClusterLister {
 	return policyv1beta1listers.NewPodDisruptionBudgetClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *podDisruptionBudgetClusterInformer) Cluster(cluster logicalcluster.Name) upstreampolicyv1beta1informers.PodDisruptionBudgetInformer {
+	return &podDisruptionBudgetInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type podDisruptionBudgetInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreampolicyv1beta1listers.PodDisruptionBudgetLister
+}
+
+func (f *podDisruptionBudgetInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *podDisruptionBudgetInformer) Lister() upstreampolicyv1beta1listers.PodDisruptionBudgetLister {
+	return f.lister
 }

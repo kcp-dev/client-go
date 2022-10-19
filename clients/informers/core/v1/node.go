@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamcorev1informers "k8s.io/client-go/informers/core/v1"
+	upstreamcorev1listers "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // NodeClusterInformer provides access to a shared informer and lister for
 // Nodes.
 type NodeClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamcorev1informers.NodeInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() corev1listers.NodeClusterLister
 }
@@ -97,4 +101,24 @@ func (f *nodeClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
 
 func (f *nodeClusterInformer) Lister() corev1listers.NodeClusterLister {
 	return corev1listers.NewNodeClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *nodeClusterInformer) Cluster(cluster logicalcluster.Name) upstreamcorev1informers.NodeInformer {
+	return &nodeInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type nodeInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamcorev1listers.NodeLister
+}
+
+func (f *nodeInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *nodeInformer) Lister() upstreamcorev1listers.NodeLister {
+	return f.lister
 }

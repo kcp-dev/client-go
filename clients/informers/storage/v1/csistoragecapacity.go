@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamstoragev1informers "k8s.io/client-go/informers/storage/v1"
+	upstreamstoragev1listers "k8s.io/client-go/listers/storage/v1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // CSIStorageCapacityClusterInformer provides access to a shared informer and lister for
 // CSIStorageCapacities.
 type CSIStorageCapacityClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamstoragev1informers.CSIStorageCapacityInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() storagev1listers.CSIStorageCapacityClusterLister
 }
@@ -97,4 +101,24 @@ func (f *cSIStorageCapacityClusterInformer) Informer() kcpcache.ScopeableSharedI
 
 func (f *cSIStorageCapacityClusterInformer) Lister() storagev1listers.CSIStorageCapacityClusterLister {
 	return storagev1listers.NewCSIStorageCapacityClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *cSIStorageCapacityClusterInformer) Cluster(cluster logicalcluster.Name) upstreamstoragev1informers.CSIStorageCapacityInformer {
+	return &cSIStorageCapacityInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type cSIStorageCapacityInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamstoragev1listers.CSIStorageCapacityLister
+}
+
+func (f *cSIStorageCapacityInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *cSIStorageCapacityInformer) Lister() upstreamstoragev1listers.CSIStorageCapacityLister {
+	return f.lister
 }

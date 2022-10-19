@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamcorev1informers "k8s.io/client-go/informers/core/v1"
+	upstreamcorev1listers "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // ReplicationControllerClusterInformer provides access to a shared informer and lister for
 // ReplicationControllers.
 type ReplicationControllerClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamcorev1informers.ReplicationControllerInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() corev1listers.ReplicationControllerClusterLister
 }
@@ -97,4 +101,24 @@ func (f *replicationControllerClusterInformer) Informer() kcpcache.ScopeableShar
 
 func (f *replicationControllerClusterInformer) Lister() corev1listers.ReplicationControllerClusterLister {
 	return corev1listers.NewReplicationControllerClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *replicationControllerClusterInformer) Cluster(cluster logicalcluster.Name) upstreamcorev1informers.ReplicationControllerInformer {
+	return &replicationControllerInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type replicationControllerInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamcorev1listers.ReplicationControllerLister
+}
+
+func (f *replicationControllerInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *replicationControllerInformer) Lister() upstreamcorev1listers.ReplicationControllerLister {
+	return f.lister
 }

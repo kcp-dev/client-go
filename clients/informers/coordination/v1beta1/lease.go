@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	coordinationv1beta1 "k8s.io/api/coordination/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamcoordinationv1beta1informers "k8s.io/client-go/informers/coordination/v1beta1"
+	upstreamcoordinationv1beta1listers "k8s.io/client-go/listers/coordination/v1beta1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // LeaseClusterInformer provides access to a shared informer and lister for
 // Leases.
 type LeaseClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamcoordinationv1beta1informers.LeaseInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() coordinationv1beta1listers.LeaseClusterLister
 }
@@ -97,4 +101,24 @@ func (f *leaseClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer 
 
 func (f *leaseClusterInformer) Lister() coordinationv1beta1listers.LeaseClusterLister {
 	return coordinationv1beta1listers.NewLeaseClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *leaseClusterInformer) Cluster(cluster logicalcluster.Name) upstreamcoordinationv1beta1informers.LeaseInformer {
+	return &leaseInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type leaseInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamcoordinationv1beta1listers.LeaseLister
+}
+
+func (f *leaseInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *leaseInformer) Lister() upstreamcoordinationv1beta1listers.LeaseLister {
+	return f.lister
 }

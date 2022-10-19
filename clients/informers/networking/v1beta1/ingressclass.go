@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamnetworkingv1beta1informers "k8s.io/client-go/informers/networking/v1beta1"
+	upstreamnetworkingv1beta1listers "k8s.io/client-go/listers/networking/v1beta1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // IngressClassClusterInformer provides access to a shared informer and lister for
 // IngressClasses.
 type IngressClassClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamnetworkingv1beta1informers.IngressClassInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() networkingv1beta1listers.IngressClassClusterLister
 }
@@ -97,4 +101,24 @@ func (f *ingressClassClusterInformer) Informer() kcpcache.ScopeableSharedIndexIn
 
 func (f *ingressClassClusterInformer) Lister() networkingv1beta1listers.IngressClassClusterLister {
 	return networkingv1beta1listers.NewIngressClassClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *ingressClassClusterInformer) Cluster(cluster logicalcluster.Name) upstreamnetworkingv1beta1informers.IngressClassInformer {
+	return &ingressClassInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type ingressClassInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamnetworkingv1beta1listers.IngressClassLister
+}
+
+func (f *ingressClassInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *ingressClassInformer) Lister() upstreamnetworkingv1beta1listers.IngressClassLister {
+	return f.lister
 }

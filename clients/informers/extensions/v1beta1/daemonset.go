@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamextensionsv1beta1informers "k8s.io/client-go/informers/extensions/v1beta1"
+	upstreamextensionsv1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // DaemonSetClusterInformer provides access to a shared informer and lister for
 // DaemonSets.
 type DaemonSetClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamextensionsv1beta1informers.DaemonSetInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() extensionsv1beta1listers.DaemonSetClusterLister
 }
@@ -97,4 +101,24 @@ func (f *daemonSetClusterInformer) Informer() kcpcache.ScopeableSharedIndexInfor
 
 func (f *daemonSetClusterInformer) Lister() extensionsv1beta1listers.DaemonSetClusterLister {
 	return extensionsv1beta1listers.NewDaemonSetClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *daemonSetClusterInformer) Cluster(cluster logicalcluster.Name) upstreamextensionsv1beta1informers.DaemonSetInformer {
+	return &daemonSetInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type daemonSetInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamextensionsv1beta1listers.DaemonSetLister
+}
+
+func (f *daemonSetInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *daemonSetInformer) Lister() upstreamextensionsv1beta1listers.DaemonSetLister {
+	return f.lister
 }

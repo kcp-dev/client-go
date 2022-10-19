@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamcorev1informers "k8s.io/client-go/informers/core/v1"
+	upstreamcorev1listers "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // ComponentStatusClusterInformer provides access to a shared informer and lister for
 // ComponentStatuses.
 type ComponentStatusClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamcorev1informers.ComponentStatusInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() corev1listers.ComponentStatusClusterLister
 }
@@ -97,4 +101,24 @@ func (f *componentStatusClusterInformer) Informer() kcpcache.ScopeableSharedInde
 
 func (f *componentStatusClusterInformer) Lister() corev1listers.ComponentStatusClusterLister {
 	return corev1listers.NewComponentStatusClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *componentStatusClusterInformer) Cluster(cluster logicalcluster.Name) upstreamcorev1informers.ComponentStatusInformer {
+	return &componentStatusInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type componentStatusInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamcorev1listers.ComponentStatusLister
+}
+
+func (f *componentStatusInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *componentStatusInformer) Lister() upstreamcorev1listers.ComponentStatusLister {
+	return f.lister
 }

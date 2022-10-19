@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamappsv1beta2informers "k8s.io/client-go/informers/apps/v1beta2"
+	upstreamappsv1beta2listers "k8s.io/client-go/listers/apps/v1beta2"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // DeploymentClusterInformer provides access to a shared informer and lister for
 // Deployments.
 type DeploymentClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamappsv1beta2informers.DeploymentInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() appsv1beta2listers.DeploymentClusterLister
 }
@@ -97,4 +101,24 @@ func (f *deploymentClusterInformer) Informer() kcpcache.ScopeableSharedIndexInfo
 
 func (f *deploymentClusterInformer) Lister() appsv1beta2listers.DeploymentClusterLister {
 	return appsv1beta2listers.NewDeploymentClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *deploymentClusterInformer) Cluster(cluster logicalcluster.Name) upstreamappsv1beta2informers.DeploymentInformer {
+	return &deploymentInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type deploymentInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamappsv1beta2listers.DeploymentLister
+}
+
+func (f *deploymentInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *deploymentInformer) Lister() upstreamappsv1beta2listers.DeploymentLister {
+	return f.lister
 }

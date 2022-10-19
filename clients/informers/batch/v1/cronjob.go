@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreambatchv1informers "k8s.io/client-go/informers/batch/v1"
+	upstreambatchv1listers "k8s.io/client-go/listers/batch/v1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // CronJobClusterInformer provides access to a shared informer and lister for
 // CronJobs.
 type CronJobClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreambatchv1informers.CronJobInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() batchv1listers.CronJobClusterLister
 }
@@ -97,4 +101,24 @@ func (f *cronJobClusterInformer) Informer() kcpcache.ScopeableSharedIndexInforme
 
 func (f *cronJobClusterInformer) Lister() batchv1listers.CronJobClusterLister {
 	return batchv1listers.NewCronJobClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *cronJobClusterInformer) Cluster(cluster logicalcluster.Name) upstreambatchv1informers.CronJobInformer {
+	return &cronJobInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type cronJobInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreambatchv1listers.CronJobLister
+}
+
+func (f *cronJobInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *cronJobInformer) Lister() upstreambatchv1listers.CronJobLister {
+	return f.lister
 }

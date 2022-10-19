@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	discoveryv1beta1 "k8s.io/api/discovery/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamdiscoveryv1beta1informers "k8s.io/client-go/informers/discovery/v1beta1"
+	upstreamdiscoveryv1beta1listers "k8s.io/client-go/listers/discovery/v1beta1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // EndpointSliceClusterInformer provides access to a shared informer and lister for
 // EndpointSlices.
 type EndpointSliceClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamdiscoveryv1beta1informers.EndpointSliceInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() discoveryv1beta1listers.EndpointSliceClusterLister
 }
@@ -97,4 +101,24 @@ func (f *endpointSliceClusterInformer) Informer() kcpcache.ScopeableSharedIndexI
 
 func (f *endpointSliceClusterInformer) Lister() discoveryv1beta1listers.EndpointSliceClusterLister {
 	return discoveryv1beta1listers.NewEndpointSliceClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *endpointSliceClusterInformer) Cluster(cluster logicalcluster.Name) upstreamdiscoveryv1beta1informers.EndpointSliceInformer {
+	return &endpointSliceInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type endpointSliceInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamdiscoveryv1beta1listers.EndpointSliceLister
+}
+
+func (f *endpointSliceInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *endpointSliceInformer) Lister() upstreamdiscoveryv1beta1listers.EndpointSliceLister {
+	return f.lister
 }
