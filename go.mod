@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/evanphx/json-patch v4.12.0+incompatible
 	github.com/google/gnostic v0.5.7-v3refs
-	github.com/kcp-dev/apimachinery v0.0.0-20221013124826-6a50a2d1c182
+	github.com/kcp-dev/apimachinery v0.0.0-20221019133255-9e1e13940519
 	github.com/kcp-dev/logicalcluster/v2 v2.0.0-alpha.1
 	k8s.io/api v0.24.3
 	k8s.io/apimachinery v0.24.3
