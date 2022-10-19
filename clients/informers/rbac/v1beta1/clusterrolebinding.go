@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	rbacv1beta1 "k8s.io/api/rbac/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamrbacv1beta1informers "k8s.io/client-go/informers/rbac/v1beta1"
+	upstreamrbacv1beta1listers "k8s.io/client-go/listers/rbac/v1beta1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // ClusterRoleBindingClusterInformer provides access to a shared informer and lister for
 // ClusterRoleBindings.
 type ClusterRoleBindingClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamrbacv1beta1informers.ClusterRoleBindingInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() rbacv1beta1listers.ClusterRoleBindingClusterLister
 }
@@ -97,4 +101,24 @@ func (f *clusterRoleBindingClusterInformer) Informer() kcpcache.ScopeableSharedI
 
 func (f *clusterRoleBindingClusterInformer) Lister() rbacv1beta1listers.ClusterRoleBindingClusterLister {
 	return rbacv1beta1listers.NewClusterRoleBindingClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *clusterRoleBindingClusterInformer) Cluster(cluster logicalcluster.Name) upstreamrbacv1beta1informers.ClusterRoleBindingInformer {
+	return &clusterRoleBindingInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type clusterRoleBindingInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamrbacv1beta1listers.ClusterRoleBindingLister
+}
+
+func (f *clusterRoleBindingInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *clusterRoleBindingInformer) Lister() upstreamrbacv1beta1listers.ClusterRoleBindingLister {
+	return f.lister
 }

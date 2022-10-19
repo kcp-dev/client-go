@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamstoragev1informers "k8s.io/client-go/informers/storage/v1"
+	upstreamstoragev1listers "k8s.io/client-go/listers/storage/v1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // CSIDriverClusterInformer provides access to a shared informer and lister for
 // CSIDrivers.
 type CSIDriverClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamstoragev1informers.CSIDriverInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() storagev1listers.CSIDriverClusterLister
 }
@@ -97,4 +101,24 @@ func (f *cSIDriverClusterInformer) Informer() kcpcache.ScopeableSharedIndexInfor
 
 func (f *cSIDriverClusterInformer) Lister() storagev1listers.CSIDriverClusterLister {
 	return storagev1listers.NewCSIDriverClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *cSIDriverClusterInformer) Cluster(cluster logicalcluster.Name) upstreamstoragev1informers.CSIDriverInformer {
+	return &cSIDriverInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type cSIDriverInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamstoragev1listers.CSIDriverLister
+}
+
+func (f *cSIDriverInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *cSIDriverInformer) Lister() upstreamstoragev1listers.CSIDriverLister {
+	return f.lister
 }

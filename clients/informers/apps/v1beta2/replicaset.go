@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamappsv1beta2informers "k8s.io/client-go/informers/apps/v1beta2"
+	upstreamappsv1beta2listers "k8s.io/client-go/listers/apps/v1beta2"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // ReplicaSetClusterInformer provides access to a shared informer and lister for
 // ReplicaSets.
 type ReplicaSetClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamappsv1beta2informers.ReplicaSetInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() appsv1beta2listers.ReplicaSetClusterLister
 }
@@ -97,4 +101,24 @@ func (f *replicaSetClusterInformer) Informer() kcpcache.ScopeableSharedIndexInfo
 
 func (f *replicaSetClusterInformer) Lister() appsv1beta2listers.ReplicaSetClusterLister {
 	return appsv1beta2listers.NewReplicaSetClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *replicaSetClusterInformer) Cluster(cluster logicalcluster.Name) upstreamappsv1beta2informers.ReplicaSetInformer {
+	return &replicaSetInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type replicaSetInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamappsv1beta2listers.ReplicaSetLister
+}
+
+func (f *replicaSetInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *replicaSetInformer) Lister() upstreamappsv1beta2listers.ReplicaSetLister {
+	return f.lister
 }

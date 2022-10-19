@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamstoragev1informers "k8s.io/client-go/informers/storage/v1"
+	upstreamstoragev1listers "k8s.io/client-go/listers/storage/v1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // VolumeAttachmentClusterInformer provides access to a shared informer and lister for
 // VolumeAttachments.
 type VolumeAttachmentClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamstoragev1informers.VolumeAttachmentInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() storagev1listers.VolumeAttachmentClusterLister
 }
@@ -97,4 +101,24 @@ func (f *volumeAttachmentClusterInformer) Informer() kcpcache.ScopeableSharedInd
 
 func (f *volumeAttachmentClusterInformer) Lister() storagev1listers.VolumeAttachmentClusterLister {
 	return storagev1listers.NewVolumeAttachmentClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *volumeAttachmentClusterInformer) Cluster(cluster logicalcluster.Name) upstreamstoragev1informers.VolumeAttachmentInformer {
+	return &volumeAttachmentInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type volumeAttachmentInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamstoragev1listers.VolumeAttachmentLister
+}
+
+func (f *volumeAttachmentInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *volumeAttachmentInformer) Lister() upstreamstoragev1listers.VolumeAttachmentLister {
+	return f.lister
 }

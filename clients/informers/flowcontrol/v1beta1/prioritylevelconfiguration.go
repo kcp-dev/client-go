@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	flowcontrolv1beta1 "k8s.io/api/flowcontrol/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamflowcontrolv1beta1informers "k8s.io/client-go/informers/flowcontrol/v1beta1"
+	upstreamflowcontrolv1beta1listers "k8s.io/client-go/listers/flowcontrol/v1beta1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // PriorityLevelConfigurationClusterInformer provides access to a shared informer and lister for
 // PriorityLevelConfigurations.
 type PriorityLevelConfigurationClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamflowcontrolv1beta1informers.PriorityLevelConfigurationInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() flowcontrolv1beta1listers.PriorityLevelConfigurationClusterLister
 }
@@ -97,4 +101,24 @@ func (f *priorityLevelConfigurationClusterInformer) Informer() kcpcache.Scopeabl
 
 func (f *priorityLevelConfigurationClusterInformer) Lister() flowcontrolv1beta1listers.PriorityLevelConfigurationClusterLister {
 	return flowcontrolv1beta1listers.NewPriorityLevelConfigurationClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *priorityLevelConfigurationClusterInformer) Cluster(cluster logicalcluster.Name) upstreamflowcontrolv1beta1informers.PriorityLevelConfigurationInformer {
+	return &priorityLevelConfigurationInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type priorityLevelConfigurationInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamflowcontrolv1beta1listers.PriorityLevelConfigurationLister
+}
+
+func (f *priorityLevelConfigurationInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *priorityLevelConfigurationInformer) Lister() upstreamflowcontrolv1beta1listers.PriorityLevelConfigurationLister {
+	return f.lister
 }

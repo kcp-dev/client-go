@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamstoragev1informers "k8s.io/client-go/informers/storage/v1"
+	upstreamstoragev1listers "k8s.io/client-go/listers/storage/v1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // StorageClassClusterInformer provides access to a shared informer and lister for
 // StorageClasses.
 type StorageClassClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamstoragev1informers.StorageClassInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() storagev1listers.StorageClassClusterLister
 }
@@ -97,4 +101,24 @@ func (f *storageClassClusterInformer) Informer() kcpcache.ScopeableSharedIndexIn
 
 func (f *storageClassClusterInformer) Lister() storagev1listers.StorageClassClusterLister {
 	return storagev1listers.NewStorageClassClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *storageClassClusterInformer) Cluster(cluster logicalcluster.Name) upstreamstoragev1informers.StorageClassInformer {
+	return &storageClassInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type storageClassInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamstoragev1listers.StorageClassLister
+}
+
+func (f *storageClassInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *storageClassInformer) Lister() upstreamstoragev1listers.StorageClassLister {
+	return f.lister
 }

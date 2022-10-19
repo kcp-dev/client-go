@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	internalv1alpha1 "k8s.io/api/apiserverinternal/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreaminternalv1alpha1informers "k8s.io/client-go/informers/apiserverinternal/v1alpha1"
+	upstreaminternalv1alpha1listers "k8s.io/client-go/listers/apiserverinternal/v1alpha1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // StorageVersionClusterInformer provides access to a shared informer and lister for
 // StorageVersions.
 type StorageVersionClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreaminternalv1alpha1informers.StorageVersionInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() internalv1alpha1listers.StorageVersionClusterLister
 }
@@ -97,4 +101,24 @@ func (f *storageVersionClusterInformer) Informer() kcpcache.ScopeableSharedIndex
 
 func (f *storageVersionClusterInformer) Lister() internalv1alpha1listers.StorageVersionClusterLister {
 	return internalv1alpha1listers.NewStorageVersionClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *storageVersionClusterInformer) Cluster(cluster logicalcluster.Name) upstreaminternalv1alpha1informers.StorageVersionInformer {
+	return &storageVersionInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type storageVersionInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreaminternalv1alpha1listers.StorageVersionLister
+}
+
+func (f *storageVersionInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *storageVersionInformer) Lister() upstreaminternalv1alpha1listers.StorageVersionLister {
+	return f.lister
 }

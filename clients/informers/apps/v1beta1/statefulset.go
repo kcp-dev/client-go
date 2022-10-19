@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamappsv1beta1informers "k8s.io/client-go/informers/apps/v1beta1"
+	upstreamappsv1beta1listers "k8s.io/client-go/listers/apps/v1beta1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // StatefulSetClusterInformer provides access to a shared informer and lister for
 // StatefulSets.
 type StatefulSetClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamappsv1beta1informers.StatefulSetInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() appsv1beta1listers.StatefulSetClusterLister
 }
@@ -97,4 +101,24 @@ func (f *statefulSetClusterInformer) Informer() kcpcache.ScopeableSharedIndexInf
 
 func (f *statefulSetClusterInformer) Lister() appsv1beta1listers.StatefulSetClusterLister {
 	return appsv1beta1listers.NewStatefulSetClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *statefulSetClusterInformer) Cluster(cluster logicalcluster.Name) upstreamappsv1beta1informers.StatefulSetInformer {
+	return &statefulSetInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type statefulSetInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamappsv1beta1listers.StatefulSetLister
+}
+
+func (f *statefulSetInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *statefulSetInformer) Lister() upstreamappsv1beta1listers.StatefulSetLister {
+	return f.lister
 }

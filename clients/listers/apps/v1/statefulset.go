@@ -27,6 +27,7 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	appsv1listers "k8s.io/client-go/listers/apps/v1"
 	"k8s.io/client-go/tools/cache"
@@ -105,7 +106,12 @@ type statefulSetNamespaceLister struct {
 func (s *statefulSetNamespaceLister) List(selector labels.Selector) (ret []*appsv1.StatefulSet, err error) {
 	selectAll := selector == nil || selector.Empty()
 
-	list, err := s.indexer.ByIndex(kcpcache.ClusterAndNamespaceIndexName, kcpcache.ClusterAndNamespaceIndexKey(s.cluster, s.namespace))
+	var list []interface{}
+	if s.namespace == metav1.NamespaceAll {
+		list, err = s.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(s.cluster))
+	} else {
+		list, err = s.indexer.ByIndex(kcpcache.ClusterAndNamespaceIndexName, kcpcache.ClusterAndNamespaceIndexKey(s.cluster, s.namespace))
+	}
 	if err != nil {
 		return nil, err
 	}

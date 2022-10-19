@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	autoscalingv2beta1 "k8s.io/api/autoscaling/v2beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamautoscalingv2beta1informers "k8s.io/client-go/informers/autoscaling/v2beta1"
+	upstreamautoscalingv2beta1listers "k8s.io/client-go/listers/autoscaling/v2beta1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // HorizontalPodAutoscalerClusterInformer provides access to a shared informer and lister for
 // HorizontalPodAutoscalers.
 type HorizontalPodAutoscalerClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamautoscalingv2beta1informers.HorizontalPodAutoscalerInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() autoscalingv2beta1listers.HorizontalPodAutoscalerClusterLister
 }
@@ -97,4 +101,24 @@ func (f *horizontalPodAutoscalerClusterInformer) Informer() kcpcache.ScopeableSh
 
 func (f *horizontalPodAutoscalerClusterInformer) Lister() autoscalingv2beta1listers.HorizontalPodAutoscalerClusterLister {
 	return autoscalingv2beta1listers.NewHorizontalPodAutoscalerClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *horizontalPodAutoscalerClusterInformer) Cluster(cluster logicalcluster.Name) upstreamautoscalingv2beta1informers.HorizontalPodAutoscalerInformer {
+	return &horizontalPodAutoscalerInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type horizontalPodAutoscalerInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamautoscalingv2beta1listers.HorizontalPodAutoscalerLister
+}
+
+func (f *horizontalPodAutoscalerInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *horizontalPodAutoscalerInformer) Lister() upstreamautoscalingv2beta1listers.HorizontalPodAutoscalerLister {
+	return f.lister
 }

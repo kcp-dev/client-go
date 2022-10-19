@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamadmissionregistrationv1beta1informers "k8s.io/client-go/informers/admissionregistration/v1beta1"
+	upstreamadmissionregistrationv1beta1listers "k8s.io/client-go/listers/admissionregistration/v1beta1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // ValidatingWebhookConfigurationClusterInformer provides access to a shared informer and lister for
 // ValidatingWebhookConfigurations.
 type ValidatingWebhookConfigurationClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamadmissionregistrationv1beta1informers.ValidatingWebhookConfigurationInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() admissionregistrationv1beta1listers.ValidatingWebhookConfigurationClusterLister
 }
@@ -97,4 +101,24 @@ func (f *validatingWebhookConfigurationClusterInformer) Informer() kcpcache.Scop
 
 func (f *validatingWebhookConfigurationClusterInformer) Lister() admissionregistrationv1beta1listers.ValidatingWebhookConfigurationClusterLister {
 	return admissionregistrationv1beta1listers.NewValidatingWebhookConfigurationClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *validatingWebhookConfigurationClusterInformer) Cluster(cluster logicalcluster.Name) upstreamadmissionregistrationv1beta1informers.ValidatingWebhookConfigurationInformer {
+	return &validatingWebhookConfigurationInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type validatingWebhookConfigurationInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamadmissionregistrationv1beta1listers.ValidatingWebhookConfigurationLister
+}
+
+func (f *validatingWebhookConfigurationInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *validatingWebhookConfigurationInformer) Lister() upstreamadmissionregistrationv1beta1listers.ValidatingWebhookConfigurationLister {
+	return f.lister
 }

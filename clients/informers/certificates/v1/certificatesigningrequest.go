@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	certificatesv1 "k8s.io/api/certificates/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamcertificatesv1informers "k8s.io/client-go/informers/certificates/v1"
+	upstreamcertificatesv1listers "k8s.io/client-go/listers/certificates/v1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // CertificateSigningRequestClusterInformer provides access to a shared informer and lister for
 // CertificateSigningRequests.
 type CertificateSigningRequestClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamcertificatesv1informers.CertificateSigningRequestInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() certificatesv1listers.CertificateSigningRequestClusterLister
 }
@@ -97,4 +101,24 @@ func (f *certificateSigningRequestClusterInformer) Informer() kcpcache.Scopeable
 
 func (f *certificateSigningRequestClusterInformer) Lister() certificatesv1listers.CertificateSigningRequestClusterLister {
 	return certificatesv1listers.NewCertificateSigningRequestClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *certificateSigningRequestClusterInformer) Cluster(cluster logicalcluster.Name) upstreamcertificatesv1informers.CertificateSigningRequestInformer {
+	return &certificateSigningRequestInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type certificateSigningRequestInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamcertificatesv1listers.CertificateSigningRequestLister
+}
+
+func (f *certificateSigningRequestInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *certificateSigningRequestInformer) Lister() upstreamcertificatesv1listers.CertificateSigningRequestLister {
+	return f.lister
 }

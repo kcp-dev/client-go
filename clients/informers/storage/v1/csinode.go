@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamstoragev1informers "k8s.io/client-go/informers/storage/v1"
+	upstreamstoragev1listers "k8s.io/client-go/listers/storage/v1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // CSINodeClusterInformer provides access to a shared informer and lister for
 // CSINodes.
 type CSINodeClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamstoragev1informers.CSINodeInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() storagev1listers.CSINodeClusterLister
 }
@@ -97,4 +101,24 @@ func (f *cSINodeClusterInformer) Informer() kcpcache.ScopeableSharedIndexInforme
 
 func (f *cSINodeClusterInformer) Lister() storagev1listers.CSINodeClusterLister {
 	return storagev1listers.NewCSINodeClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *cSINodeClusterInformer) Cluster(cluster logicalcluster.Name) upstreamstoragev1informers.CSINodeInformer {
+	return &cSINodeInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type cSINodeInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamstoragev1listers.CSINodeLister
+}
+
+func (f *cSINodeInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *cSINodeInformer) Lister() upstreamstoragev1listers.CSINodeLister {
+	return f.lister
 }

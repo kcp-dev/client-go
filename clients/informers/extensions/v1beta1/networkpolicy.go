@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamextensionsv1beta1informers "k8s.io/client-go/informers/extensions/v1beta1"
+	upstreamextensionsv1beta1listers "k8s.io/client-go/listers/extensions/v1beta1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // NetworkPolicyClusterInformer provides access to a shared informer and lister for
 // NetworkPolicies.
 type NetworkPolicyClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamextensionsv1beta1informers.NetworkPolicyInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() extensionsv1beta1listers.NetworkPolicyClusterLister
 }
@@ -97,4 +101,24 @@ func (f *networkPolicyClusterInformer) Informer() kcpcache.ScopeableSharedIndexI
 
 func (f *networkPolicyClusterInformer) Lister() extensionsv1beta1listers.NetworkPolicyClusterLister {
 	return extensionsv1beta1listers.NewNetworkPolicyClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *networkPolicyClusterInformer) Cluster(cluster logicalcluster.Name) upstreamextensionsv1beta1informers.NetworkPolicyInformer {
+	return &networkPolicyInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type networkPolicyInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamextensionsv1beta1listers.NetworkPolicyLister
+}
+
+func (f *networkPolicyInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *networkPolicyInformer) Lister() upstreamextensionsv1beta1listers.NetworkPolicyLister {
+	return f.lister
 }

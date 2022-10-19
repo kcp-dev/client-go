@@ -25,6 +25,7 @@ import (
 	"fmt"
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
@@ -68,9 +69,12 @@ import (
 	storagev1alpha1 "k8s.io/api/storage/v1alpha1"
 	storagev1beta1 "k8s.io/api/storage/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	upstreaminformers "k8s.io/client-go/informers"
+	"k8s.io/client-go/tools/cache"
 )
 
 type GenericClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreaminformers.GenericInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() kcpcache.GenericClusterLister
 }
@@ -88,6 +92,29 @@ func (f *genericClusterInformer) Informer() kcpcache.ScopeableSharedIndexInforme
 // Lister returns the GenericClusterLister.
 func (f *genericClusterInformer) Lister() kcpcache.GenericClusterLister {
 	return kcpcache.NewGenericClusterLister(f.Informer().GetIndexer(), f.resource)
+}
+
+// Cluster scopes to a GenericInformer.
+func (f *genericClusterInformer) Cluster(cluster logicalcluster.Name) upstreaminformers.GenericInformer {
+	return &genericInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().ByCluster(cluster),
+	}
+}
+
+type genericInformer struct {
+	informer cache.SharedIndexInformer
+	lister   cache.GenericLister
+}
+
+// Informer returns the SharedIndexInformer.
+func (f *genericInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+// Lister returns the GenericLister.
+func (f *genericInformer) Lister() cache.GenericLister {
+	return f.lister
 }
 
 // ForResource gives generic access to a shared informer of the matching type

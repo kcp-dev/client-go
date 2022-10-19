@@ -27,11 +27,14 @@ import (
 
 	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
 	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v2"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
+	upstreamcorev1informers "k8s.io/client-go/informers/core/v1"
+	upstreamcorev1listers "k8s.io/client-go/listers/core/v1"
 	"k8s.io/client-go/tools/cache"
 
 	clientset "github.com/kcp-dev/client-go/clients/clientset/versioned"
@@ -42,6 +45,7 @@ import (
 // LimitRangeClusterInformer provides access to a shared informer and lister for
 // LimitRanges.
 type LimitRangeClusterInformer interface {
+	Cluster(logicalcluster.Name) upstreamcorev1informers.LimitRangeInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
 	Lister() corev1listers.LimitRangeClusterLister
 }
@@ -97,4 +101,24 @@ func (f *limitRangeClusterInformer) Informer() kcpcache.ScopeableSharedIndexInfo
 
 func (f *limitRangeClusterInformer) Lister() corev1listers.LimitRangeClusterLister {
 	return corev1listers.NewLimitRangeClusterLister(f.Informer().GetIndexer())
+}
+
+func (f *limitRangeClusterInformer) Cluster(cluster logicalcluster.Name) upstreamcorev1informers.LimitRangeInformer {
+	return &limitRangeInformer{
+		informer: f.Informer().Cluster(cluster),
+		lister:   f.Lister().Cluster(cluster),
+	}
+}
+
+type limitRangeInformer struct {
+	informer cache.SharedIndexInformer
+	lister   upstreamcorev1listers.LimitRangeLister
+}
+
+func (f *limitRangeInformer) Informer() cache.SharedIndexInformer {
+	return f.informer
+}
+
+func (f *limitRangeInformer) Lister() upstreamcorev1listers.LimitRangeLister {
+	return f.lister
 }
