@@ -30,39 +30,39 @@ import (
 
 // New returns a new ClusterLister.
 func New(indexer cache.Indexer, gvr schema.GroupVersionResource) ClusterLister {
-	return &dynamicClusterLister{indexer: indexer, gvr: gvr}
+	return &metadataClusterLister{indexer: indexer, gvr: gvr}
 }
 
-var _ ClusterLister = &dynamicClusterLister{}
+var _ ClusterLister = &metadataClusterLister{}
 
-type dynamicClusterLister struct {
+type metadataClusterLister struct {
 	indexer cache.Indexer
 	gvr     schema.GroupVersionResource
 }
 
-func (l *dynamicClusterLister) Cluster(name logicalcluster.Name) metadatalister.Lister {
-	return &dynamicLister{indexer: l.indexer, gvr: l.gvr, cluster: name}
+func (l *metadataClusterLister) Cluster(name logicalcluster.Name) metadatalister.Lister {
+	return &metadataLister{indexer: l.indexer, gvr: l.gvr, cluster: name}
 }
 
-func (l *dynamicClusterLister) List(selector labels.Selector) (ret []*metav1.PartialObjectMetadata, err error) {
+func (l *metadataClusterLister) List(selector labels.Selector) (ret []*metav1.PartialObjectMetadata, err error) {
 	err = cache.ListAll(l.indexer, selector, func(m interface{}) {
 		ret = append(ret, m.(*metav1.PartialObjectMetadata))
 	})
 	return ret, err
 }
 
-var _ metadatalister.Lister = &dynamicLister{}
-var _ metadatalister.NamespaceLister = &dynamicNamespaceLister{}
+var _ metadatalister.Lister = &metadataLister{}
+var _ metadatalister.NamespaceLister = &metadataNamespaceLister{}
 
-// dynamicLister implements the Lister interface.
-type dynamicLister struct {
+// metadataLister implements the Lister interface.
+type metadataLister struct {
 	indexer cache.Indexer
 	gvr     schema.GroupVersionResource
 	cluster logicalcluster.Name
 }
 
 // List lists all resources in the indexer.
-func (l *dynamicLister) List(selector labels.Selector) (ret []*metav1.PartialObjectMetadata, err error) {
+func (l *metadataLister) List(selector labels.Selector) (ret []*metav1.PartialObjectMetadata, err error) {
 	selectAll := selector == nil || selector.Empty()
 
 	list, err := l.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(l.cluster))
@@ -85,7 +85,7 @@ func (l *dynamicLister) List(selector labels.Selector) (ret []*metav1.PartialObj
 }
 
 // Get retrieves a resource from the indexer with the given name
-func (l *dynamicLister) Get(name string) (*metav1.PartialObjectMetadata, error) {
+func (l *metadataLister) Get(name string) (*metav1.PartialObjectMetadata, error) {
 	key := kcpcache.ToClusterAwareKey(l.cluster.String(), "", name)
 	obj, exists, err := l.indexer.GetByKey(key)
 	if err != nil {
@@ -98,12 +98,12 @@ func (l *dynamicLister) Get(name string) (*metav1.PartialObjectMetadata, error) 
 }
 
 // Namespace returns an object that can list and get resources from a given namespace.
-func (l *dynamicLister) Namespace(namespace string) metadatalister.NamespaceLister {
-	return &dynamicNamespaceLister{indexer: l.indexer, namespace: namespace, gvr: l.gvr, cluster: l.cluster}
+func (l *metadataLister) Namespace(namespace string) metadatalister.NamespaceLister {
+	return &metadataNamespaceLister{indexer: l.indexer, namespace: namespace, gvr: l.gvr, cluster: l.cluster}
 }
 
-// dynamicNamespaceLister implements the NamespaceLister interface.
-type dynamicNamespaceLister struct {
+// metadataNamespaceLister implements the NamespaceLister interface.
+type metadataNamespaceLister struct {
 	indexer   cache.Indexer
 	namespace string
 	gvr       schema.GroupVersionResource
@@ -111,7 +111,7 @@ type dynamicNamespaceLister struct {
 }
 
 // List lists all resources in the indexer for a given namespace.
-func (l *dynamicNamespaceLister) List(selector labels.Selector) (ret []*metav1.PartialObjectMetadata, err error) {
+func (l *metadataNamespaceLister) List(selector labels.Selector) (ret []*metav1.PartialObjectMetadata, err error) {
 	selectAll := selector == nil || selector.Empty()
 
 	var list []interface{}
@@ -138,7 +138,7 @@ func (l *dynamicNamespaceLister) List(selector labels.Selector) (ret []*metav1.P
 }
 
 // Get retrieves a resource from the indexer for a given namespace and name.
-func (l *dynamicNamespaceLister) Get(name string) (*metav1.PartialObjectMetadata, error) {
+func (l *metadataNamespaceLister) Get(name string) (*metav1.PartialObjectMetadata, error) {
 	key := kcpcache.ToClusterAwareKey(l.cluster.String(), l.namespace, name)
 	obj, exists, err := l.indexer.GetByKey(key)
 	if err != nil {

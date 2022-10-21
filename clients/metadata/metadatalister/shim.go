@@ -29,16 +29,16 @@ import (
 // NewRuntimeObjectShim returns a new shim for ClusterLister.
 // It wraps Lister so that it implements kcpcache.GenericClusterLister interface
 func NewRuntimeObjectShim(lister ClusterLister) kcpcache.GenericClusterLister {
-	return &dynamicClusterListerShim{lister: lister}
+	return &metadataClusterListerShim{lister: lister}
 }
 
-var _ kcpcache.GenericClusterLister = &dynamicClusterListerShim{}
+var _ kcpcache.GenericClusterLister = &metadataClusterListerShim{}
 
-type dynamicClusterListerShim struct {
+type metadataClusterListerShim struct {
 	lister ClusterLister
 }
 
-func (s *dynamicClusterListerShim) List(selector labels.Selector) (ret []runtime.Object, err error) {
+func (s *metadataClusterListerShim) List(selector labels.Selector) (ret []runtime.Object, err error) {
 	objs, err := s.lister.List(selector)
 	if err != nil {
 		return nil, err
@@ -51,6 +51,6 @@ func (s *dynamicClusterListerShim) List(selector labels.Selector) (ret []runtime
 	return ret, err
 }
 
-func (s *dynamicClusterListerShim) ByCluster(cluster logicalcluster.Name) cache.GenericLister {
+func (s *metadataClusterListerShim) ByCluster(cluster logicalcluster.Name) cache.GenericLister {
 	return metadatalister.NewRuntimeObjectShim(s.lister.Cluster(cluster))
 }
