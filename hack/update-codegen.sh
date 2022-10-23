@@ -30,3 +30,10 @@ ${CODE_GENERATOR} \
   "informer:outputPackagePath=github.com/kcp-dev/client-go,apiPackagePath=k8s.io/api,singleClusterListerPackagePath=k8s.io/client-go/listers,singleClusterInformerPackagePath=k8s.io/client-go/informers,headerFile=./hack/boilerplate/boilerplate.go.txt" \
   "paths=$( go list -m -json k8s.io/api | jq --raw-output .Dir )/..." \
   "output:dir=./"
+
+${CODE_GENERATOR} \
+  "client:outputPackagePath=github.com/kcp-dev/client-go/apiextensions,name=clientset,apiPackagePath=k8s.io/apiextensions-apiserver/pkg/apis,singleClusterClientPackagePath=k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset,headerFile=./hack/boilerplate/boilerplate.go.txt" \
+  "lister:apiPackagePath=k8s.io/apiextensions-apiserver/pkg/apis,singleClusterListerPackagePath=k8s.io/apiextensions-apiserver/pkg/client/listers,headerFile=./hack/boilerplate/boilerplate.go.txt" \
+  "informer:outputPackagePath=github.com/kcp-dev/client-go/apiextensions,apiPackagePath=k8s.io/apiextensions-apiserver/pkg/apis,singleClusterListerPackagePath=k8s.io/apiextensions-apiserver/pkg/client/listers,singleClusterInformerPackagePath=k8s.io/apiextensions-apiserver/pkg/client/informers/externalversions,headerFile=./hack/boilerplate/boilerplate.go.txt" \
+  "paths=$( go list -m -json k8s.io/apiextensions-apiserver | jq --raw-output .Dir )/pkg/apis/..." \
+  "output:dir=./apiextensions"
