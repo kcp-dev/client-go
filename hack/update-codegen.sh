@@ -25,15 +25,8 @@ if [[ -z "${MAKELEVEL:-}" ]]; then
 fi
 
 ${CODE_GENERATOR} \
-  "client:outputPackagePath=github.com/kcp-dev/client-go/clients,name=kubernetes,apiPackagePath=k8s.io/api,singleClusterClientPackagePath=k8s.io/client-go/kubernetes,singleClusterApplyConfigurationsPackagePath=k8s.io/client-go/applyconfigurations,headerFile=./hack/boilerplate/boilerplate.go.txt" \
+  "client:externalOnly=true,standalone=true,outputPackagePath=github.com/kcp-dev/client-go,name=kubernetes,apiPackagePath=k8s.io/api,singleClusterClientPackagePath=k8s.io/client-go/kubernetes,singleClusterApplyConfigurationsPackagePath=k8s.io/client-go/applyconfigurations,headerFile=./hack/boilerplate/boilerplate.go.txt" \
   "lister:apiPackagePath=k8s.io/api,singleClusterListerPackagePath=k8s.io/client-go/listers,headerFile=./hack/boilerplate/boilerplate.go.txt" \
-  "informer:outputPackagePath=github.com/kcp-dev/client-go/clients,apiPackagePath=k8s.io/api,singleClusterListerPackagePath=k8s.io/client-go/listers,singleClusterInformerPackagePath=k8s.io/client-go/informers,headerFile=./hack/boilerplate/boilerplate.go.txt" \
+  "informer:clientsetName=kubernetes,externalOnly=true,standalone=true,outputPackagePath=github.com/kcp-dev/client-go,apiPackagePath=k8s.io/api,singleClusterListerPackagePath=k8s.io/client-go/listers,singleClusterInformerPackagePath=k8s.io/client-go/informers,headerFile=./hack/boilerplate/boilerplate.go.txt" \
   "paths=$( go list -m -json k8s.io/api | jq --raw-output .Dir )/..." \
-  "output:dir=./clients"
-
-${CODE_GENERATOR} \
-  "client:outputPackagePath=github.com/kcp-dev/client-go/apiextensions/clients,name=clientset,apiPackagePath=k8s.io/apiextensions-apiserver/pkg/apis,singleClusterClientPackagePath=k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset,headerFile=./hack/boilerplate/boilerplate.go.txt" \
-  "lister:apiPackagePath=k8s.io/apiextensions-apiserver/pkg/apis,singleClusterListerPackagePath=k8s.io/apiextensions-apiserver/pkg/client/listers,headerFile=./hack/boilerplate/boilerplate.go.txt" \
-  "informer:outputPackagePath=github.com/kcp-dev/client-go/apiextensions/clients,apiPackagePath=k8s.io/apiextensions-apiserver/pkg/apis,singleClusterListerPackagePath=k8s.io/apiextensions-apiserver/pkg/client/listers,singleClusterInformerPackagePath=k8s.io/apiextensions-apiserver/pkg/client/informers/externalversions,headerFile=./hack/boilerplate/boilerplate.go.txt" \
-  "paths=$( go list -m -json k8s.io/apiextensions-apiserver | jq --raw-output .Dir )/pkg/apis/..." \
-  "output:dir=./apiextensions/clients"
+  "output:dir=./"

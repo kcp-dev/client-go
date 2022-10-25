@@ -53,14 +53,13 @@ mkdir -p "${sink_dir}"
 cp "${source_dir}/dynamic/fake/simple.go" "${sink_dir}"
 
 for expansion in $( find "${source_dir}/listers" -type f -name '*_expansion.go' ); do
-  sink="./clients/${expansion##"${source_dir}/"}"
+  sink="./${expansion##"${source_dir}/"}"
   mkdir -p "$( dirname "${sink}" )"
   cp "${expansion}" "${sink}"
 done
 
 for expansion in $( find "${source_dir}/kubernetes" -type f -name 'fake_*_expansion.go' ); do
-  expansion_without_fake="${expansion/"/fake"/}"
-  sink="./clients/clientset/versioned/fake/${expansion_without_fake##"${source_dir}/kubernetes/"}"
+  sink="./${expansion##"${source_dir}/"}"
   mkdir -p "$( dirname "${sink}" )"
   cp "${expansion}" "${sink}"
 done
