@@ -34,7 +34,7 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/metadata"
 
-	kcpmetadata "github.com/kcp-dev/client-go/clients/metadata"
+	kcpmetadata "github.com/kcp-dev/client-go/metadata"
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 

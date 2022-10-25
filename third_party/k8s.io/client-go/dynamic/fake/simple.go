@@ -35,7 +35,7 @@ import (
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/dynamic"
 
-	kcpdynamic "github.com/kcp-dev/client-go/clients/dynamic"
+	kcpdynamic "github.com/kcp-dev/client-go/dynamic"
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
