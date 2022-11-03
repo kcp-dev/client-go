@@ -33,9 +33,14 @@ import (
 )
 
 // StorageVersionClusterLister can list StorageVersions across all workspaces, or scope down to a StorageVersionLister for one workspace.
+// All objects returned here must be treated as read-only.
 type StorageVersionClusterLister interface {
+	// List lists all StorageVersions in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*internalv1alpha1.StorageVersion, err error)
+	// Cluster returns a lister that can list and get StorageVersions in one workspace.
 	Cluster(cluster logicalcluster.Name) internalv1alpha1listers.StorageVersionLister
+	StorageVersionClusterListerExpansion
 }
 
 type storageVersionClusterLister struct {
@@ -43,6 +48,10 @@ type storageVersionClusterLister struct {
 }
 
 // NewStorageVersionClusterLister returns a new StorageVersionClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
 func NewStorageVersionClusterLister(indexer cache.Indexer) *storageVersionClusterLister {
 	return &storageVersionClusterLister{indexer: indexer}
 }

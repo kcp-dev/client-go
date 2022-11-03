@@ -33,9 +33,14 @@ import (
 )
 
 // RuntimeClassClusterLister can list RuntimeClasses across all workspaces, or scope down to a RuntimeClassLister for one workspace.
+// All objects returned here must be treated as read-only.
 type RuntimeClassClusterLister interface {
+	// List lists all RuntimeClasses in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*nodev1alpha1.RuntimeClass, err error)
+	// Cluster returns a lister that can list and get RuntimeClasses in one workspace.
 	Cluster(cluster logicalcluster.Name) nodev1alpha1listers.RuntimeClassLister
+	RuntimeClassClusterListerExpansion
 }
 
 type runtimeClassClusterLister struct {
@@ -43,6 +48,10 @@ type runtimeClassClusterLister struct {
 }
 
 // NewRuntimeClassClusterLister returns a new RuntimeClassClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
 func NewRuntimeClassClusterLister(indexer cache.Indexer) *runtimeClassClusterLister {
 	return &runtimeClassClusterLister{indexer: indexer}
 }

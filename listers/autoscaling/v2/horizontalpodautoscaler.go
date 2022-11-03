@@ -33,9 +33,14 @@ import (
 )
 
 // HorizontalPodAutoscalerClusterLister can list HorizontalPodAutoscalers across all workspaces, or scope down to a HorizontalPodAutoscalerLister for one workspace.
+// All objects returned here must be treated as read-only.
 type HorizontalPodAutoscalerClusterLister interface {
+	// List lists all HorizontalPodAutoscalers in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*autoscalingv2.HorizontalPodAutoscaler, err error)
+	// Cluster returns a lister that can list and get HorizontalPodAutoscalers in one workspace.
 	Cluster(cluster logicalcluster.Name) autoscalingv2listers.HorizontalPodAutoscalerLister
+	HorizontalPodAutoscalerClusterListerExpansion
 }
 
 type horizontalPodAutoscalerClusterLister struct {
@@ -43,6 +48,11 @@ type horizontalPodAutoscalerClusterLister struct {
 }
 
 // NewHorizontalPodAutoscalerClusterLister returns a new HorizontalPodAutoscalerClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewHorizontalPodAutoscalerClusterLister(indexer cache.Indexer) *horizontalPodAutoscalerClusterLister {
 	return &horizontalPodAutoscalerClusterLister{indexer: indexer}
 }

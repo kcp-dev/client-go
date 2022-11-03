@@ -33,9 +33,14 @@ import (
 )
 
 // StatefulSetClusterLister can list StatefulSets across all workspaces, or scope down to a StatefulSetLister for one workspace.
+// All objects returned here must be treated as read-only.
 type StatefulSetClusterLister interface {
+	// List lists all StatefulSets in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*appsv1beta1.StatefulSet, err error)
+	// Cluster returns a lister that can list and get StatefulSets in one workspace.
 	Cluster(cluster logicalcluster.Name) appsv1beta1listers.StatefulSetLister
+	StatefulSetClusterListerExpansion
 }
 
 type statefulSetClusterLister struct {
@@ -43,6 +48,11 @@ type statefulSetClusterLister struct {
 }
 
 // NewStatefulSetClusterLister returns a new StatefulSetClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewStatefulSetClusterLister(indexer cache.Indexer) *statefulSetClusterLister {
 	return &statefulSetClusterLister{indexer: indexer}
 }

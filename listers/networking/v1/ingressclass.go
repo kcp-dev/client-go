@@ -33,9 +33,14 @@ import (
 )
 
 // IngressClassClusterLister can list IngressClasses across all workspaces, or scope down to a IngressClassLister for one workspace.
+// All objects returned here must be treated as read-only.
 type IngressClassClusterLister interface {
+	// List lists all IngressClasses in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*networkingv1.IngressClass, err error)
+	// Cluster returns a lister that can list and get IngressClasses in one workspace.
 	Cluster(cluster logicalcluster.Name) networkingv1listers.IngressClassLister
+	IngressClassClusterListerExpansion
 }
 
 type ingressClassClusterLister struct {
@@ -43,6 +48,10 @@ type ingressClassClusterLister struct {
 }
 
 // NewIngressClassClusterLister returns a new IngressClassClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
 func NewIngressClassClusterLister(indexer cache.Indexer) *ingressClassClusterLister {
 	return &ingressClassClusterLister{indexer: indexer}
 }

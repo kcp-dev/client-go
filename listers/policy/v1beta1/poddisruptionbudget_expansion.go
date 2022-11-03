@@ -25,6 +25,10 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
+// PodDisruptionBudgetClusterListerExpansion allows custom methods to be added to
+// PodDisruptionBudgetClusterLister.
+type PodDisruptionBudgetClusterListerExpansion interface{}
+
 // PodDisruptionBudgetListerExpansion allows custom methods to be added to
 // PodDisruptionBudgetLister.
 type PodDisruptionBudgetListerExpansion interface {

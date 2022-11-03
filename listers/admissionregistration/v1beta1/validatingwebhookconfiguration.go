@@ -33,9 +33,14 @@ import (
 )
 
 // ValidatingWebhookConfigurationClusterLister can list ValidatingWebhookConfigurations across all workspaces, or scope down to a ValidatingWebhookConfigurationLister for one workspace.
+// All objects returned here must be treated as read-only.
 type ValidatingWebhookConfigurationClusterLister interface {
+	// List lists all ValidatingWebhookConfigurations in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*admissionregistrationv1beta1.ValidatingWebhookConfiguration, err error)
+	// Cluster returns a lister that can list and get ValidatingWebhookConfigurations in one workspace.
 	Cluster(cluster logicalcluster.Name) admissionregistrationv1beta1listers.ValidatingWebhookConfigurationLister
+	ValidatingWebhookConfigurationClusterListerExpansion
 }
 
 type validatingWebhookConfigurationClusterLister struct {
@@ -43,6 +48,10 @@ type validatingWebhookConfigurationClusterLister struct {
 }
 
 // NewValidatingWebhookConfigurationClusterLister returns a new ValidatingWebhookConfigurationClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
 func NewValidatingWebhookConfigurationClusterLister(indexer cache.Indexer) *validatingWebhookConfigurationClusterLister {
 	return &validatingWebhookConfigurationClusterLister{indexer: indexer}
 }

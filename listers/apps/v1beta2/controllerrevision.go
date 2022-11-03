@@ -33,9 +33,14 @@ import (
 )
 
 // ControllerRevisionClusterLister can list ControllerRevisions across all workspaces, or scope down to a ControllerRevisionLister for one workspace.
+// All objects returned here must be treated as read-only.
 type ControllerRevisionClusterLister interface {
+	// List lists all ControllerRevisions in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*appsv1beta2.ControllerRevision, err error)
+	// Cluster returns a lister that can list and get ControllerRevisions in one workspace.
 	Cluster(cluster logicalcluster.Name) appsv1beta2listers.ControllerRevisionLister
+	ControllerRevisionClusterListerExpansion
 }
 
 type controllerRevisionClusterLister struct {
@@ -43,6 +48,11 @@ type controllerRevisionClusterLister struct {
 }
 
 // NewControllerRevisionClusterLister returns a new ControllerRevisionClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewControllerRevisionClusterLister(indexer cache.Indexer) *controllerRevisionClusterLister {
 	return &controllerRevisionClusterLister{indexer: indexer}
 }

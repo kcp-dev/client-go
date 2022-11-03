@@ -33,9 +33,14 @@ import (
 )
 
 // ReplicaSetClusterLister can list ReplicaSets across all workspaces, or scope down to a ReplicaSetLister for one workspace.
+// All objects returned here must be treated as read-only.
 type ReplicaSetClusterLister interface {
+	// List lists all ReplicaSets in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*extensionsv1beta1.ReplicaSet, err error)
+	// Cluster returns a lister that can list and get ReplicaSets in one workspace.
 	Cluster(cluster logicalcluster.Name) extensionsv1beta1listers.ReplicaSetLister
+	ReplicaSetClusterListerExpansion
 }
 
 type replicaSetClusterLister struct {
@@ -43,6 +48,11 @@ type replicaSetClusterLister struct {
 }
 
 // NewReplicaSetClusterLister returns a new ReplicaSetClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewReplicaSetClusterLister(indexer cache.Indexer) *replicaSetClusterLister {
 	return &replicaSetClusterLister{indexer: indexer}
 }

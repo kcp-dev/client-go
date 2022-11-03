@@ -33,9 +33,14 @@ import (
 )
 
 // StorageClassClusterLister can list StorageClasses across all workspaces, or scope down to a StorageClassLister for one workspace.
+// All objects returned here must be treated as read-only.
 type StorageClassClusterLister interface {
+	// List lists all StorageClasses in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*storagev1.StorageClass, err error)
+	// Cluster returns a lister that can list and get StorageClasses in one workspace.
 	Cluster(cluster logicalcluster.Name) storagev1listers.StorageClassLister
+	StorageClassClusterListerExpansion
 }
 
 type storageClassClusterLister struct {
@@ -43,6 +48,10 @@ type storageClassClusterLister struct {
 }
 
 // NewStorageClassClusterLister returns a new StorageClassClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
 func NewStorageClassClusterLister(indexer cache.Indexer) *storageClassClusterLister {
 	return &storageClassClusterLister{indexer: indexer}
 }

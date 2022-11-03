@@ -33,9 +33,14 @@ import (
 )
 
 // DaemonSetClusterLister can list DaemonSets across all workspaces, or scope down to a DaemonSetLister for one workspace.
+// All objects returned here must be treated as read-only.
 type DaemonSetClusterLister interface {
+	// List lists all DaemonSets in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*extensionsv1beta1.DaemonSet, err error)
+	// Cluster returns a lister that can list and get DaemonSets in one workspace.
 	Cluster(cluster logicalcluster.Name) extensionsv1beta1listers.DaemonSetLister
+	DaemonSetClusterListerExpansion
 }
 
 type daemonSetClusterLister struct {
@@ -43,6 +48,11 @@ type daemonSetClusterLister struct {
 }
 
 // NewDaemonSetClusterLister returns a new DaemonSetClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewDaemonSetClusterLister(indexer cache.Indexer) *daemonSetClusterLister {
 	return &daemonSetClusterLister{indexer: indexer}
 }

@@ -33,9 +33,14 @@ import (
 )
 
 // PriorityLevelConfigurationClusterLister can list PriorityLevelConfigurations across all workspaces, or scope down to a PriorityLevelConfigurationLister for one workspace.
+// All objects returned here must be treated as read-only.
 type PriorityLevelConfigurationClusterLister interface {
+	// List lists all PriorityLevelConfigurations in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*flowcontrolv1beta2.PriorityLevelConfiguration, err error)
+	// Cluster returns a lister that can list and get PriorityLevelConfigurations in one workspace.
 	Cluster(cluster logicalcluster.Name) flowcontrolv1beta2listers.PriorityLevelConfigurationLister
+	PriorityLevelConfigurationClusterListerExpansion
 }
 
 type priorityLevelConfigurationClusterLister struct {
@@ -43,6 +48,10 @@ type priorityLevelConfigurationClusterLister struct {
 }
 
 // NewPriorityLevelConfigurationClusterLister returns a new PriorityLevelConfigurationClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
 func NewPriorityLevelConfigurationClusterLister(indexer cache.Indexer) *priorityLevelConfigurationClusterLister {
 	return &priorityLevelConfigurationClusterLister{indexer: indexer}
 }

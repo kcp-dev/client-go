@@ -25,6 +25,10 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
+// StatefulSetClusterListerExpansion allows custom methods to be added to
+// StatefulSetClusterLister.
+type StatefulSetClusterListerExpansion interface{}
+
 // StatefulSetListerExpansion allows custom methods to be added to
 // StatefulSetLister.
 type StatefulSetListerExpansion interface {

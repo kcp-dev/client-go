@@ -33,9 +33,14 @@ import (
 )
 
 // LimitRangeClusterLister can list LimitRanges across all workspaces, or scope down to a LimitRangeLister for one workspace.
+// All objects returned here must be treated as read-only.
 type LimitRangeClusterLister interface {
+	// List lists all LimitRanges in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*corev1.LimitRange, err error)
+	// Cluster returns a lister that can list and get LimitRanges in one workspace.
 	Cluster(cluster logicalcluster.Name) corev1listers.LimitRangeLister
+	LimitRangeClusterListerExpansion
 }
 
 type limitRangeClusterLister struct {
@@ -43,6 +48,11 @@ type limitRangeClusterLister struct {
 }
 
 // NewLimitRangeClusterLister returns a new LimitRangeClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewLimitRangeClusterLister(indexer cache.Indexer) *limitRangeClusterLister {
 	return &limitRangeClusterLister{indexer: indexer}
 }

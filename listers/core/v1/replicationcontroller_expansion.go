@@ -23,6 +23,10 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
+// ReplicationControllerClusterListerExpansion allows custom methods to be added to
+// ReplicationControllerClusterLister.
+type ReplicationControllerClusterListerExpansion interface{}
+
 // ReplicationControllerListerExpansion allows custom methods to be added to
 // ReplicationControllerLister.
 type ReplicationControllerListerExpansion interface {

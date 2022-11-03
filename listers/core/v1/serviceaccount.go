@@ -33,9 +33,14 @@ import (
 )
 
 // ServiceAccountClusterLister can list ServiceAccounts across all workspaces, or scope down to a ServiceAccountLister for one workspace.
+// All objects returned here must be treated as read-only.
 type ServiceAccountClusterLister interface {
+	// List lists all ServiceAccounts in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*corev1.ServiceAccount, err error)
+	// Cluster returns a lister that can list and get ServiceAccounts in one workspace.
 	Cluster(cluster logicalcluster.Name) corev1listers.ServiceAccountLister
+	ServiceAccountClusterListerExpansion
 }
 
 type serviceAccountClusterLister struct {
@@ -43,6 +48,11 @@ type serviceAccountClusterLister struct {
 }
 
 // NewServiceAccountClusterLister returns a new ServiceAccountClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewServiceAccountClusterLister(indexer cache.Indexer) *serviceAccountClusterLister {
 	return &serviceAccountClusterLister{indexer: indexer}
 }

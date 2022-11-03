@@ -33,9 +33,14 @@ import (
 )
 
 // NodeClusterLister can list Nodes across all workspaces, or scope down to a NodeLister for one workspace.
+// All objects returned here must be treated as read-only.
 type NodeClusterLister interface {
+	// List lists all Nodes in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*corev1.Node, err error)
+	// Cluster returns a lister that can list and get Nodes in one workspace.
 	Cluster(cluster logicalcluster.Name) corev1listers.NodeLister
+	NodeClusterListerExpansion
 }
 
 type nodeClusterLister struct {
@@ -43,6 +48,10 @@ type nodeClusterLister struct {
 }
 
 // NewNodeClusterLister returns a new NodeClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
 func NewNodeClusterLister(indexer cache.Indexer) *nodeClusterLister {
 	return &nodeClusterLister{indexer: indexer}
 }

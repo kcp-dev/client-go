@@ -25,6 +25,10 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
+// ReplicaSetClusterListerExpansion allows custom methods to be added to
+// ReplicaSetClusterLister.
+type ReplicaSetClusterListerExpansion interface{}
+
 // ReplicaSetListerExpansion allows custom methods to be added to
 // ReplicaSetLister.
 type ReplicaSetListerExpansion interface {

@@ -33,9 +33,14 @@ import (
 )
 
 // EndpointSliceClusterLister can list EndpointSlices across all workspaces, or scope down to a EndpointSliceLister for one workspace.
+// All objects returned here must be treated as read-only.
 type EndpointSliceClusterLister interface {
+	// List lists all EndpointSlices in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*discoveryv1.EndpointSlice, err error)
+	// Cluster returns a lister that can list and get EndpointSlices in one workspace.
 	Cluster(cluster logicalcluster.Name) discoveryv1listers.EndpointSliceLister
+	EndpointSliceClusterListerExpansion
 }
 
 type endpointSliceClusterLister struct {
@@ -43,6 +48,11 @@ type endpointSliceClusterLister struct {
 }
 
 // NewEndpointSliceClusterLister returns a new EndpointSliceClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewEndpointSliceClusterLister(indexer cache.Indexer) *endpointSliceClusterLister {
 	return &endpointSliceClusterLister{indexer: indexer}
 }

@@ -33,9 +33,14 @@ import (
 )
 
 // ConfigMapClusterLister can list ConfigMaps across all workspaces, or scope down to a ConfigMapLister for one workspace.
+// All objects returned here must be treated as read-only.
 type ConfigMapClusterLister interface {
+	// List lists all ConfigMaps in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*corev1.ConfigMap, err error)
+	// Cluster returns a lister that can list and get ConfigMaps in one workspace.
 	Cluster(cluster logicalcluster.Name) corev1listers.ConfigMapLister
+	ConfigMapClusterListerExpansion
 }
 
 type configMapClusterLister struct {
@@ -43,6 +48,11 @@ type configMapClusterLister struct {
 }
 
 // NewConfigMapClusterLister returns a new ConfigMapClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewConfigMapClusterLister(indexer cache.Indexer) *configMapClusterLister {
 	return &configMapClusterLister{indexer: indexer}
 }

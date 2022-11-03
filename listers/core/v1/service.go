@@ -33,9 +33,14 @@ import (
 )
 
 // ServiceClusterLister can list Services across all workspaces, or scope down to a ServiceLister for one workspace.
+// All objects returned here must be treated as read-only.
 type ServiceClusterLister interface {
+	// List lists all Services in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*corev1.Service, err error)
+	// Cluster returns a lister that can list and get Services in one workspace.
 	Cluster(cluster logicalcluster.Name) corev1listers.ServiceLister
+	ServiceClusterListerExpansion
 }
 
 type serviceClusterLister struct {
@@ -43,6 +48,11 @@ type serviceClusterLister struct {
 }
 
 // NewServiceClusterLister returns a new ServiceClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewServiceClusterLister(indexer cache.Indexer) *serviceClusterLister {
 	return &serviceClusterLister{indexer: indexer}
 }

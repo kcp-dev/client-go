@@ -33,9 +33,14 @@ import (
 )
 
 // EventClusterLister can list Events across all workspaces, or scope down to a EventLister for one workspace.
+// All objects returned here must be treated as read-only.
 type EventClusterLister interface {
+	// List lists all Events in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*eventsv1beta1.Event, err error)
+	// Cluster returns a lister that can list and get Events in one workspace.
 	Cluster(cluster logicalcluster.Name) eventsv1beta1listers.EventLister
+	EventClusterListerExpansion
 }
 
 type eventClusterLister struct {
@@ -43,6 +48,11 @@ type eventClusterLister struct {
 }
 
 // NewEventClusterLister returns a new EventClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewEventClusterLister(indexer cache.Indexer) *eventClusterLister {
 	return &eventClusterLister{indexer: indexer}
 }

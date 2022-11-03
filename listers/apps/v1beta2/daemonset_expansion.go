@@ -25,6 +25,10 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
+// DaemonSetClusterListerExpansion allows custom methods to be added to
+// DaemonSetClusterLister.
+type DaemonSetClusterListerExpansion interface{}
+
 // DaemonSetListerExpansion allows custom methods to be added to
 // DaemonSetLister.
 type DaemonSetListerExpansion interface {

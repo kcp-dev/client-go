@@ -25,6 +25,10 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
+// JobClusterListerExpansion allows custom methods to be added to
+// JobClusterLister.
+type JobClusterListerExpansion interface{}
+
 // JobListerExpansion allows custom methods to be added to
 // JobLister.
 type JobListerExpansion interface {

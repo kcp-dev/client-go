@@ -27,6 +27,6 @@ fi
 ${CODE_GENERATOR} \
   "client:externalOnly=true,standalone=true,outputPackagePath=github.com/kcp-dev/client-go,name=kubernetes,apiPackagePath=k8s.io/api,singleClusterClientPackagePath=k8s.io/client-go/kubernetes,singleClusterApplyConfigurationsPackagePath=k8s.io/client-go/applyconfigurations,headerFile=./hack/boilerplate/boilerplate.go.txt" \
   "lister:apiPackagePath=k8s.io/api,singleClusterListerPackagePath=k8s.io/client-go/listers,headerFile=./hack/boilerplate/boilerplate.go.txt" \
-  "informer:clientsetName=kubernetes,externalOnly=true,standalone=true,outputPackagePath=github.com/kcp-dev/client-go,apiPackagePath=k8s.io/api,singleClusterListerPackagePath=k8s.io/client-go/listers,singleClusterInformerPackagePath=k8s.io/client-go/informers,headerFile=./hack/boilerplate/boilerplate.go.txt" \
+  "informer:clientsetName=kubernetes,externalOnly=true,standalone=true,outputPackagePath=github.com/kcp-dev/client-go,apiPackagePath=k8s.io/api,singleClusterClientPackagePath=k8s.io/client-go/kubernetes, singleClusterListerPackagePath=k8s.io/client-go/listers,singleClusterInformerPackagePath=k8s.io/client-go/informers,headerFile=./hack/boilerplate/boilerplate.go.txt" \
   "paths=$( go list -m -json k8s.io/api | jq --raw-output .Dir )/..." \
   "output:dir=./"
