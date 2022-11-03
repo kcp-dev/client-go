@@ -33,9 +33,14 @@ import (
 )
 
 // CertificateSigningRequestClusterLister can list CertificateSigningRequests across all workspaces, or scope down to a CertificateSigningRequestLister for one workspace.
+// All objects returned here must be treated as read-only.
 type CertificateSigningRequestClusterLister interface {
+	// List lists all CertificateSigningRequests in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*certificatesv1beta1.CertificateSigningRequest, err error)
+	// Cluster returns a lister that can list and get CertificateSigningRequests in one workspace.
 	Cluster(cluster logicalcluster.Name) certificatesv1beta1listers.CertificateSigningRequestLister
+	CertificateSigningRequestClusterListerExpansion
 }
 
 type certificateSigningRequestClusterLister struct {
@@ -43,6 +48,10 @@ type certificateSigningRequestClusterLister struct {
 }
 
 // NewCertificateSigningRequestClusterLister returns a new CertificateSigningRequestClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
 func NewCertificateSigningRequestClusterLister(indexer cache.Indexer) *certificateSigningRequestClusterLister {
 	return &certificateSigningRequestClusterLister{indexer: indexer}
 }

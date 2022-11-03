@@ -33,9 +33,14 @@ import (
 )
 
 // PersistentVolumeClaimClusterLister can list PersistentVolumeClaims across all workspaces, or scope down to a PersistentVolumeClaimLister for one workspace.
+// All objects returned here must be treated as read-only.
 type PersistentVolumeClaimClusterLister interface {
+	// List lists all PersistentVolumeClaims in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*corev1.PersistentVolumeClaim, err error)
+	// Cluster returns a lister that can list and get PersistentVolumeClaims in one workspace.
 	Cluster(cluster logicalcluster.Name) corev1listers.PersistentVolumeClaimLister
+	PersistentVolumeClaimClusterListerExpansion
 }
 
 type persistentVolumeClaimClusterLister struct {
@@ -43,6 +48,11 @@ type persistentVolumeClaimClusterLister struct {
 }
 
 // NewPersistentVolumeClaimClusterLister returns a new PersistentVolumeClaimClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewPersistentVolumeClaimClusterLister(indexer cache.Indexer) *persistentVolumeClaimClusterLister {
 	return &persistentVolumeClaimClusterLister{indexer: indexer}
 }

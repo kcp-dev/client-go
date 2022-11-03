@@ -33,9 +33,14 @@ import (
 )
 
 // LeaseClusterLister can list Leases across all workspaces, or scope down to a LeaseLister for one workspace.
+// All objects returned here must be treated as read-only.
 type LeaseClusterLister interface {
+	// List lists all Leases in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*coordinationv1.Lease, err error)
+	// Cluster returns a lister that can list and get Leases in one workspace.
 	Cluster(cluster logicalcluster.Name) coordinationv1listers.LeaseLister
+	LeaseClusterListerExpansion
 }
 
 type leaseClusterLister struct {
@@ -43,6 +48,11 @@ type leaseClusterLister struct {
 }
 
 // NewLeaseClusterLister returns a new LeaseClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewLeaseClusterLister(indexer cache.Indexer) *leaseClusterLister {
 	return &leaseClusterLister{indexer: indexer}
 }

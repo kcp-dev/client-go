@@ -33,9 +33,14 @@ import (
 )
 
 // PodDisruptionBudgetClusterLister can list PodDisruptionBudgets across all workspaces, or scope down to a PodDisruptionBudgetLister for one workspace.
+// All objects returned here must be treated as read-only.
 type PodDisruptionBudgetClusterLister interface {
+	// List lists all PodDisruptionBudgets in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*policyv1beta1.PodDisruptionBudget, err error)
+	// Cluster returns a lister that can list and get PodDisruptionBudgets in one workspace.
 	Cluster(cluster logicalcluster.Name) policyv1beta1listers.PodDisruptionBudgetLister
+	PodDisruptionBudgetClusterListerExpansion
 }
 
 type podDisruptionBudgetClusterLister struct {
@@ -43,6 +48,11 @@ type podDisruptionBudgetClusterLister struct {
 }
 
 // NewPodDisruptionBudgetClusterLister returns a new PodDisruptionBudgetClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewPodDisruptionBudgetClusterLister(indexer cache.Indexer) *podDisruptionBudgetClusterLister {
 	return &podDisruptionBudgetClusterLister{indexer: indexer}
 }

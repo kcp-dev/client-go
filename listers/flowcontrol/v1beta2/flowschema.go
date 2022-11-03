@@ -33,9 +33,14 @@ import (
 )
 
 // FlowSchemaClusterLister can list FlowSchemas across all workspaces, or scope down to a FlowSchemaLister for one workspace.
+// All objects returned here must be treated as read-only.
 type FlowSchemaClusterLister interface {
+	// List lists all FlowSchemas in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*flowcontrolv1beta2.FlowSchema, err error)
+	// Cluster returns a lister that can list and get FlowSchemas in one workspace.
 	Cluster(cluster logicalcluster.Name) flowcontrolv1beta2listers.FlowSchemaLister
+	FlowSchemaClusterListerExpansion
 }
 
 type flowSchemaClusterLister struct {
@@ -43,6 +48,10 @@ type flowSchemaClusterLister struct {
 }
 
 // NewFlowSchemaClusterLister returns a new FlowSchemaClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
 func NewFlowSchemaClusterLister(indexer cache.Indexer) *flowSchemaClusterLister {
 	return &flowSchemaClusterLister{indexer: indexer}
 }

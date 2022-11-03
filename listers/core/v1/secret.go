@@ -33,9 +33,14 @@ import (
 )
 
 // SecretClusterLister can list Secrets across all workspaces, or scope down to a SecretLister for one workspace.
+// All objects returned here must be treated as read-only.
 type SecretClusterLister interface {
+	// List lists all Secrets in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*corev1.Secret, err error)
+	// Cluster returns a lister that can list and get Secrets in one workspace.
 	Cluster(cluster logicalcluster.Name) corev1listers.SecretLister
+	SecretClusterListerExpansion
 }
 
 type secretClusterLister struct {
@@ -43,6 +48,11 @@ type secretClusterLister struct {
 }
 
 // NewSecretClusterLister returns a new SecretClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewSecretClusterLister(indexer cache.Indexer) *secretClusterLister {
 	return &secretClusterLister{indexer: indexer}
 }

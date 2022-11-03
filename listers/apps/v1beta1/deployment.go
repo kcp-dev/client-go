@@ -33,9 +33,14 @@ import (
 )
 
 // DeploymentClusterLister can list Deployments across all workspaces, or scope down to a DeploymentLister for one workspace.
+// All objects returned here must be treated as read-only.
 type DeploymentClusterLister interface {
+	// List lists all Deployments in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*appsv1beta1.Deployment, err error)
+	// Cluster returns a lister that can list and get Deployments in one workspace.
 	Cluster(cluster logicalcluster.Name) appsv1beta1listers.DeploymentLister
+	DeploymentClusterListerExpansion
 }
 
 type deploymentClusterLister struct {
@@ -43,6 +48,11 @@ type deploymentClusterLister struct {
 }
 
 // NewDeploymentClusterLister returns a new DeploymentClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewDeploymentClusterLister(indexer cache.Indexer) *deploymentClusterLister {
 	return &deploymentClusterLister{indexer: indexer}
 }

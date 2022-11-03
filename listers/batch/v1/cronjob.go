@@ -33,9 +33,14 @@ import (
 )
 
 // CronJobClusterLister can list CronJobs across all workspaces, or scope down to a CronJobLister for one workspace.
+// All objects returned here must be treated as read-only.
 type CronJobClusterLister interface {
+	// List lists all CronJobs in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*batchv1.CronJob, err error)
+	// Cluster returns a lister that can list and get CronJobs in one workspace.
 	Cluster(cluster logicalcluster.Name) batchv1listers.CronJobLister
+	CronJobClusterListerExpansion
 }
 
 type cronJobClusterLister struct {
@@ -43,6 +48,11 @@ type cronJobClusterLister struct {
 }
 
 // NewCronJobClusterLister returns a new CronJobClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewCronJobClusterLister(indexer cache.Indexer) *cronJobClusterLister {
 	return &cronJobClusterLister{indexer: indexer}
 }

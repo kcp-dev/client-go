@@ -33,9 +33,14 @@ import (
 )
 
 // PodSecurityPolicyClusterLister can list PodSecurityPolicies across all workspaces, or scope down to a PodSecurityPolicyLister for one workspace.
+// All objects returned here must be treated as read-only.
 type PodSecurityPolicyClusterLister interface {
+	// List lists all PodSecurityPolicies in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*extensionsv1beta1.PodSecurityPolicy, err error)
+	// Cluster returns a lister that can list and get PodSecurityPolicies in one workspace.
 	Cluster(cluster logicalcluster.Name) extensionsv1beta1listers.PodSecurityPolicyLister
+	PodSecurityPolicyClusterListerExpansion
 }
 
 type podSecurityPolicyClusterLister struct {
@@ -43,6 +48,10 @@ type podSecurityPolicyClusterLister struct {
 }
 
 // NewPodSecurityPolicyClusterLister returns a new PodSecurityPolicyClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
 func NewPodSecurityPolicyClusterLister(indexer cache.Indexer) *podSecurityPolicyClusterLister {
 	return &podSecurityPolicyClusterLister{indexer: indexer}
 }

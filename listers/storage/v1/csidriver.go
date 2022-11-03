@@ -33,9 +33,14 @@ import (
 )
 
 // CSIDriverClusterLister can list CSIDrivers across all workspaces, or scope down to a CSIDriverLister for one workspace.
+// All objects returned here must be treated as read-only.
 type CSIDriverClusterLister interface {
+	// List lists all CSIDrivers in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*storagev1.CSIDriver, err error)
+	// Cluster returns a lister that can list and get CSIDrivers in one workspace.
 	Cluster(cluster logicalcluster.Name) storagev1listers.CSIDriverLister
+	CSIDriverClusterListerExpansion
 }
 
 type cSIDriverClusterLister struct {
@@ -43,6 +48,10 @@ type cSIDriverClusterLister struct {
 }
 
 // NewCSIDriverClusterLister returns a new CSIDriverClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
 func NewCSIDriverClusterLister(indexer cache.Indexer) *cSIDriverClusterLister {
 	return &cSIDriverClusterLister{indexer: indexer}
 }

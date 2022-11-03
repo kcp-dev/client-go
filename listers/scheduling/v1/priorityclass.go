@@ -33,9 +33,14 @@ import (
 )
 
 // PriorityClassClusterLister can list PriorityClasses across all workspaces, or scope down to a PriorityClassLister for one workspace.
+// All objects returned here must be treated as read-only.
 type PriorityClassClusterLister interface {
+	// List lists all PriorityClasses in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*schedulingv1.PriorityClass, err error)
+	// Cluster returns a lister that can list and get PriorityClasses in one workspace.
 	Cluster(cluster logicalcluster.Name) schedulingv1listers.PriorityClassLister
+	PriorityClassClusterListerExpansion
 }
 
 type priorityClassClusterLister struct {
@@ -43,6 +48,10 @@ type priorityClassClusterLister struct {
 }
 
 // NewPriorityClassClusterLister returns a new PriorityClassClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
 func NewPriorityClassClusterLister(indexer cache.Indexer) *priorityClassClusterLister {
 	return &priorityClassClusterLister{indexer: indexer}
 }

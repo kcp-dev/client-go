@@ -33,9 +33,14 @@ import (
 )
 
 // ComponentStatusClusterLister can list ComponentStatuses across all workspaces, or scope down to a ComponentStatusLister for one workspace.
+// All objects returned here must be treated as read-only.
 type ComponentStatusClusterLister interface {
+	// List lists all ComponentStatuses in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*corev1.ComponentStatus, err error)
+	// Cluster returns a lister that can list and get ComponentStatuses in one workspace.
 	Cluster(cluster logicalcluster.Name) corev1listers.ComponentStatusLister
+	ComponentStatusClusterListerExpansion
 }
 
 type componentStatusClusterLister struct {
@@ -43,6 +48,10 @@ type componentStatusClusterLister struct {
 }
 
 // NewComponentStatusClusterLister returns a new ComponentStatusClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
 func NewComponentStatusClusterLister(indexer cache.Indexer) *componentStatusClusterLister {
 	return &componentStatusClusterLister{indexer: indexer}
 }

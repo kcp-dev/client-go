@@ -33,9 +33,14 @@ import (
 )
 
 // JobClusterLister can list Jobs across all workspaces, or scope down to a JobLister for one workspace.
+// All objects returned here must be treated as read-only.
 type JobClusterLister interface {
+	// List lists all Jobs in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*batchv1.Job, err error)
+	// Cluster returns a lister that can list and get Jobs in one workspace.
 	Cluster(cluster logicalcluster.Name) batchv1listers.JobLister
+	JobClusterListerExpansion
 }
 
 type jobClusterLister struct {
@@ -43,6 +48,11 @@ type jobClusterLister struct {
 }
 
 // NewJobClusterLister returns a new JobClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewJobClusterLister(indexer cache.Indexer) *jobClusterLister {
 	return &jobClusterLister{indexer: indexer}
 }

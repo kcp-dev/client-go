@@ -33,9 +33,14 @@ import (
 )
 
 // ClusterRoleBindingClusterLister can list ClusterRoleBindings across all workspaces, or scope down to a ClusterRoleBindingLister for one workspace.
+// All objects returned here must be treated as read-only.
 type ClusterRoleBindingClusterLister interface {
+	// List lists all ClusterRoleBindings in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*rbacv1beta1.ClusterRoleBinding, err error)
+	// Cluster returns a lister that can list and get ClusterRoleBindings in one workspace.
 	Cluster(cluster logicalcluster.Name) rbacv1beta1listers.ClusterRoleBindingLister
+	ClusterRoleBindingClusterListerExpansion
 }
 
 type clusterRoleBindingClusterLister struct {
@@ -43,6 +48,10 @@ type clusterRoleBindingClusterLister struct {
 }
 
 // NewClusterRoleBindingClusterLister returns a new ClusterRoleBindingClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
 func NewClusterRoleBindingClusterLister(indexer cache.Indexer) *clusterRoleBindingClusterLister {
 	return &clusterRoleBindingClusterLister{indexer: indexer}
 }

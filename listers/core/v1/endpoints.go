@@ -33,9 +33,14 @@ import (
 )
 
 // EndpointsClusterLister can list Endpoints across all workspaces, or scope down to a EndpointsLister for one workspace.
+// All objects returned here must be treated as read-only.
 type EndpointsClusterLister interface {
+	// List lists all Endpoints in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*corev1.Endpoints, err error)
+	// Cluster returns a lister that can list and get Endpoints in one workspace.
 	Cluster(cluster logicalcluster.Name) corev1listers.EndpointsLister
+	EndpointsClusterListerExpansion
 }
 
 type endpointsClusterLister struct {
@@ -43,6 +48,11 @@ type endpointsClusterLister struct {
 }
 
 // NewEndpointsClusterLister returns a new EndpointsClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewEndpointsClusterLister(indexer cache.Indexer) *endpointsClusterLister {
 	return &endpointsClusterLister{indexer: indexer}
 }

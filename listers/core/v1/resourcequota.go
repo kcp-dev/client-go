@@ -33,9 +33,14 @@ import (
 )
 
 // ResourceQuotaClusterLister can list ResourceQuotas across all workspaces, or scope down to a ResourceQuotaLister for one workspace.
+// All objects returned here must be treated as read-only.
 type ResourceQuotaClusterLister interface {
+	// List lists all ResourceQuotas in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*corev1.ResourceQuota, err error)
+	// Cluster returns a lister that can list and get ResourceQuotas in one workspace.
 	Cluster(cluster logicalcluster.Name) corev1listers.ResourceQuotaLister
+	ResourceQuotaClusterListerExpansion
 }
 
 type resourceQuotaClusterLister struct {
@@ -43,6 +48,11 @@ type resourceQuotaClusterLister struct {
 }
 
 // NewResourceQuotaClusterLister returns a new ResourceQuotaClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewResourceQuotaClusterLister(indexer cache.Indexer) *resourceQuotaClusterLister {
 	return &resourceQuotaClusterLister{indexer: indexer}
 }

@@ -33,9 +33,14 @@ import (
 )
 
 // NetworkPolicyClusterLister can list NetworkPolicies across all workspaces, or scope down to a NetworkPolicyLister for one workspace.
+// All objects returned here must be treated as read-only.
 type NetworkPolicyClusterLister interface {
+	// List lists all NetworkPolicies in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*networkingv1.NetworkPolicy, err error)
+	// Cluster returns a lister that can list and get NetworkPolicies in one workspace.
 	Cluster(cluster logicalcluster.Name) networkingv1listers.NetworkPolicyLister
+	NetworkPolicyClusterListerExpansion
 }
 
 type networkPolicyClusterLister struct {
@@ -43,6 +48,11 @@ type networkPolicyClusterLister struct {
 }
 
 // NewNetworkPolicyClusterLister returns a new NetworkPolicyClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewNetworkPolicyClusterLister(indexer cache.Indexer) *networkPolicyClusterLister {
 	return &networkPolicyClusterLister{indexer: indexer}
 }

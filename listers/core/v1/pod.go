@@ -33,9 +33,14 @@ import (
 )
 
 // PodClusterLister can list Pods across all workspaces, or scope down to a PodLister for one workspace.
+// All objects returned here must be treated as read-only.
 type PodClusterLister interface {
+	// List lists all Pods in the indexer.
+	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*corev1.Pod, err error)
+	// Cluster returns a lister that can list and get Pods in one workspace.
 	Cluster(cluster logicalcluster.Name) corev1listers.PodLister
+	PodClusterListerExpansion
 }
 
 type podClusterLister struct {
@@ -43,6 +48,11 @@ type podClusterLister struct {
 }
 
 // NewPodClusterLister returns a new PodClusterLister.
+// We assume that the indexer:
+// - is fed by a cross-workspace LIST+WATCH
+// - uses kcpcache.MetaClusterNamespaceKeyFunc as the key function
+// - has the kcpcache.ClusterIndex as an index
+// - has the kcpcache.ClusterAndNamespaceIndex as an index
 func NewPodClusterLister(indexer cache.Indexer) *podClusterLister {
 	return &podClusterLister{indexer: indexer}
 }
