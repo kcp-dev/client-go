@@ -27,7 +27,6 @@ import (
 
 	coordinationv1beta1 "k8s.io/api/coordination/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	coordinationv1beta1listers "k8s.io/client-go/listers/coordination/v1beta1"
 	"k8s.io/client-go/tools/cache"
@@ -69,24 +68,9 @@ type leaseLister struct {
 
 // List lists all Leases in the indexer for a workspace.
 func (s *leaseLister) List(selector labels.Selector) (ret []*coordinationv1beta1.Lease, err error) {
-	selectAll := selector == nil || selector.Empty()
-
-	list, err := s.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(s.cluster))
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range list {
-		obj := list[i].(*coordinationv1beta1.Lease)
-		if selectAll {
-			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
-		}
-	}
-
+	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+		ret = append(ret, i.(*coordinationv1beta1.Lease))
+	})
 	return ret, err
 }
 
@@ -104,28 +88,9 @@ type leaseNamespaceLister struct {
 
 // List lists all Leases in the indexer for a given workspace and namespace.
 func (s *leaseNamespaceLister) List(selector labels.Selector) (ret []*coordinationv1beta1.Lease, err error) {
-	selectAll := selector == nil || selector.Empty()
-
-	var list []interface{}
-	if s.namespace == metav1.NamespaceAll {
-		list, err = s.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(s.cluster))
-	} else {
-		list, err = s.indexer.ByIndex(kcpcache.ClusterAndNamespaceIndexName, kcpcache.ClusterAndNamespaceIndexKey(s.cluster, s.namespace))
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range list {
-		obj := list[i].(*coordinationv1beta1.Lease)
-		if selectAll {
-			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
-		}
-	}
+	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.cluster, s.namespace, selector, func(i interface{}) {
+		ret = append(ret, i.(*coordinationv1beta1.Lease))
+	})
 	return ret, err
 }
 

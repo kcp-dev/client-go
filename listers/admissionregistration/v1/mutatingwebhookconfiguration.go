@@ -68,24 +68,9 @@ type mutatingWebhookConfigurationLister struct {
 
 // List lists all MutatingWebhookConfigurations in the indexer for a workspace.
 func (s *mutatingWebhookConfigurationLister) List(selector labels.Selector) (ret []*admissionregistrationv1.MutatingWebhookConfiguration, err error) {
-	selectAll := selector == nil || selector.Empty()
-
-	list, err := s.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(s.cluster))
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range list {
-		obj := list[i].(*admissionregistrationv1.MutatingWebhookConfiguration)
-		if selectAll {
-			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
-		}
-	}
-
+	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+		ret = append(ret, i.(*admissionregistrationv1.MutatingWebhookConfiguration))
+	})
 	return ret, err
 }
 

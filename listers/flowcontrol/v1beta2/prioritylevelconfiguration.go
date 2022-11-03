@@ -68,24 +68,9 @@ type priorityLevelConfigurationLister struct {
 
 // List lists all PriorityLevelConfigurations in the indexer for a workspace.
 func (s *priorityLevelConfigurationLister) List(selector labels.Selector) (ret []*flowcontrolv1beta2.PriorityLevelConfiguration, err error) {
-	selectAll := selector == nil || selector.Empty()
-
-	list, err := s.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(s.cluster))
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range list {
-		obj := list[i].(*flowcontrolv1beta2.PriorityLevelConfiguration)
-		if selectAll {
-			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
-		}
-	}
-
+	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+		ret = append(ret, i.(*flowcontrolv1beta2.PriorityLevelConfiguration))
+	})
 	return ret, err
 }
 
