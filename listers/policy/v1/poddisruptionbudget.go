@@ -27,7 +27,6 @@ import (
 
 	policyv1 "k8s.io/api/policy/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	policyv1listers "k8s.io/client-go/listers/policy/v1"
 	"k8s.io/client-go/tools/cache"
@@ -69,24 +68,9 @@ type podDisruptionBudgetLister struct {
 
 // List lists all PodDisruptionBudgets in the indexer for a workspace.
 func (s *podDisruptionBudgetLister) List(selector labels.Selector) (ret []*policyv1.PodDisruptionBudget, err error) {
-	selectAll := selector == nil || selector.Empty()
-
-	list, err := s.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(s.cluster))
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range list {
-		obj := list[i].(*policyv1.PodDisruptionBudget)
-		if selectAll {
-			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
-		}
-	}
-
+	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+		ret = append(ret, i.(*policyv1.PodDisruptionBudget))
+	})
 	return ret, err
 }
 
@@ -104,28 +88,9 @@ type podDisruptionBudgetNamespaceLister struct {
 
 // List lists all PodDisruptionBudgets in the indexer for a given workspace and namespace.
 func (s *podDisruptionBudgetNamespaceLister) List(selector labels.Selector) (ret []*policyv1.PodDisruptionBudget, err error) {
-	selectAll := selector == nil || selector.Empty()
-
-	var list []interface{}
-	if s.namespace == metav1.NamespaceAll {
-		list, err = s.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(s.cluster))
-	} else {
-		list, err = s.indexer.ByIndex(kcpcache.ClusterAndNamespaceIndexName, kcpcache.ClusterAndNamespaceIndexKey(s.cluster, s.namespace))
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range list {
-		obj := list[i].(*policyv1.PodDisruptionBudget)
-		if selectAll {
-			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
-		}
-	}
+	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.cluster, s.namespace, selector, func(i interface{}) {
+		ret = append(ret, i.(*policyv1.PodDisruptionBudget))
+	})
 	return ret, err
 }
 

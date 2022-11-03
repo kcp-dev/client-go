@@ -27,7 +27,6 @@ import (
 
 	rbacv1alpha1 "k8s.io/api/rbac/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	rbacv1alpha1listers "k8s.io/client-go/listers/rbac/v1alpha1"
 	"k8s.io/client-go/tools/cache"
@@ -69,24 +68,9 @@ type roleLister struct {
 
 // List lists all Roles in the indexer for a workspace.
 func (s *roleLister) List(selector labels.Selector) (ret []*rbacv1alpha1.Role, err error) {
-	selectAll := selector == nil || selector.Empty()
-
-	list, err := s.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(s.cluster))
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range list {
-		obj := list[i].(*rbacv1alpha1.Role)
-		if selectAll {
-			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
-		}
-	}
-
+	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+		ret = append(ret, i.(*rbacv1alpha1.Role))
+	})
 	return ret, err
 }
 
@@ -104,28 +88,9 @@ type roleNamespaceLister struct {
 
 // List lists all Roles in the indexer for a given workspace and namespace.
 func (s *roleNamespaceLister) List(selector labels.Selector) (ret []*rbacv1alpha1.Role, err error) {
-	selectAll := selector == nil || selector.Empty()
-
-	var list []interface{}
-	if s.namespace == metav1.NamespaceAll {
-		list, err = s.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(s.cluster))
-	} else {
-		list, err = s.indexer.ByIndex(kcpcache.ClusterAndNamespaceIndexName, kcpcache.ClusterAndNamespaceIndexKey(s.cluster, s.namespace))
-	}
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range list {
-		obj := list[i].(*rbacv1alpha1.Role)
-		if selectAll {
-			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
-		}
-	}
+	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.cluster, s.namespace, selector, func(i interface{}) {
+		ret = append(ret, i.(*rbacv1alpha1.Role))
+	})
 	return ret, err
 }
 

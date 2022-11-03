@@ -58,7 +58,12 @@ import (
 )
 
 // SharedInformerOption defines the functional option type for SharedInformerFactory.
-type SharedInformerOption func(*sharedInformerFactory) *sharedInformerFactory
+type SharedInformerOption func(*SharedInformerOptions) *SharedInformerOptions
+
+type SharedInformerOptions struct {
+	customResync     map[reflect.Type]time.Duration
+	tweakListOptions internalinterfaces.TweakListOptionsFunc
+}
 
 type sharedInformerFactory struct {
 	client           clientset.ClusterInterface
@@ -75,19 +80,19 @@ type sharedInformerFactory struct {
 
 // WithCustomResyncConfig sets a custom resync period for the specified informer types.
 func WithCustomResyncConfig(resyncConfig map[metav1.Object]time.Duration) SharedInformerOption {
-	return func(factory *sharedInformerFactory) *sharedInformerFactory {
+	return func(opts *SharedInformerOptions) *SharedInformerOptions {
 		for k, v := range resyncConfig {
-			factory.customResync[reflect.TypeOf(k)] = v
+			opts.customResync[reflect.TypeOf(k)] = v
 		}
-		return factory
+		return opts
 	}
 }
 
 // WithTweakListOptions sets a custom filter on all listers of the configured SharedInformerFactory.
 func WithTweakListOptions(tweakListOptions internalinterfaces.TweakListOptionsFunc) SharedInformerOption {
-	return func(factory *sharedInformerFactory) *sharedInformerFactory {
-		factory.tweakListOptions = tweakListOptions
-		return factory
+	return func(opts *SharedInformerOptions) *SharedInformerOptions {
+		opts.tweakListOptions = tweakListOptions
+		return opts
 	}
 }
 
@@ -106,10 +111,18 @@ func NewSharedInformerFactoryWithOptions(client clientset.ClusterInterface, defa
 		customResync:     make(map[reflect.Type]time.Duration),
 	}
 
+	opts := &SharedInformerOptions{
+		customResync: make(map[reflect.Type]time.Duration),
+	}
+
 	// Apply all options
 	for _, opt := range options {
-		factory = opt(factory)
+		opts = opt(opts)
 	}
+
+	// Forward options to the factory
+	factory.customResync = opts.customResync
+	factory.tweakListOptions = opts.tweakListOptions
 
 	return factory
 }
@@ -149,7 +162,7 @@ func (f *sharedInformerFactory) WaitForCacheSync(stopCh <-chan struct{}) map[ref
 	return res
 }
 
-// InternalInformerFor returns the SharedIndexInformer for obj using an internal
+// InformerFor returns the SharedIndexInformer for obj using an internal
 // client.
 func (f *sharedInformerFactory) InformerFor(obj runtime.Object, newFunc internalinterfaces.NewInformerFunc) kcpcache.ScopeableSharedIndexInformer {
 	f.lock.Lock()

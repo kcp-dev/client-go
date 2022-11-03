@@ -68,24 +68,9 @@ type cSINodeLister struct {
 
 // List lists all CSINodes in the indexer for a workspace.
 func (s *cSINodeLister) List(selector labels.Selector) (ret []*storagev1beta1.CSINode, err error) {
-	selectAll := selector == nil || selector.Empty()
-
-	list, err := s.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(s.cluster))
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range list {
-		obj := list[i].(*storagev1beta1.CSINode)
-		if selectAll {
-			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
-		}
-	}
-
+	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+		ret = append(ret, i.(*storagev1beta1.CSINode))
+	})
 	return ret, err
 }
 

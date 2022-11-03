@@ -68,24 +68,9 @@ type flowSchemaLister struct {
 
 // List lists all FlowSchemas in the indexer for a workspace.
 func (s *flowSchemaLister) List(selector labels.Selector) (ret []*flowcontrolv1alpha1.FlowSchema, err error) {
-	selectAll := selector == nil || selector.Empty()
-
-	list, err := s.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(s.cluster))
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range list {
-		obj := list[i].(*flowcontrolv1alpha1.FlowSchema)
-		if selectAll {
-			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
-		}
-	}
-
+	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+		ret = append(ret, i.(*flowcontrolv1alpha1.FlowSchema))
+	})
 	return ret, err
 }
 

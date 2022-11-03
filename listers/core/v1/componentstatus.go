@@ -68,24 +68,9 @@ type componentStatusLister struct {
 
 // List lists all ComponentStatuses in the indexer for a workspace.
 func (s *componentStatusLister) List(selector labels.Selector) (ret []*corev1.ComponentStatus, err error) {
-	selectAll := selector == nil || selector.Empty()
-
-	list, err := s.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(s.cluster))
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range list {
-		obj := list[i].(*corev1.ComponentStatus)
-		if selectAll {
-			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
-		}
-	}
-
+	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+		ret = append(ret, i.(*corev1.ComponentStatus))
+	})
 	return ret, err
 }
 

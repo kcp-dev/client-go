@@ -68,24 +68,9 @@ type certificateSigningRequestLister struct {
 
 // List lists all CertificateSigningRequests in the indexer for a workspace.
 func (s *certificateSigningRequestLister) List(selector labels.Selector) (ret []*certificatesv1.CertificateSigningRequest, err error) {
-	selectAll := selector == nil || selector.Empty()
-
-	list, err := s.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(s.cluster))
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range list {
-		obj := list[i].(*certificatesv1.CertificateSigningRequest)
-		if selectAll {
-			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
-		}
-	}
-
+	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+		ret = append(ret, i.(*certificatesv1.CertificateSigningRequest))
+	})
 	return ret, err
 }
 

@@ -68,24 +68,9 @@ type validatingWebhookConfigurationLister struct {
 
 // List lists all ValidatingWebhookConfigurations in the indexer for a workspace.
 func (s *validatingWebhookConfigurationLister) List(selector labels.Selector) (ret []*admissionregistrationv1.ValidatingWebhookConfiguration, err error) {
-	selectAll := selector == nil || selector.Empty()
-
-	list, err := s.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(s.cluster))
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range list {
-		obj := list[i].(*admissionregistrationv1.ValidatingWebhookConfiguration)
-		if selectAll {
-			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
-		}
-	}
-
+	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+		ret = append(ret, i.(*admissionregistrationv1.ValidatingWebhookConfiguration))
+	})
 	return ret, err
 }
 

@@ -68,24 +68,9 @@ type priorityClassLister struct {
 
 // List lists all PriorityClasses in the indexer for a workspace.
 func (s *priorityClassLister) List(selector labels.Selector) (ret []*schedulingv1alpha1.PriorityClass, err error) {
-	selectAll := selector == nil || selector.Empty()
-
-	list, err := s.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(s.cluster))
-	if err != nil {
-		return nil, err
-	}
-
-	for i := range list {
-		obj := list[i].(*schedulingv1alpha1.PriorityClass)
-		if selectAll {
-			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
-		}
-	}
-
+	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+		ret = append(ret, i.(*schedulingv1alpha1.PriorityClass))
+	})
 	return ret, err
 }
 
