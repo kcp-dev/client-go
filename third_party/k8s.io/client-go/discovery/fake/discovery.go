@@ -52,7 +52,7 @@ func (c *FakeDiscovery) ServerResourcesForGroupVersion(groupVersion string) (*me
 		Cluster:  c.Cluster,
 	}
 	c.Invokes(action, nil)
-	for _, resourceList := range c.Resources {
+	for _, resourceList := range c.Resources[c.Cluster] {
 		if resourceList.GroupVersion == groupVersion {
 			return resourceList, nil
 		}
@@ -83,7 +83,7 @@ func (c *FakeDiscovery) ServerGroupsAndResources() ([]*metav1.APIGroup, []*metav
 		Cluster:  c.Cluster,
 	}
 	c.Invokes(action, nil)
-	return resultGroups, c.Resources, nil
+	return resultGroups, c.Resources[c.Cluster], nil
 }
 
 // ServerPreferredResources returns the supported resources with the version
@@ -110,7 +110,7 @@ func (c *FakeDiscovery) ServerGroups() (*metav1.APIGroupList, error) {
 
 	groups := map[string]*metav1.APIGroup{}
 
-	for _, res := range c.Resources {
+	for _, res := range c.Resources[c.Cluster] {
 		gv, err := schema.ParseGroupVersion(res.GroupVersion)
 		if err != nil {
 			return nil, err
