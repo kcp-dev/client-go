@@ -42,7 +42,7 @@ func (c *podsClient) Bind(ctx context.Context, binding *v1.Binding, opts metav1.
 	action.Resource = podsResource
 	action.Subresource = "binding"
 	action.Object = binding
-	action.Cluster = c.Cluster
+	action.ClusterPath = c.Cluster
 
 	_, err := c.Fake.Invokes(action, binding)
 	return err
@@ -65,7 +65,7 @@ func (c *podsClient) GetLogs(name string, opts *v1.PodLogOptions) *restclient.Re
 	action.Resource = podsResource
 	action.Subresource = "log"
 	action.Value = opts
-	action.Cluster = c.Cluster
+	action.ClusterPath = c.Cluster
 
 	_, _ = c.Fake.Invokes(action, &v1.Pod{})
 	fakeClient := &fakerest.RESTClient{
@@ -94,7 +94,7 @@ func (c *podsClient) EvictV1(ctx context.Context, eviction *policyv1.Eviction) e
 	action.Resource = podsResource
 	action.Subresource = "eviction"
 	action.Object = eviction
-	action.Cluster = c.Cluster
+	action.ClusterPath = c.Cluster
 
 	_, err := c.Fake.Invokes(action, eviction)
 	return err
@@ -107,7 +107,7 @@ func (c *podsClient) EvictV1beta1(ctx context.Context, eviction *policyv1beta1.E
 	action.Resource = podsResource
 	action.Subresource = "eviction"
 	action.Object = eviction
-	action.Cluster = c.Cluster
+	action.ClusterPath = c.Cluster
 
 	_, err := c.Fake.Invokes(action, eviction)
 	return err

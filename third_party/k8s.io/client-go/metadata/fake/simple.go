@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -69,7 +69,7 @@ func NewSimpleMetadataClient(scheme *runtime.Scheme, objects ...runtime.Object) 
 		if !ok {
 			panic(fmt.Sprintf("cannot extract logical cluster from %T", obj))
 		}
-		if err := o.Cluster(logicalcluster.From(metaObj)).Add(obj); err != nil {
+		if err := o.Cluster(logicalcluster.From(metaObj).Path()).Add(obj); err != nil {
 			panic(err)
 		}
 	}
@@ -97,18 +97,18 @@ func (c *FakeMetadataClusterClientset) Tracker() kcptesting.ObjectTracker {
 	return c.tracker
 }
 
-func (c *FakeMetadataClusterClientset) Cluster(cluster logicalcluster.Name) metadata.Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *FakeMetadataClusterClientset) Cluster(clusterPath logicalcluster.Path) metadata.Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return c.cluster(cluster)
+	return c.cluster(clusterPath)
 }
 
-func (c *FakeMetadataClusterClientset) cluster(cluster logicalcluster.Name) metadata.Interface {
+func (c *FakeMetadataClusterClientset) cluster(clusterPath logicalcluster.Path) metadata.Interface {
 	return &FakeMetadataClient{
-		Fake:    c.Fake,
-		tracker: c.tracker.Cluster(cluster),
-		cluster: cluster,
+		Fake:        c.Fake,
+		tracker:     c.tracker.Cluster(clusterPath),
+		clusterPath: clusterPath,
 	}
 }
 
@@ -128,20 +128,20 @@ type FakeMetadataClusterClient struct {
 	resource schema.GroupVersionResource
 }
 
-func (f *FakeMetadataClusterClient) Cluster(name logicalcluster.Name) metadata.Getter {
-	if name == logicalcluster.Wildcard {
+func (f *FakeMetadataClusterClient) Cluster(clusterPath logicalcluster.Path) metadata.Getter {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return f.cluster(name)
+	return f.cluster(clusterPath)
 }
 
-func (f *FakeMetadataClusterClient) cluster(name logicalcluster.Name) metadata.Getter {
+func (f *FakeMetadataClusterClient) cluster(clusterPath logicalcluster.Path) metadata.Getter {
 	return &metadataResourceClient{
 		client: &FakeMetadataClient{
-			Fake:    f.Fake,
-			scheme:  f.scheme,
-			tracker: f.tracker.Cluster(name),
-			cluster: name,
+			Fake:        f.Fake,
+			scheme:      f.scheme,
+			tracker:     f.tracker.Cluster(clusterPath),
+			clusterPath: clusterPath,
 		},
 		resource: f.resource,
 	}
@@ -157,9 +157,9 @@ func (f *FakeMetadataClusterClient) Watch(ctx context.Context, opts metav1.ListO
 
 type FakeMetadataClient struct {
 	*kcptesting.Fake
-	scheme  *runtime.Scheme
-	tracker kcptesting.ScopedObjectTracker
-	cluster logicalcluster.Name
+	scheme      *runtime.Scheme
+	tracker     kcptesting.ScopedObjectTracker
+	clusterPath logicalcluster.Path
 }
 
 var (
@@ -197,7 +197,7 @@ func (c *metadataResourceClient) CreateFake(obj *metav1.PartialObjectMetadata, o
 	switch {
 	case len(c.namespace) == 0 && len(subresources) == 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewRootCreateAction(c.resource, c.client.cluster, obj), obj)
+			Invokes(kcptesting.NewRootCreateAction(c.resource, c.client.clusterPath, obj), obj)
 
 	case len(c.namespace) == 0 && len(subresources) > 0:
 		var accessor metav1.Object // avoid shadowing err
@@ -207,11 +207,11 @@ func (c *metadataResourceClient) CreateFake(obj *metav1.PartialObjectMetadata, o
 		}
 		name := accessor.GetName()
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewRootCreateSubresourceAction(c.resource, c.client.cluster, name, strings.Join(subresources, "/"), obj), obj)
+			Invokes(kcptesting.NewRootCreateSubresourceAction(c.resource, c.client.clusterPath, name, strings.Join(subresources, "/"), obj), obj)
 
 	case len(c.namespace) > 0 && len(subresources) == 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewCreateAction(c.resource, c.client.cluster, c.namespace, obj), obj)
+			Invokes(kcptesting.NewCreateAction(c.resource, c.client.clusterPath, c.namespace, obj), obj)
 
 	case len(c.namespace) > 0 && len(subresources) > 0:
 		var accessor metav1.Object // avoid shadowing err
@@ -221,7 +221,7 @@ func (c *metadataResourceClient) CreateFake(obj *metav1.PartialObjectMetadata, o
 		}
 		name := accessor.GetName()
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewCreateSubresourceAction(c.resource, c.client.cluster, name, strings.Join(subresources, "/"), c.namespace, obj), obj)
+			Invokes(kcptesting.NewCreateSubresourceAction(c.resource, c.client.clusterPath, name, strings.Join(subresources, "/"), c.namespace, obj), obj)
 
 	}
 
@@ -245,19 +245,19 @@ func (c *metadataResourceClient) UpdateFake(obj *metav1.PartialObjectMetadata, o
 	switch {
 	case len(c.namespace) == 0 && len(subresources) == 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewRootUpdateAction(c.resource, c.client.cluster, obj), obj)
+			Invokes(kcptesting.NewRootUpdateAction(c.resource, c.client.clusterPath, obj), obj)
 
 	case len(c.namespace) == 0 && len(subresources) > 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewRootUpdateSubresourceAction(c.resource, c.client.cluster, strings.Join(subresources, "/"), obj), obj)
+			Invokes(kcptesting.NewRootUpdateSubresourceAction(c.resource, c.client.clusterPath, strings.Join(subresources, "/"), obj), obj)
 
 	case len(c.namespace) > 0 && len(subresources) == 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewUpdateAction(c.resource, c.client.cluster, c.namespace, obj), obj)
+			Invokes(kcptesting.NewUpdateAction(c.resource, c.client.clusterPath, c.namespace, obj), obj)
 
 	case len(c.namespace) > 0 && len(subresources) > 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewUpdateSubresourceAction(c.resource, c.client.cluster, strings.Join(subresources, "/"), c.namespace, obj), obj)
+			Invokes(kcptesting.NewUpdateSubresourceAction(c.resource, c.client.clusterPath, strings.Join(subresources, "/"), c.namespace, obj), obj)
 
 	}
 
@@ -281,11 +281,11 @@ func (c *metadataResourceClient) UpdateStatus(obj *metav1.PartialObjectMetadata,
 	switch {
 	case len(c.namespace) == 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewRootUpdateSubresourceAction(c.resource, c.client.cluster, "status", obj), obj)
+			Invokes(kcptesting.NewRootUpdateSubresourceAction(c.resource, c.client.clusterPath, "status", obj), obj)
 
 	case len(c.namespace) > 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewUpdateSubresourceAction(c.resource, c.client.cluster, "status", c.namespace, obj), obj)
+			Invokes(kcptesting.NewUpdateSubresourceAction(c.resource, c.client.clusterPath, "status", c.namespace, obj), obj)
 
 	}
 
@@ -308,19 +308,19 @@ func (c *metadataResourceClient) Delete(ctx context.Context, name string, opts m
 	switch {
 	case len(c.namespace) == 0 && len(subresources) == 0:
 		_, err = c.client.Fake.
-			Invokes(kcptesting.NewRootDeleteAction(c.resource, c.client.cluster, name), &metav1.Status{Status: "metadata delete fail"})
+			Invokes(kcptesting.NewRootDeleteAction(c.resource, c.client.clusterPath, name), &metav1.Status{Status: "metadata delete fail"})
 
 	case len(c.namespace) == 0 && len(subresources) > 0:
 		_, err = c.client.Fake.
-			Invokes(kcptesting.NewRootDeleteSubresourceAction(c.resource, c.client.cluster, strings.Join(subresources, "/"), name), &metav1.Status{Status: "metadata delete fail"})
+			Invokes(kcptesting.NewRootDeleteSubresourceAction(c.resource, c.client.clusterPath, strings.Join(subresources, "/"), name), &metav1.Status{Status: "metadata delete fail"})
 
 	case len(c.namespace) > 0 && len(subresources) == 0:
 		_, err = c.client.Fake.
-			Invokes(kcptesting.NewDeleteAction(c.resource, c.client.cluster, c.namespace, name), &metav1.Status{Status: "metadata delete fail"})
+			Invokes(kcptesting.NewDeleteAction(c.resource, c.client.clusterPath, c.namespace, name), &metav1.Status{Status: "metadata delete fail"})
 
 	case len(c.namespace) > 0 && len(subresources) > 0:
 		_, err = c.client.Fake.
-			Invokes(kcptesting.NewDeleteSubresourceAction(c.resource, c.client.cluster, strings.Join(subresources, "/"), c.namespace, name), &metav1.Status{Status: "metadata delete fail"})
+			Invokes(kcptesting.NewDeleteSubresourceAction(c.resource, c.client.clusterPath, strings.Join(subresources, "/"), c.namespace, name), &metav1.Status{Status: "metadata delete fail"})
 	}
 
 	return err
@@ -331,11 +331,11 @@ func (c *metadataResourceClient) DeleteCollection(ctx context.Context, opts meta
 	var err error
 	switch {
 	case len(c.namespace) == 0:
-		action := kcptesting.NewRootDeleteCollectionAction(c.resource, c.client.cluster, listOptions)
+		action := kcptesting.NewRootDeleteCollectionAction(c.resource, c.client.clusterPath, listOptions)
 		_, err = c.client.Fake.Invokes(action, &metav1.Status{Status: "metadata deletecollection fail"})
 
 	case len(c.namespace) > 0:
-		action := kcptesting.NewDeleteCollectionAction(c.resource, c.client.cluster, c.namespace, listOptions)
+		action := kcptesting.NewDeleteCollectionAction(c.resource, c.client.clusterPath, c.namespace, listOptions)
 		_, err = c.client.Fake.Invokes(action, &metav1.Status{Status: "metadata deletecollection fail"})
 
 	}
@@ -350,19 +350,19 @@ func (c *metadataResourceClient) Get(ctx context.Context, name string, opts meta
 	switch {
 	case len(c.namespace) == 0 && len(subresources) == 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewRootGetAction(c.resource, c.client.cluster, name), &metav1.Status{Status: "metadata get fail"})
+			Invokes(kcptesting.NewRootGetAction(c.resource, c.client.clusterPath, name), &metav1.Status{Status: "metadata get fail"})
 
 	case len(c.namespace) == 0 && len(subresources) > 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewRootGetSubresourceAction(c.resource, c.client.cluster, strings.Join(subresources, "/"), name), &metav1.Status{Status: "metadata get fail"})
+			Invokes(kcptesting.NewRootGetSubresourceAction(c.resource, c.client.clusterPath, strings.Join(subresources, "/"), name), &metav1.Status{Status: "metadata get fail"})
 
 	case len(c.namespace) > 0 && len(subresources) == 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewGetAction(c.resource, c.client.cluster, c.namespace, name), &metav1.Status{Status: "metadata get fail"})
+			Invokes(kcptesting.NewGetAction(c.resource, c.client.clusterPath, c.namespace, name), &metav1.Status{Status: "metadata get fail"})
 
 	case len(c.namespace) > 0 && len(subresources) > 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewGetSubresourceAction(c.resource, c.client.cluster, c.namespace, strings.Join(subresources, "/"), name), &metav1.Status{Status: "metadata get fail"})
+			Invokes(kcptesting.NewGetSubresourceAction(c.resource, c.client.clusterPath, c.namespace, strings.Join(subresources, "/"), name), &metav1.Status{Status: "metadata get fail"})
 	}
 
 	if err != nil {
@@ -385,11 +385,11 @@ func (c *metadataResourceClient) List(ctx context.Context, opts metav1.ListOptio
 	switch {
 	case len(c.namespace) == 0:
 		obj, err = c.client.Fake.
-			Invokes(kcptesting.NewRootListAction(c.resource, schema.GroupVersionKind{Group: "fake-metadata-client-group", Version: "v1", Kind: "" /*List is appended by the tracker automatically*/}, c.client.cluster, opts), &metav1.Status{Status: "metadata list fail"})
+			Invokes(kcptesting.NewRootListAction(c.resource, schema.GroupVersionKind{Group: "fake-metadata-client-group", Version: "v1", Kind: "" /*List is appended by the tracker automatically*/}, c.client.clusterPath, opts), &metav1.Status{Status: "metadata list fail"})
 
 	case len(c.namespace) > 0:
 		obj, err = c.client.Fake.
-			Invokes(kcptesting.NewListAction(c.resource, schema.GroupVersionKind{Group: "fake-metadata-client-group", Version: "v1", Kind: "" /*List is appended by the tracker automatically*/}, c.client.cluster, c.namespace, opts), &metav1.Status{Status: "metadata list fail"})
+			Invokes(kcptesting.NewListAction(c.resource, schema.GroupVersionKind{Group: "fake-metadata-client-group", Version: "v1", Kind: "" /*List is appended by the tracker automatically*/}, c.client.clusterPath, c.namespace, opts), &metav1.Status{Status: "metadata list fail"})
 
 	}
 
@@ -430,11 +430,11 @@ func (c *metadataResourceClient) Watch(ctx context.Context, opts metav1.ListOpti
 	switch {
 	case len(c.namespace) == 0:
 		return c.client.Fake.
-			InvokesWatch(kcptesting.NewRootWatchAction(c.resource, c.client.cluster, opts))
+			InvokesWatch(kcptesting.NewRootWatchAction(c.resource, c.client.clusterPath, opts))
 
 	case len(c.namespace) > 0:
 		return c.client.Fake.
-			InvokesWatch(kcptesting.NewWatchAction(c.resource, c.client.cluster, c.namespace, opts))
+			InvokesWatch(kcptesting.NewWatchAction(c.resource, c.client.clusterPath, c.namespace, opts))
 
 	}
 
@@ -448,19 +448,19 @@ func (c *metadataResourceClient) Patch(ctx context.Context, name string, pt type
 	switch {
 	case len(c.namespace) == 0 && len(subresources) == 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewRootPatchAction(c.resource, c.client.cluster, name, pt, data), &metav1.Status{Status: "metadata patch fail"})
+			Invokes(kcptesting.NewRootPatchAction(c.resource, c.client.clusterPath, name, pt, data), &metav1.Status{Status: "metadata patch fail"})
 
 	case len(c.namespace) == 0 && len(subresources) > 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewRootPatchSubresourceAction(c.resource, c.client.cluster, name, pt, data, subresources...), &metav1.Status{Status: "metadata patch fail"})
+			Invokes(kcptesting.NewRootPatchSubresourceAction(c.resource, c.client.clusterPath, name, pt, data, subresources...), &metav1.Status{Status: "metadata patch fail"})
 
 	case len(c.namespace) > 0 && len(subresources) == 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewPatchAction(c.resource, c.client.cluster, c.namespace, name, pt, data), &metav1.Status{Status: "metadata patch fail"})
+			Invokes(kcptesting.NewPatchAction(c.resource, c.client.clusterPath, c.namespace, name, pt, data), &metav1.Status{Status: "metadata patch fail"})
 
 	case len(c.namespace) > 0 && len(subresources) > 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewPatchSubresourceAction(c.resource, c.client.cluster, c.namespace, name, pt, data, subresources...), &metav1.Status{Status: "metadata patch fail"})
+			Invokes(kcptesting.NewPatchSubresourceAction(c.resource, c.client.clusterPath, c.namespace, name, pt, data, subresources...), &metav1.Status{Status: "metadata patch fail"})
 
 	}
 

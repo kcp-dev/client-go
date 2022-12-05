@@ -22,7 +22,7 @@ import (
 	"net/http"
 
 	openapi_v2 "github.com/google/gnostic/openapiv2"
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,19 +40,19 @@ import (
 type FakeDiscovery struct {
 	*kcptesting.Fake
 	FakedServerVersion *version.Info
-	Cluster            logicalcluster.Name
+	ClusterPath        logicalcluster.Path
 }
 
 // ServerResourcesForGroupVersion returns the supported resources for a group
 // and version.
 func (c *FakeDiscovery) ServerResourcesForGroupVersion(groupVersion string) (*metav1.APIResourceList, error) {
 	action := kcptesting.ActionImpl{
-		Verb:     "get",
-		Resource: schema.GroupVersionResource{Resource: "resource"},
-		Cluster:  c.Cluster,
+		Verb:        "get",
+		Resource:    schema.GroupVersionResource{Resource: "resource"},
+		ClusterPath: c.ClusterPath,
 	}
 	c.Invokes(action, nil)
-	for _, resourceList := range c.Resources[c.Cluster] {
+	for _, resourceList := range c.Resources[c.ClusterPath] {
 		if resourceList.GroupVersion == groupVersion {
 			return resourceList, nil
 		}
@@ -78,12 +78,12 @@ func (c *FakeDiscovery) ServerGroupsAndResources() ([]*metav1.APIGroup, []*metav
 	}
 
 	action := kcptesting.ActionImpl{
-		Verb:     "get",
-		Resource: schema.GroupVersionResource{Resource: "resource"},
-		Cluster:  c.Cluster,
+		Verb:        "get",
+		Resource:    schema.GroupVersionResource{Resource: "resource"},
+		ClusterPath: c.ClusterPath,
 	}
 	c.Invokes(action, nil)
-	return resultGroups, c.Resources[c.Cluster], nil
+	return resultGroups, c.Resources[c.ClusterPath], nil
 }
 
 // ServerPreferredResources returns the supported resources with the version
@@ -102,15 +102,15 @@ func (c *FakeDiscovery) ServerPreferredNamespacedResources() ([]*metav1.APIResou
 // versions and the preferred version.
 func (c *FakeDiscovery) ServerGroups() (*metav1.APIGroupList, error) {
 	action := kcptesting.ActionImpl{
-		Verb:     "get",
-		Resource: schema.GroupVersionResource{Resource: "group"},
-		Cluster:  c.Cluster,
+		Verb:        "get",
+		Resource:    schema.GroupVersionResource{Resource: "group"},
+		ClusterPath: c.ClusterPath,
 	}
 	c.Invokes(action, nil)
 
 	groups := map[string]*metav1.APIGroup{}
 
-	for _, res := range c.Resources[c.Cluster] {
+	for _, res := range c.Resources[c.ClusterPath] {
 		gv, err := schema.ParseGroupVersion(res.GroupVersion)
 		if err != nil {
 			return nil, err
@@ -147,7 +147,7 @@ func (c *FakeDiscovery) ServerVersion() (*version.Info, error) {
 	action := kcptesting.ActionImpl{}
 	action.Verb = "get"
 	action.Resource = schema.GroupVersionResource{Resource: "version"}
-	action.Cluster = c.Cluster
+	action.ClusterPath = c.ClusterPath
 	c.Invokes(action, nil)
 
 	if c.FakedServerVersion != nil {

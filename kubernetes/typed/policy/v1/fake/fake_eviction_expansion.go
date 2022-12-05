@@ -30,7 +30,7 @@ func (c *evictionsClient) Evict(ctx context.Context, eviction *policy.Eviction) 
 	action := core.CreateActionImpl{}
 	action.Verb = "create"
 	action.Namespace = c.Namespace
-	action.Cluster = c.Cluster
+	action.ClusterPath = c.Cluster
 	action.Resource = schema.GroupVersionResource{Group: "", Version: "v1", Resource: "pods"}
 	action.Subresource = "eviction"
 	action.Object = eviction

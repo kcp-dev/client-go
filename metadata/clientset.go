@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"net/http"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -39,8 +39,8 @@ type ClusterClientset struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *ClusterClientset) Cluster(name logicalcluster.Name) metadata.Interface {
-	return c.clientCache.ClusterOrDie(name)
+func (c *ClusterClientset) Cluster(clusterPath logicalcluster.Path) metadata.Interface {
+	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
 func (c *ClusterClientset) Resource(resource schema.GroupVersionResource) ResourceClusterInterface {
@@ -84,7 +84,7 @@ func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*ClusterCli
 	cache := kcpclient.NewCache(c, httpClient, &kcpclient.Constructor[metadata.Interface]{
 		NewForConfigAndClient: metadata.NewForConfigAndClient,
 	})
-	if _, err := cache.Cluster(logicalcluster.New("root")); err != nil {
+	if _, err := cache.Cluster(logicalcluster.Name("root").Path()); err != nil {
 		return nil, err
 	}
 
@@ -107,12 +107,12 @@ type ClusterResourceClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *ClusterResourceClient) Cluster(name logicalcluster.Name) metadata.Getter {
-	if name == logicalcluster.Wildcard {
+func (c *ClusterResourceClient) Cluster(clusterPath logicalcluster.Path) metadata.Getter {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return c.clientCache.ClusterOrDie(name).Resource(c.resource)
+	return c.clientCache.ClusterOrDie(clusterPath).Resource(c.resource)
 }
 
 // List returns the entire collection of all resources across all clusters.

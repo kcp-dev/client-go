@@ -17,8 +17,8 @@ limitations under the License.
 package main
 
 import (
-	_ "github.com/kcp-dev/apimachinery/pkg/cache"
-	_ "github.com/kcp-dev/logicalcluster/v2"
+	_ "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	_ "github.com/kcp-dev/logicalcluster/v3"
 
 	_ "k8s.io/api/core/v1"
 	_ "k8s.io/apimachinery/pkg/labels"

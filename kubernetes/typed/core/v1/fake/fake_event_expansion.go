@@ -89,7 +89,7 @@ func (c *eventsClient) GetFieldSelector(involvedObjectName, involvedObjectNamesp
 	action := core.GenericActionImpl{}
 	action.Verb = "get-field-selector"
 	action.Resource = eventsResource
-	action.Cluster = c.Cluster
+	action.ClusterPath = c.Cluster
 
 	_, _ = c.Fake.Invokes(action, nil)
 	return fields.Everything()

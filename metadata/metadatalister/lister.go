@@ -17,8 +17,8 @@ limitations under the License.
 package metadatalister
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -40,8 +40,8 @@ type metadataClusterLister struct {
 	gvr     schema.GroupVersionResource
 }
 
-func (l *metadataClusterLister) Cluster(name logicalcluster.Name) metadatalister.Lister {
-	return &metadataLister{indexer: l.indexer, gvr: l.gvr, cluster: name}
+func (l *metadataClusterLister) Cluster(clusterName logicalcluster.Name) metadatalister.Lister {
+	return &metadataLister{indexer: l.indexer, gvr: l.gvr, clusterName: clusterName}
 }
 
 func (l *metadataClusterLister) List(selector labels.Selector) (ret []*metav1.PartialObjectMetadata, err error) {
@@ -56,16 +56,16 @@ var _ metadatalister.NamespaceLister = &metadataNamespaceLister{}
 
 // metadataLister implements the Lister interface.
 type metadataLister struct {
-	indexer cache.Indexer
-	gvr     schema.GroupVersionResource
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	gvr         schema.GroupVersionResource
+	clusterName logicalcluster.Name
 }
 
 // List lists all resources in the indexer.
 func (l *metadataLister) List(selector labels.Selector) (ret []*metav1.PartialObjectMetadata, err error) {
 	selectAll := selector == nil || selector.Empty()
 
-	list, err := l.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(l.cluster))
+	list, err := l.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(l.clusterName))
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +86,7 @@ func (l *metadataLister) List(selector labels.Selector) (ret []*metav1.PartialOb
 
 // Get retrieves a resource from the indexer with the given name
 func (l *metadataLister) Get(name string) (*metav1.PartialObjectMetadata, error) {
-	key := kcpcache.ToClusterAwareKey(l.cluster.String(), "", name)
+	key := kcpcache.ToClusterAwareKey(l.clusterName.String(), "", name)
 	obj, exists, err := l.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err
@@ -99,15 +99,15 @@ func (l *metadataLister) Get(name string) (*metav1.PartialObjectMetadata, error)
 
 // Namespace returns an object that can list and get resources from a given namespace.
 func (l *metadataLister) Namespace(namespace string) metadatalister.NamespaceLister {
-	return &metadataNamespaceLister{indexer: l.indexer, namespace: namespace, gvr: l.gvr, cluster: l.cluster}
+	return &metadataNamespaceLister{indexer: l.indexer, namespace: namespace, gvr: l.gvr, clusterName: l.clusterName}
 }
 
 // metadataNamespaceLister implements the NamespaceLister interface.
 type metadataNamespaceLister struct {
-	indexer   cache.Indexer
-	namespace string
-	gvr       schema.GroupVersionResource
-	cluster   logicalcluster.Name
+	indexer     cache.Indexer
+	namespace   string
+	gvr         schema.GroupVersionResource
+	clusterName logicalcluster.Name
 }
 
 // List lists all resources in the indexer for a given namespace.
@@ -116,9 +116,9 @@ func (l *metadataNamespaceLister) List(selector labels.Selector) (ret []*metav1.
 
 	var list []interface{}
 	if l.namespace == metav1.NamespaceAll {
-		list, err = l.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(l.cluster))
+		list, err = l.indexer.ByIndex(kcpcache.ClusterIndexName, kcpcache.ClusterIndexKey(l.clusterName))
 	} else {
-		list, err = l.indexer.ByIndex(kcpcache.ClusterAndNamespaceIndexName, kcpcache.ClusterAndNamespaceIndexKey(l.cluster, l.namespace))
+		list, err = l.indexer.ByIndex(kcpcache.ClusterAndNamespaceIndexName, kcpcache.ClusterAndNamespaceIndexKey(l.clusterName, l.namespace))
 	}
 	if err != nil {
 		return nil, err
@@ -139,7 +139,7 @@ func (l *metadataNamespaceLister) List(selector labels.Selector) (ret []*metav1.
 
 // Get retrieves a resource from the indexer for a given namespace and name.
 func (l *metadataNamespaceLister) Get(name string) (*metav1.PartialObjectMetadata, error) {
-	key := kcpcache.ToClusterAwareKey(l.cluster.String(), l.namespace, name)
+	key := kcpcache.ToClusterAwareKey(l.clusterName.String(), l.namespace, name)
 	obj, exists, err := l.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err
