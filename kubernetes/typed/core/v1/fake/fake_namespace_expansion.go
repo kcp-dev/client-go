@@ -32,7 +32,7 @@ func (c *namespacesClient) Finalize(ctx context.Context, namespace *v1.Namespace
 	action.Resource = namespacesResource
 	action.Subresource = "finalize"
 	action.Object = namespace
-	action.ClusterPath = c.Cluster
+	action.ClusterPath = c.ClusterPath
 
 	obj, err := c.Fake.Invokes(action, namespace)
 	if obj == nil {

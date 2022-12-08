@@ -26,9 +26,9 @@ import (
 
 // CreateWithEventNamespace creats a new event. Returns the copy of the event the server returns, or an error.
 func (c *eventsClient) CreateWithEventNamespace(event *v1beta1.Event) (*v1beta1.Event, error) {
-	action := core.NewRootCreateAction(eventsResource, c.Cluster, event)
+	action := core.NewRootCreateAction(eventsResource, c.ClusterPath, event)
 	if c.Namespace != "" {
-		action = core.NewCreateAction(eventsResource, c.Cluster, c.Namespace, event)
+		action = core.NewCreateAction(eventsResource, c.ClusterPath, c.Namespace, event)
 	}
 	obj, err := c.Fake.Invokes(action, event)
 	if obj == nil {
@@ -40,9 +40,9 @@ func (c *eventsClient) CreateWithEventNamespace(event *v1beta1.Event) (*v1beta1.
 
 // UpdateWithEventNamespace replaces an existing event. Returns the copy of the event the server returns, or an error.
 func (c *eventsClient) UpdateWithEventNamespace(event *v1beta1.Event) (*v1beta1.Event, error) {
-	action := core.NewRootUpdateAction(eventsResource, c.Cluster, event)
+	action := core.NewRootUpdateAction(eventsResource, c.ClusterPath, event)
 	if c.Namespace != "" {
-		action = core.NewUpdateAction(eventsResource, c.Cluster, c.Namespace, event)
+		action = core.NewUpdateAction(eventsResource, c.ClusterPath, c.Namespace, event)
 	}
 	obj, err := c.Fake.Invokes(action, event)
 	if obj == nil {
@@ -55,9 +55,9 @@ func (c *eventsClient) UpdateWithEventNamespace(event *v1beta1.Event) (*v1beta1.
 // PatchWithEventNamespace patches an existing event. Returns the copy of the event the server returns, or an error.
 func (c *eventsClient) PatchWithEventNamespace(event *v1beta1.Event, data []byte) (*v1beta1.Event, error) {
 	pt := types.StrategicMergePatchType
-	action := core.NewRootPatchAction(eventsResource, c.Cluster, event.Name, pt, data)
+	action := core.NewRootPatchAction(eventsResource, c.ClusterPath, event.Name, pt, data)
 	if c.Namespace != "" {
-		action = core.NewPatchAction(eventsResource, c.Cluster, c.Namespace, event.Name, pt, data)
+		action = core.NewPatchAction(eventsResource, c.ClusterPath, c.Namespace, event.Name, pt, data)
 	}
 	obj, err := c.Fake.Invokes(action, event)
 	if obj == nil {

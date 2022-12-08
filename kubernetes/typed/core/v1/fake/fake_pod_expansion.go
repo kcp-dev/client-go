@@ -42,7 +42,7 @@ func (c *podsClient) Bind(ctx context.Context, binding *v1.Binding, opts metav1.
 	action.Resource = podsResource
 	action.Subresource = "binding"
 	action.Object = binding
-	action.ClusterPath = c.Cluster
+	action.ClusterPath = c.ClusterPath
 
 	_, err := c.Fake.Invokes(action, binding)
 	return err
@@ -50,7 +50,7 @@ func (c *podsClient) Bind(ctx context.Context, binding *v1.Binding, opts metav1.
 
 func (c *podsClient) GetBinding(name string) (result *v1.Binding, err error) {
 	obj, err := c.Fake.
-		Invokes(core.NewGetSubresourceAction(podsResource, c.Cluster, c.Namespace, "binding", name), &v1.Binding{})
+		Invokes(core.NewGetSubresourceAction(podsResource, c.ClusterPath, c.Namespace, "binding", name), &v1.Binding{})
 
 	if obj == nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (c *podsClient) GetLogs(name string, opts *v1.PodLogOptions) *restclient.Re
 	action.Resource = podsResource
 	action.Subresource = "log"
 	action.Value = opts
-	action.ClusterPath = c.Cluster
+	action.ClusterPath = c.ClusterPath
 
 	_, _ = c.Fake.Invokes(action, &v1.Pod{})
 	fakeClient := &fakerest.RESTClient{
@@ -94,7 +94,7 @@ func (c *podsClient) EvictV1(ctx context.Context, eviction *policyv1.Eviction) e
 	action.Resource = podsResource
 	action.Subresource = "eviction"
 	action.Object = eviction
-	action.ClusterPath = c.Cluster
+	action.ClusterPath = c.ClusterPath
 
 	_, err := c.Fake.Invokes(action, eviction)
 	return err
@@ -107,12 +107,12 @@ func (c *podsClient) EvictV1beta1(ctx context.Context, eviction *policyv1beta1.E
 	action.Resource = podsResource
 	action.Subresource = "eviction"
 	action.Object = eviction
-	action.ClusterPath = c.Cluster
+	action.ClusterPath = c.ClusterPath
 
 	_, err := c.Fake.Invokes(action, eviction)
 	return err
 }
 
 func (c *podsClient) ProxyGet(scheme, name, port, path string, params map[string]string) restclient.ResponseWrapper {
-	return c.Fake.InvokesProxy(core.NewProxyGetAction(podsResource, c.Cluster, c.Namespace, scheme, name, port, path, params))
+	return c.Fake.InvokesProxy(core.NewProxyGetAction(podsResource, c.ClusterPath, c.Namespace, scheme, name, port, path, params))
 }

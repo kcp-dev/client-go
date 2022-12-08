@@ -32,7 +32,7 @@ func (c *deploymentsClient) Rollback(ctx context.Context, deploymentRollback *v1
 	action.Resource = deploymentsResource
 	action.Subresource = "rollback"
 	action.Object = deploymentRollback
-	action.ClusterPath = c.Cluster
+	action.ClusterPath = c.ClusterPath
 
 	_, err := c.Fake.Invokes(action, deploymentRollback)
 	return err

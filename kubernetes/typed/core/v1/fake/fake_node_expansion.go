@@ -30,7 +30,7 @@ import (
 func (c *nodesClient) PatchStatus(_ context.Context, nodeName string, data []byte) (*v1.Node, error) {
 	// TODO: Should be configurable to support additional patch strategies.
 	pt := types.StrategicMergePatchType
-	obj, err := c.Fake.Invokes(core.NewRootPatchSubresourceAction(nodesResource, c.Cluster, nodeName, pt, data, "status"), &v1.Node{})
+	obj, err := c.Fake.Invokes(core.NewRootPatchSubresourceAction(nodesResource, c.ClusterPath, nodeName, pt, data, "status"), &v1.Node{})
 	if obj == nil {
 		return nil, err
 	}
