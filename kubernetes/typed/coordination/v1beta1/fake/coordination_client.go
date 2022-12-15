@@ -22,7 +22,7 @@ limitations under the License.
 package v1beta1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	coordinationv1beta1 "k8s.io/client-go/kubernetes/typed/coordination/v1beta1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type CoordinationV1beta1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *CoordinationV1beta1ClusterClient) Cluster(cluster logicalcluster.Name) coordinationv1beta1.CoordinationV1beta1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *CoordinationV1beta1ClusterClient) Cluster(clusterPath logicalcluster.Path) coordinationv1beta1.CoordinationV1beta1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &CoordinationV1beta1Client{Fake: c.Fake, Cluster: cluster}
+	return &CoordinationV1beta1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *CoordinationV1beta1ClusterClient) Leases() kcpcoordinationv1beta1.LeaseClusterInterface {
@@ -52,7 +52,7 @@ var _ coordinationv1beta1.CoordinationV1beta1Interface = (*CoordinationV1beta1Cl
 
 type CoordinationV1beta1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *CoordinationV1beta1Client) RESTClient() rest.Interface {
@@ -61,5 +61,5 @@ func (c *CoordinationV1beta1Client) RESTClient() rest.Interface {
 }
 
 func (c *CoordinationV1beta1Client) Leases(namespace string) coordinationv1beta1.LeaseInterface {
-	return &leasesClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &leasesClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }

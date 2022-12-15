@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type validatingWebhookConfigurationsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *validatingWebhookConfigurationsClusterClient) Cluster(cluster logicalcluster.Name) admissionregistrationv1beta1client.ValidatingWebhookConfigurationInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *validatingWebhookConfigurationsClusterClient) Cluster(clusterPath logicalcluster.Path) admissionregistrationv1beta1client.ValidatingWebhookConfigurationInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &validatingWebhookConfigurationsClient{Fake: c.Fake, Cluster: cluster}
+	return &validatingWebhookConfigurationsClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of ValidatingWebhookConfigurations that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *validatingWebhookConfigurationsClusterClient) Watch(ctx context.Context
 
 type validatingWebhookConfigurationsClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *validatingWebhookConfigurationsClient) Create(ctx context.Context, validatingWebhookConfiguration *admissionregistrationv1beta1.ValidatingWebhookConfiguration, opts metav1.CreateOptions) (*admissionregistrationv1beta1.ValidatingWebhookConfiguration, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(validatingWebhookConfigurationsResource, c.Cluster, validatingWebhookConfiguration), &admissionregistrationv1beta1.ValidatingWebhookConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(validatingWebhookConfigurationsResource, c.ClusterPath, validatingWebhookConfiguration), &admissionregistrationv1beta1.ValidatingWebhookConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *validatingWebhookConfigurationsClient) Create(ctx context.Context, vali
 }
 
 func (c *validatingWebhookConfigurationsClient) Update(ctx context.Context, validatingWebhookConfiguration *admissionregistrationv1beta1.ValidatingWebhookConfiguration, opts metav1.UpdateOptions) (*admissionregistrationv1beta1.ValidatingWebhookConfiguration, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(validatingWebhookConfigurationsResource, c.Cluster, validatingWebhookConfiguration), &admissionregistrationv1beta1.ValidatingWebhookConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(validatingWebhookConfigurationsResource, c.ClusterPath, validatingWebhookConfiguration), &admissionregistrationv1beta1.ValidatingWebhookConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *validatingWebhookConfigurationsClient) Update(ctx context.Context, vali
 }
 
 func (c *validatingWebhookConfigurationsClient) UpdateStatus(ctx context.Context, validatingWebhookConfiguration *admissionregistrationv1beta1.ValidatingWebhookConfiguration, opts metav1.UpdateOptions) (*admissionregistrationv1beta1.ValidatingWebhookConfiguration, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(validatingWebhookConfigurationsResource, c.Cluster, "status", validatingWebhookConfiguration), &admissionregistrationv1beta1.ValidatingWebhookConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(validatingWebhookConfigurationsResource, c.ClusterPath, "status", validatingWebhookConfiguration), &admissionregistrationv1beta1.ValidatingWebhookConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *validatingWebhookConfigurationsClient) UpdateStatus(ctx context.Context
 }
 
 func (c *validatingWebhookConfigurationsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(validatingWebhookConfigurationsResource, c.Cluster, name, opts), &admissionregistrationv1beta1.ValidatingWebhookConfiguration{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(validatingWebhookConfigurationsResource, c.ClusterPath, name, opts), &admissionregistrationv1beta1.ValidatingWebhookConfiguration{})
 	return err
 }
 
 func (c *validatingWebhookConfigurationsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(validatingWebhookConfigurationsResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(validatingWebhookConfigurationsResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &admissionregistrationv1beta1.ValidatingWebhookConfigurationList{})
 	return err
 }
 
 func (c *validatingWebhookConfigurationsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*admissionregistrationv1beta1.ValidatingWebhookConfiguration, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(validatingWebhookConfigurationsResource, c.Cluster, name), &admissionregistrationv1beta1.ValidatingWebhookConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(validatingWebhookConfigurationsResource, c.ClusterPath, name), &admissionregistrationv1beta1.ValidatingWebhookConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *validatingWebhookConfigurationsClient) Get(ctx context.Context, name st
 
 // List takes label and field selectors, and returns the list of ValidatingWebhookConfigurations that match those selectors.
 func (c *validatingWebhookConfigurationsClient) List(ctx context.Context, opts metav1.ListOptions) (*admissionregistrationv1beta1.ValidatingWebhookConfigurationList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(validatingWebhookConfigurationsResource, validatingWebhookConfigurationsKind, c.Cluster, opts), &admissionregistrationv1beta1.ValidatingWebhookConfigurationList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(validatingWebhookConfigurationsResource, validatingWebhookConfigurationsKind, c.ClusterPath, opts), &admissionregistrationv1beta1.ValidatingWebhookConfigurationList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *validatingWebhookConfigurationsClient) List(ctx context.Context, opts m
 }
 
 func (c *validatingWebhookConfigurationsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(validatingWebhookConfigurationsResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(validatingWebhookConfigurationsResource, c.ClusterPath, opts))
 }
 
 func (c *validatingWebhookConfigurationsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*admissionregistrationv1beta1.ValidatingWebhookConfiguration, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(validatingWebhookConfigurationsResource, c.Cluster, name, pt, data, subresources...), &admissionregistrationv1beta1.ValidatingWebhookConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(validatingWebhookConfigurationsResource, c.ClusterPath, name, pt, data, subresources...), &admissionregistrationv1beta1.ValidatingWebhookConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *validatingWebhookConfigurationsClient) Apply(ctx context.Context, apply
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(validatingWebhookConfigurationsResource, c.Cluster, *name, types.ApplyPatchType, data), &admissionregistrationv1beta1.ValidatingWebhookConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(validatingWebhookConfigurationsResource, c.ClusterPath, *name, types.ApplyPatchType, data), &admissionregistrationv1beta1.ValidatingWebhookConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *validatingWebhookConfigurationsClient) ApplyStatus(ctx context.Context,
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(validatingWebhookConfigurationsResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &admissionregistrationv1beta1.ValidatingWebhookConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(validatingWebhookConfigurationsResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &admissionregistrationv1beta1.ValidatingWebhookConfiguration{})
 	if obj == nil {
 		return nil, err
 	}

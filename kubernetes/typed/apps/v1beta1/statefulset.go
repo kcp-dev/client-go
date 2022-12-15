@@ -24,8 +24,8 @@ package v1beta1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type StatefulSetsClusterGetter interface {
 // StatefulSetClusterInterface can operate on StatefulSets across all clusters,
 // or scope down to one cluster and return a StatefulSetsNamespacer.
 type StatefulSetClusterInterface interface {
-	Cluster(logicalcluster.Name) StatefulSetsNamespacer
+	Cluster(logicalcluster.Path) StatefulSetsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*appsv1beta1.StatefulSetList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type statefulSetsClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *statefulSetsClusterInterface) Cluster(name logicalcluster.Name) StatefulSetsNamespacer {
-	if name == logicalcluster.Wildcard {
+func (c *statefulSetsClusterInterface) Cluster(clusterPath logicalcluster.Path) StatefulSetsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &statefulSetsNamespacer{clientCache: c.clientCache, name: name}
+	return &statefulSetsNamespacer{clientCache: c.clientCache, clusterPath: clusterPath}
 }
 
 // List returns the entire collection of all StatefulSets across all clusters.
@@ -77,9 +77,9 @@ type StatefulSetsNamespacer interface {
 
 type statefulSetsNamespacer struct {
 	clientCache kcpclient.Cache[*appsv1beta1client.AppsV1beta1Client]
-	name        logicalcluster.Name
+	clusterPath logicalcluster.Path
 }
 
 func (n *statefulSetsNamespacer) Namespace(namespace string) appsv1beta1client.StatefulSetInterface {
-	return n.clientCache.ClusterOrDie(n.name).StatefulSets(namespace)
+	return n.clientCache.ClusterOrDie(n.clusterPath).StatefulSets(namespace)
 }

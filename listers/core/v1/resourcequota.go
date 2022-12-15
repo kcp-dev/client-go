@@ -22,8 +22,8 @@ limitations under the License.
 package v1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type ResourceQuotaClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*corev1.ResourceQuota, err error)
 	// Cluster returns a lister that can list and get ResourceQuotas in one workspace.
-	Cluster(cluster logicalcluster.Name) corev1listers.ResourceQuotaLister
+	Cluster(clusterName logicalcluster.Name) corev1listers.ResourceQuotaLister
 	ResourceQuotaClusterListerExpansion
 }
 
@@ -66,19 +66,19 @@ func (s *resourceQuotaClusterLister) List(selector labels.Selector) (ret []*core
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get ResourceQuotas.
-func (s *resourceQuotaClusterLister) Cluster(cluster logicalcluster.Name) corev1listers.ResourceQuotaLister {
-	return &resourceQuotaLister{indexer: s.indexer, cluster: cluster}
+func (s *resourceQuotaClusterLister) Cluster(clusterName logicalcluster.Name) corev1listers.ResourceQuotaLister {
+	return &resourceQuotaLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // resourceQuotaLister implements the corev1listers.ResourceQuotaLister interface.
 type resourceQuotaLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all ResourceQuotas in the indexer for a workspace.
 func (s *resourceQuotaLister) List(selector labels.Selector) (ret []*corev1.ResourceQuota, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*corev1.ResourceQuota))
 	})
 	return ret, err
@@ -86,19 +86,19 @@ func (s *resourceQuotaLister) List(selector labels.Selector) (ret []*corev1.Reso
 
 // ResourceQuotas returns an object that can list and get ResourceQuotas in one namespace.
 func (s *resourceQuotaLister) ResourceQuotas(namespace string) corev1listers.ResourceQuotaNamespaceLister {
-	return &resourceQuotaNamespaceLister{indexer: s.indexer, cluster: s.cluster, namespace: namespace}
+	return &resourceQuotaNamespaceLister{indexer: s.indexer, clusterName: s.clusterName, namespace: namespace}
 }
 
 // resourceQuotaNamespaceLister implements the corev1listers.ResourceQuotaNamespaceLister interface.
 type resourceQuotaNamespaceLister struct {
-	indexer   cache.Indexer
-	cluster   logicalcluster.Name
-	namespace string
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
+	namespace   string
 }
 
 // List lists all ResourceQuotas in the indexer for a given workspace and namespace.
 func (s *resourceQuotaNamespaceLister) List(selector labels.Selector) (ret []*corev1.ResourceQuota, err error) {
-	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.cluster, s.namespace, selector, func(i interface{}) {
+	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.clusterName, s.namespace, selector, func(i interface{}) {
 		ret = append(ret, i.(*corev1.ResourceQuota))
 	})
 	return ret, err
@@ -106,7 +106,7 @@ func (s *resourceQuotaNamespaceLister) List(selector labels.Selector) (ret []*co
 
 // Get retrieves the ResourceQuota from the indexer for a given workspace, namespace and name.
 func (s *resourceQuotaNamespaceLister) Get(name string) (*corev1.ResourceQuota, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), s.namespace, name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), s.namespace, name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

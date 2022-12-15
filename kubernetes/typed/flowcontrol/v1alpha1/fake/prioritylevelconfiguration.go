@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	flowcontrolv1alpha1 "k8s.io/api/flowcontrol/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type priorityLevelConfigurationsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *priorityLevelConfigurationsClusterClient) Cluster(cluster logicalcluster.Name) flowcontrolv1alpha1client.PriorityLevelConfigurationInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *priorityLevelConfigurationsClusterClient) Cluster(clusterPath logicalcluster.Path) flowcontrolv1alpha1client.PriorityLevelConfigurationInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &priorityLevelConfigurationsClient{Fake: c.Fake, Cluster: cluster}
+	return &priorityLevelConfigurationsClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of PriorityLevelConfigurations that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *priorityLevelConfigurationsClusterClient) Watch(ctx context.Context, op
 
 type priorityLevelConfigurationsClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *priorityLevelConfigurationsClient) Create(ctx context.Context, priorityLevelConfiguration *flowcontrolv1alpha1.PriorityLevelConfiguration, opts metav1.CreateOptions) (*flowcontrolv1alpha1.PriorityLevelConfiguration, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(priorityLevelConfigurationsResource, c.Cluster, priorityLevelConfiguration), &flowcontrolv1alpha1.PriorityLevelConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(priorityLevelConfigurationsResource, c.ClusterPath, priorityLevelConfiguration), &flowcontrolv1alpha1.PriorityLevelConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *priorityLevelConfigurationsClient) Create(ctx context.Context, priority
 }
 
 func (c *priorityLevelConfigurationsClient) Update(ctx context.Context, priorityLevelConfiguration *flowcontrolv1alpha1.PriorityLevelConfiguration, opts metav1.UpdateOptions) (*flowcontrolv1alpha1.PriorityLevelConfiguration, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(priorityLevelConfigurationsResource, c.Cluster, priorityLevelConfiguration), &flowcontrolv1alpha1.PriorityLevelConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(priorityLevelConfigurationsResource, c.ClusterPath, priorityLevelConfiguration), &flowcontrolv1alpha1.PriorityLevelConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *priorityLevelConfigurationsClient) Update(ctx context.Context, priority
 }
 
 func (c *priorityLevelConfigurationsClient) UpdateStatus(ctx context.Context, priorityLevelConfiguration *flowcontrolv1alpha1.PriorityLevelConfiguration, opts metav1.UpdateOptions) (*flowcontrolv1alpha1.PriorityLevelConfiguration, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(priorityLevelConfigurationsResource, c.Cluster, "status", priorityLevelConfiguration), &flowcontrolv1alpha1.PriorityLevelConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(priorityLevelConfigurationsResource, c.ClusterPath, "status", priorityLevelConfiguration), &flowcontrolv1alpha1.PriorityLevelConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *priorityLevelConfigurationsClient) UpdateStatus(ctx context.Context, pr
 }
 
 func (c *priorityLevelConfigurationsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(priorityLevelConfigurationsResource, c.Cluster, name, opts), &flowcontrolv1alpha1.PriorityLevelConfiguration{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(priorityLevelConfigurationsResource, c.ClusterPath, name, opts), &flowcontrolv1alpha1.PriorityLevelConfiguration{})
 	return err
 }
 
 func (c *priorityLevelConfigurationsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(priorityLevelConfigurationsResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(priorityLevelConfigurationsResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &flowcontrolv1alpha1.PriorityLevelConfigurationList{})
 	return err
 }
 
 func (c *priorityLevelConfigurationsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*flowcontrolv1alpha1.PriorityLevelConfiguration, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(priorityLevelConfigurationsResource, c.Cluster, name), &flowcontrolv1alpha1.PriorityLevelConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(priorityLevelConfigurationsResource, c.ClusterPath, name), &flowcontrolv1alpha1.PriorityLevelConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *priorityLevelConfigurationsClient) Get(ctx context.Context, name string
 
 // List takes label and field selectors, and returns the list of PriorityLevelConfigurations that match those selectors.
 func (c *priorityLevelConfigurationsClient) List(ctx context.Context, opts metav1.ListOptions) (*flowcontrolv1alpha1.PriorityLevelConfigurationList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(priorityLevelConfigurationsResource, priorityLevelConfigurationsKind, c.Cluster, opts), &flowcontrolv1alpha1.PriorityLevelConfigurationList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(priorityLevelConfigurationsResource, priorityLevelConfigurationsKind, c.ClusterPath, opts), &flowcontrolv1alpha1.PriorityLevelConfigurationList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *priorityLevelConfigurationsClient) List(ctx context.Context, opts metav
 }
 
 func (c *priorityLevelConfigurationsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(priorityLevelConfigurationsResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(priorityLevelConfigurationsResource, c.ClusterPath, opts))
 }
 
 func (c *priorityLevelConfigurationsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*flowcontrolv1alpha1.PriorityLevelConfiguration, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(priorityLevelConfigurationsResource, c.Cluster, name, pt, data, subresources...), &flowcontrolv1alpha1.PriorityLevelConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(priorityLevelConfigurationsResource, c.ClusterPath, name, pt, data, subresources...), &flowcontrolv1alpha1.PriorityLevelConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *priorityLevelConfigurationsClient) Apply(ctx context.Context, applyConf
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(priorityLevelConfigurationsResource, c.Cluster, *name, types.ApplyPatchType, data), &flowcontrolv1alpha1.PriorityLevelConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(priorityLevelConfigurationsResource, c.ClusterPath, *name, types.ApplyPatchType, data), &flowcontrolv1alpha1.PriorityLevelConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *priorityLevelConfigurationsClient) ApplyStatus(ctx context.Context, app
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(priorityLevelConfigurationsResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &flowcontrolv1alpha1.PriorityLevelConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(priorityLevelConfigurationsResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &flowcontrolv1alpha1.PriorityLevelConfiguration{})
 	if obj == nil {
 		return nil, err
 	}

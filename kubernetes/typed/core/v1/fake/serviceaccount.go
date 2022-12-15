@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	authenticationv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -51,12 +51,12 @@ type serviceAccountsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *serviceAccountsClusterClient) Cluster(cluster logicalcluster.Name) kcpcorev1.ServiceAccountsNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *serviceAccountsClusterClient) Cluster(clusterPath logicalcluster.Path) kcpcorev1.ServiceAccountsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &serviceAccountsNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &serviceAccountsNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of ServiceAccounts that match those selectors across all clusters.
@@ -86,21 +86,21 @@ func (c *serviceAccountsClusterClient) Watch(ctx context.Context, opts metav1.Li
 
 type serviceAccountsNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *serviceAccountsNamespacer) Namespace(namespace string) corev1client.ServiceAccountInterface {
-	return &serviceAccountsClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &serviceAccountsClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type serviceAccountsClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *serviceAccountsClient) Create(ctx context.Context, serviceAccount *corev1.ServiceAccount, opts metav1.CreateOptions) (*corev1.ServiceAccount, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(serviceAccountsResource, c.Cluster, c.Namespace, serviceAccount), &corev1.ServiceAccount{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(serviceAccountsResource, c.ClusterPath, c.Namespace, serviceAccount), &corev1.ServiceAccount{})
 	if obj == nil {
 		return nil, err
 	}
@@ -108,7 +108,7 @@ func (c *serviceAccountsClient) Create(ctx context.Context, serviceAccount *core
 }
 
 func (c *serviceAccountsClient) Update(ctx context.Context, serviceAccount *corev1.ServiceAccount, opts metav1.UpdateOptions) (*corev1.ServiceAccount, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(serviceAccountsResource, c.Cluster, c.Namespace, serviceAccount), &corev1.ServiceAccount{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(serviceAccountsResource, c.ClusterPath, c.Namespace, serviceAccount), &corev1.ServiceAccount{})
 	if obj == nil {
 		return nil, err
 	}
@@ -116,7 +116,7 @@ func (c *serviceAccountsClient) Update(ctx context.Context, serviceAccount *core
 }
 
 func (c *serviceAccountsClient) UpdateStatus(ctx context.Context, serviceAccount *corev1.ServiceAccount, opts metav1.UpdateOptions) (*corev1.ServiceAccount, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(serviceAccountsResource, c.Cluster, "status", c.Namespace, serviceAccount), &corev1.ServiceAccount{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(serviceAccountsResource, c.ClusterPath, "status", c.Namespace, serviceAccount), &corev1.ServiceAccount{})
 	if obj == nil {
 		return nil, err
 	}
@@ -124,19 +124,19 @@ func (c *serviceAccountsClient) UpdateStatus(ctx context.Context, serviceAccount
 }
 
 func (c *serviceAccountsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(serviceAccountsResource, c.Cluster, c.Namespace, name, opts), &corev1.ServiceAccount{})
+	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(serviceAccountsResource, c.ClusterPath, c.Namespace, name, opts), &corev1.ServiceAccount{})
 	return err
 }
 
 func (c *serviceAccountsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewDeleteCollectionAction(serviceAccountsResource, c.Cluster, c.Namespace, listOpts)
+	action := kcptesting.NewDeleteCollectionAction(serviceAccountsResource, c.ClusterPath, c.Namespace, listOpts)
 
 	_, err := c.Fake.Invokes(action, &corev1.ServiceAccountList{})
 	return err
 }
 
 func (c *serviceAccountsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*corev1.ServiceAccount, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(serviceAccountsResource, c.Cluster, c.Namespace, name), &corev1.ServiceAccount{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(serviceAccountsResource, c.ClusterPath, c.Namespace, name), &corev1.ServiceAccount{})
 	if obj == nil {
 		return nil, err
 	}
@@ -145,7 +145,7 @@ func (c *serviceAccountsClient) Get(ctx context.Context, name string, options me
 
 // List takes label and field selectors, and returns the list of ServiceAccounts that match those selectors.
 func (c *serviceAccountsClient) List(ctx context.Context, opts metav1.ListOptions) (*corev1.ServiceAccountList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewListAction(serviceAccountsResource, serviceAccountsKind, c.Cluster, c.Namespace, opts), &corev1.ServiceAccountList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewListAction(serviceAccountsResource, serviceAccountsKind, c.ClusterPath, c.Namespace, opts), &corev1.ServiceAccountList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -164,11 +164,11 @@ func (c *serviceAccountsClient) List(ctx context.Context, opts metav1.ListOption
 }
 
 func (c *serviceAccountsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(serviceAccountsResource, c.Cluster, c.Namespace, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(serviceAccountsResource, c.ClusterPath, c.Namespace, opts))
 }
 
 func (c *serviceAccountsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*corev1.ServiceAccount, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(serviceAccountsResource, c.Cluster, c.Namespace, name, pt, data, subresources...), &corev1.ServiceAccount{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(serviceAccountsResource, c.ClusterPath, c.Namespace, name, pt, data, subresources...), &corev1.ServiceAccount{})
 	if obj == nil {
 		return nil, err
 	}
@@ -187,7 +187,7 @@ func (c *serviceAccountsClient) Apply(ctx context.Context, applyConfiguration *a
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(serviceAccountsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &corev1.ServiceAccount{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(serviceAccountsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &corev1.ServiceAccount{})
 	if obj == nil {
 		return nil, err
 	}
@@ -206,7 +206,7 @@ func (c *serviceAccountsClient) ApplyStatus(ctx context.Context, applyConfigurat
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(serviceAccountsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data, "status"), &corev1.ServiceAccount{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(serviceAccountsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data, "status"), &corev1.ServiceAccount{})
 	if obj == nil {
 		return nil, err
 	}
@@ -214,7 +214,7 @@ func (c *serviceAccountsClient) ApplyStatus(ctx context.Context, applyConfigurat
 }
 
 func (c *serviceAccountsClient) CreateToken(ctx context.Context, serviceAccountName string, tokenRequest *authenticationv1.TokenRequest, opts metav1.CreateOptions) (*authenticationv1.TokenRequest, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateSubresourceAction(serviceAccountsResource, c.Cluster, serviceAccountName, "token", c.Namespace, tokenRequest), &authenticationv1.TokenRequest{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateSubresourceAction(serviceAccountsResource, c.ClusterPath, serviceAccountName, "token", c.Namespace, tokenRequest), &authenticationv1.TokenRequest{})
 	if obj == nil {
 		return nil, err
 	}

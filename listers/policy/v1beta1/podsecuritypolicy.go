@@ -22,8 +22,8 @@ limitations under the License.
 package v1beta1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type PodSecurityPolicyClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*policyv1beta1.PodSecurityPolicy, err error)
 	// Cluster returns a lister that can list and get PodSecurityPolicies in one workspace.
-	Cluster(cluster logicalcluster.Name) policyv1beta1listers.PodSecurityPolicyLister
+	Cluster(clusterName logicalcluster.Name) policyv1beta1listers.PodSecurityPolicyLister
 	PodSecurityPolicyClusterListerExpansion
 }
 
@@ -65,19 +65,19 @@ func (s *podSecurityPolicyClusterLister) List(selector labels.Selector) (ret []*
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get PodSecurityPolicies.
-func (s *podSecurityPolicyClusterLister) Cluster(cluster logicalcluster.Name) policyv1beta1listers.PodSecurityPolicyLister {
-	return &podSecurityPolicyLister{indexer: s.indexer, cluster: cluster}
+func (s *podSecurityPolicyClusterLister) Cluster(clusterName logicalcluster.Name) policyv1beta1listers.PodSecurityPolicyLister {
+	return &podSecurityPolicyLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // podSecurityPolicyLister implements the policyv1beta1listers.PodSecurityPolicyLister interface.
 type podSecurityPolicyLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all PodSecurityPolicies in the indexer for a workspace.
 func (s *podSecurityPolicyLister) List(selector labels.Selector) (ret []*policyv1beta1.PodSecurityPolicy, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*policyv1beta1.PodSecurityPolicy))
 	})
 	return ret, err
@@ -85,7 +85,7 @@ func (s *podSecurityPolicyLister) List(selector labels.Selector) (ret []*policyv
 
 // Get retrieves the PodSecurityPolicy from the indexer for a given workspace and name.
 func (s *podSecurityPolicyLister) Get(name string) (*policyv1beta1.PodSecurityPolicy, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), "", name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), "", name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

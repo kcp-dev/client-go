@@ -24,8 +24,8 @@ package v1
 import (
 	"net/http"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	authenticationv1 "k8s.io/client-go/kubernetes/typed/authentication/v1"
 	"k8s.io/client-go/rest"
@@ -37,18 +37,18 @@ type AuthenticationV1ClusterInterface interface {
 }
 
 type AuthenticationV1ClusterScoper interface {
-	Cluster(logicalcluster.Name) authenticationv1.AuthenticationV1Interface
+	Cluster(logicalcluster.Path) authenticationv1.AuthenticationV1Interface
 }
 
 type AuthenticationV1ClusterClient struct {
 	clientCache kcpclient.Cache[*authenticationv1.AuthenticationV1Client]
 }
 
-func (c *AuthenticationV1ClusterClient) Cluster(name logicalcluster.Name) authenticationv1.AuthenticationV1Interface {
-	if name == logicalcluster.Wildcard {
+func (c *AuthenticationV1ClusterClient) Cluster(clusterPath logicalcluster.Path) authenticationv1.AuthenticationV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return c.clientCache.ClusterOrDie(name)
+	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
 func (c *AuthenticationV1ClusterClient) TokenReviews() TokenReviewClusterInterface {
@@ -72,7 +72,7 @@ func NewForConfigAndClient(c *rest.Config, h *http.Client) (*AuthenticationV1Clu
 	cache := kcpclient.NewCache(c, h, &kcpclient.Constructor[*authenticationv1.AuthenticationV1Client]{
 		NewForConfigAndClient: authenticationv1.NewForConfigAndClient,
 	})
-	if _, err := cache.Cluster(logicalcluster.New("root")); err != nil {
+	if _, err := cache.Cluster(logicalcluster.Name("root").Path()); err != nil {
 		return nil, err
 	}
 	return &AuthenticationV1ClusterClient{clientCache: cache}, nil

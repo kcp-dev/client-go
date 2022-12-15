@@ -22,8 +22,8 @@ limitations under the License.
 package v1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type PersistentVolumeClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*corev1.PersistentVolume, err error)
 	// Cluster returns a lister that can list and get PersistentVolumes in one workspace.
-	Cluster(cluster logicalcluster.Name) corev1listers.PersistentVolumeLister
+	Cluster(clusterName logicalcluster.Name) corev1listers.PersistentVolumeLister
 	PersistentVolumeClusterListerExpansion
 }
 
@@ -65,19 +65,19 @@ func (s *persistentVolumeClusterLister) List(selector labels.Selector) (ret []*c
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get PersistentVolumes.
-func (s *persistentVolumeClusterLister) Cluster(cluster logicalcluster.Name) corev1listers.PersistentVolumeLister {
-	return &persistentVolumeLister{indexer: s.indexer, cluster: cluster}
+func (s *persistentVolumeClusterLister) Cluster(clusterName logicalcluster.Name) corev1listers.PersistentVolumeLister {
+	return &persistentVolumeLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // persistentVolumeLister implements the corev1listers.PersistentVolumeLister interface.
 type persistentVolumeLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all PersistentVolumes in the indexer for a workspace.
 func (s *persistentVolumeLister) List(selector labels.Selector) (ret []*corev1.PersistentVolume, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*corev1.PersistentVolume))
 	})
 	return ret, err
@@ -85,7 +85,7 @@ func (s *persistentVolumeLister) List(selector labels.Selector) (ret []*corev1.P
 
 // Get retrieves the PersistentVolume from the indexer for a given workspace and name.
 func (s *persistentVolumeLister) Get(name string) (*corev1.PersistentVolume, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), "", name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), "", name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

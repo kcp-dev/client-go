@@ -24,8 +24,8 @@ package v1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type CSINodesClusterGetter interface {
 // CSINodeClusterInterface can operate on CSINodes across all clusters,
 // or scope down to one cluster and return a storagev1client.CSINodeInterface.
 type CSINodeClusterInterface interface {
-	Cluster(logicalcluster.Name) storagev1client.CSINodeInterface
+	Cluster(logicalcluster.Path) storagev1client.CSINodeInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*storagev1.CSINodeList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type cSINodesClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *cSINodesClusterInterface) Cluster(name logicalcluster.Name) storagev1client.CSINodeInterface {
-	if name == logicalcluster.Wildcard {
+func (c *cSINodesClusterInterface) Cluster(clusterPath logicalcluster.Path) storagev1client.CSINodeInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return c.clientCache.ClusterOrDie(name).CSINodes()
+	return c.clientCache.ClusterOrDie(clusterPath).CSINodes()
 }
 
 // List returns the entire collection of all CSINodes across all clusters.

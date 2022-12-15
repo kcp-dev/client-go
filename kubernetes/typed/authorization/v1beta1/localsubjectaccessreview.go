@@ -22,8 +22,8 @@ limitations under the License.
 package v1beta1
 
 import (
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	authorizationv1beta1client "k8s.io/client-go/kubernetes/typed/authorization/v1beta1"
 )
@@ -36,7 +36,7 @@ type LocalSubjectAccessReviewsClusterGetter interface {
 
 // LocalSubjectAccessReviewClusterInterface can scope down to one cluster and return a LocalSubjectAccessReviewsNamespacer.
 type LocalSubjectAccessReviewClusterInterface interface {
-	Cluster(logicalcluster.Name) LocalSubjectAccessReviewsNamespacer
+	Cluster(logicalcluster.Path) LocalSubjectAccessReviewsNamespacer
 }
 
 type localSubjectAccessReviewsClusterInterface struct {
@@ -44,12 +44,12 @@ type localSubjectAccessReviewsClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *localSubjectAccessReviewsClusterInterface) Cluster(name logicalcluster.Name) LocalSubjectAccessReviewsNamespacer {
-	if name == logicalcluster.Wildcard {
+func (c *localSubjectAccessReviewsClusterInterface) Cluster(clusterPath logicalcluster.Path) LocalSubjectAccessReviewsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &localSubjectAccessReviewsNamespacer{clientCache: c.clientCache, name: name}
+	return &localSubjectAccessReviewsNamespacer{clientCache: c.clientCache, clusterPath: clusterPath}
 }
 
 // LocalSubjectAccessReviewsNamespacer can scope to objects within a namespace, returning a authorizationv1beta1client.LocalSubjectAccessReviewInterface.
@@ -59,9 +59,9 @@ type LocalSubjectAccessReviewsNamespacer interface {
 
 type localSubjectAccessReviewsNamespacer struct {
 	clientCache kcpclient.Cache[*authorizationv1beta1client.AuthorizationV1beta1Client]
-	name        logicalcluster.Name
+	clusterPath logicalcluster.Path
 }
 
 func (n *localSubjectAccessReviewsNamespacer) Namespace(namespace string) authorizationv1beta1client.LocalSubjectAccessReviewInterface {
-	return n.clientCache.ClusterOrDie(n.name).LocalSubjectAccessReviews(namespace)
+	return n.clientCache.ClusterOrDie(n.clusterPath).LocalSubjectAccessReviews(namespace)
 }

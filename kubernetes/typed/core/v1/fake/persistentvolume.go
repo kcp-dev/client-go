@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type persistentVolumesClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *persistentVolumesClusterClient) Cluster(cluster logicalcluster.Name) corev1client.PersistentVolumeInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *persistentVolumesClusterClient) Cluster(clusterPath logicalcluster.Path) corev1client.PersistentVolumeInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &persistentVolumesClient{Fake: c.Fake, Cluster: cluster}
+	return &persistentVolumesClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of PersistentVolumes that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *persistentVolumesClusterClient) Watch(ctx context.Context, opts metav1.
 
 type persistentVolumesClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *persistentVolumesClient) Create(ctx context.Context, persistentVolume *corev1.PersistentVolume, opts metav1.CreateOptions) (*corev1.PersistentVolume, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(persistentVolumesResource, c.Cluster, persistentVolume), &corev1.PersistentVolume{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(persistentVolumesResource, c.ClusterPath, persistentVolume), &corev1.PersistentVolume{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *persistentVolumesClient) Create(ctx context.Context, persistentVolume *
 }
 
 func (c *persistentVolumesClient) Update(ctx context.Context, persistentVolume *corev1.PersistentVolume, opts metav1.UpdateOptions) (*corev1.PersistentVolume, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(persistentVolumesResource, c.Cluster, persistentVolume), &corev1.PersistentVolume{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(persistentVolumesResource, c.ClusterPath, persistentVolume), &corev1.PersistentVolume{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *persistentVolumesClient) Update(ctx context.Context, persistentVolume *
 }
 
 func (c *persistentVolumesClient) UpdateStatus(ctx context.Context, persistentVolume *corev1.PersistentVolume, opts metav1.UpdateOptions) (*corev1.PersistentVolume, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(persistentVolumesResource, c.Cluster, "status", persistentVolume), &corev1.PersistentVolume{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(persistentVolumesResource, c.ClusterPath, "status", persistentVolume), &corev1.PersistentVolume{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *persistentVolumesClient) UpdateStatus(ctx context.Context, persistentVo
 }
 
 func (c *persistentVolumesClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(persistentVolumesResource, c.Cluster, name, opts), &corev1.PersistentVolume{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(persistentVolumesResource, c.ClusterPath, name, opts), &corev1.PersistentVolume{})
 	return err
 }
 
 func (c *persistentVolumesClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(persistentVolumesResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(persistentVolumesResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &corev1.PersistentVolumeList{})
 	return err
 }
 
 func (c *persistentVolumesClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*corev1.PersistentVolume, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(persistentVolumesResource, c.Cluster, name), &corev1.PersistentVolume{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(persistentVolumesResource, c.ClusterPath, name), &corev1.PersistentVolume{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *persistentVolumesClient) Get(ctx context.Context, name string, options 
 
 // List takes label and field selectors, and returns the list of PersistentVolumes that match those selectors.
 func (c *persistentVolumesClient) List(ctx context.Context, opts metav1.ListOptions) (*corev1.PersistentVolumeList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(persistentVolumesResource, persistentVolumesKind, c.Cluster, opts), &corev1.PersistentVolumeList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(persistentVolumesResource, persistentVolumesKind, c.ClusterPath, opts), &corev1.PersistentVolumeList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *persistentVolumesClient) List(ctx context.Context, opts metav1.ListOpti
 }
 
 func (c *persistentVolumesClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(persistentVolumesResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(persistentVolumesResource, c.ClusterPath, opts))
 }
 
 func (c *persistentVolumesClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*corev1.PersistentVolume, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(persistentVolumesResource, c.Cluster, name, pt, data, subresources...), &corev1.PersistentVolume{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(persistentVolumesResource, c.ClusterPath, name, pt, data, subresources...), &corev1.PersistentVolume{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *persistentVolumesClient) Apply(ctx context.Context, applyConfiguration 
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(persistentVolumesResource, c.Cluster, *name, types.ApplyPatchType, data), &corev1.PersistentVolume{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(persistentVolumesResource, c.ClusterPath, *name, types.ApplyPatchType, data), &corev1.PersistentVolume{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *persistentVolumesClient) ApplyStatus(ctx context.Context, applyConfigur
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(persistentVolumesResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &corev1.PersistentVolume{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(persistentVolumesResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &corev1.PersistentVolume{})
 	if obj == nil {
 		return nil, err
 	}

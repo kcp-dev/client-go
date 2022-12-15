@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type podSecurityPoliciesClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *podSecurityPoliciesClusterClient) Cluster(cluster logicalcluster.Name) policyv1beta1client.PodSecurityPolicyInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *podSecurityPoliciesClusterClient) Cluster(clusterPath logicalcluster.Path) policyv1beta1client.PodSecurityPolicyInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &podSecurityPoliciesClient{Fake: c.Fake, Cluster: cluster}
+	return &podSecurityPoliciesClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of PodSecurityPolicies that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *podSecurityPoliciesClusterClient) Watch(ctx context.Context, opts metav
 
 type podSecurityPoliciesClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *podSecurityPoliciesClient) Create(ctx context.Context, podSecurityPolicy *policyv1beta1.PodSecurityPolicy, opts metav1.CreateOptions) (*policyv1beta1.PodSecurityPolicy, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(podSecurityPoliciesResource, c.Cluster, podSecurityPolicy), &policyv1beta1.PodSecurityPolicy{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(podSecurityPoliciesResource, c.ClusterPath, podSecurityPolicy), &policyv1beta1.PodSecurityPolicy{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *podSecurityPoliciesClient) Create(ctx context.Context, podSecurityPolic
 }
 
 func (c *podSecurityPoliciesClient) Update(ctx context.Context, podSecurityPolicy *policyv1beta1.PodSecurityPolicy, opts metav1.UpdateOptions) (*policyv1beta1.PodSecurityPolicy, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(podSecurityPoliciesResource, c.Cluster, podSecurityPolicy), &policyv1beta1.PodSecurityPolicy{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(podSecurityPoliciesResource, c.ClusterPath, podSecurityPolicy), &policyv1beta1.PodSecurityPolicy{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *podSecurityPoliciesClient) Update(ctx context.Context, podSecurityPolic
 }
 
 func (c *podSecurityPoliciesClient) UpdateStatus(ctx context.Context, podSecurityPolicy *policyv1beta1.PodSecurityPolicy, opts metav1.UpdateOptions) (*policyv1beta1.PodSecurityPolicy, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(podSecurityPoliciesResource, c.Cluster, "status", podSecurityPolicy), &policyv1beta1.PodSecurityPolicy{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(podSecurityPoliciesResource, c.ClusterPath, "status", podSecurityPolicy), &policyv1beta1.PodSecurityPolicy{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *podSecurityPoliciesClient) UpdateStatus(ctx context.Context, podSecurit
 }
 
 func (c *podSecurityPoliciesClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(podSecurityPoliciesResource, c.Cluster, name, opts), &policyv1beta1.PodSecurityPolicy{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(podSecurityPoliciesResource, c.ClusterPath, name, opts), &policyv1beta1.PodSecurityPolicy{})
 	return err
 }
 
 func (c *podSecurityPoliciesClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(podSecurityPoliciesResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(podSecurityPoliciesResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &policyv1beta1.PodSecurityPolicyList{})
 	return err
 }
 
 func (c *podSecurityPoliciesClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*policyv1beta1.PodSecurityPolicy, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(podSecurityPoliciesResource, c.Cluster, name), &policyv1beta1.PodSecurityPolicy{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(podSecurityPoliciesResource, c.ClusterPath, name), &policyv1beta1.PodSecurityPolicy{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *podSecurityPoliciesClient) Get(ctx context.Context, name string, option
 
 // List takes label and field selectors, and returns the list of PodSecurityPolicies that match those selectors.
 func (c *podSecurityPoliciesClient) List(ctx context.Context, opts metav1.ListOptions) (*policyv1beta1.PodSecurityPolicyList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(podSecurityPoliciesResource, podSecurityPoliciesKind, c.Cluster, opts), &policyv1beta1.PodSecurityPolicyList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(podSecurityPoliciesResource, podSecurityPoliciesKind, c.ClusterPath, opts), &policyv1beta1.PodSecurityPolicyList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *podSecurityPoliciesClient) List(ctx context.Context, opts metav1.ListOp
 }
 
 func (c *podSecurityPoliciesClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(podSecurityPoliciesResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(podSecurityPoliciesResource, c.ClusterPath, opts))
 }
 
 func (c *podSecurityPoliciesClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*policyv1beta1.PodSecurityPolicy, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(podSecurityPoliciesResource, c.Cluster, name, pt, data, subresources...), &policyv1beta1.PodSecurityPolicy{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(podSecurityPoliciesResource, c.ClusterPath, name, pt, data, subresources...), &policyv1beta1.PodSecurityPolicy{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *podSecurityPoliciesClient) Apply(ctx context.Context, applyConfiguratio
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(podSecurityPoliciesResource, c.Cluster, *name, types.ApplyPatchType, data), &policyv1beta1.PodSecurityPolicy{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(podSecurityPoliciesResource, c.ClusterPath, *name, types.ApplyPatchType, data), &policyv1beta1.PodSecurityPolicy{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *podSecurityPoliciesClient) ApplyStatus(ctx context.Context, applyConfig
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(podSecurityPoliciesResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &policyv1beta1.PodSecurityPolicy{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(podSecurityPoliciesResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &policyv1beta1.PodSecurityPolicy{})
 	if obj == nil {
 		return nil, err
 	}

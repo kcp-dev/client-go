@@ -22,8 +22,8 @@ limitations under the License.
 package v1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type PodClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*corev1.Pod, err error)
 	// Cluster returns a lister that can list and get Pods in one workspace.
-	Cluster(cluster logicalcluster.Name) corev1listers.PodLister
+	Cluster(clusterName logicalcluster.Name) corev1listers.PodLister
 	PodClusterListerExpansion
 }
 
@@ -66,19 +66,19 @@ func (s *podClusterLister) List(selector labels.Selector) (ret []*corev1.Pod, er
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get Pods.
-func (s *podClusterLister) Cluster(cluster logicalcluster.Name) corev1listers.PodLister {
-	return &podLister{indexer: s.indexer, cluster: cluster}
+func (s *podClusterLister) Cluster(clusterName logicalcluster.Name) corev1listers.PodLister {
+	return &podLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // podLister implements the corev1listers.PodLister interface.
 type podLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all Pods in the indexer for a workspace.
 func (s *podLister) List(selector labels.Selector) (ret []*corev1.Pod, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*corev1.Pod))
 	})
 	return ret, err
@@ -86,19 +86,19 @@ func (s *podLister) List(selector labels.Selector) (ret []*corev1.Pod, err error
 
 // Pods returns an object that can list and get Pods in one namespace.
 func (s *podLister) Pods(namespace string) corev1listers.PodNamespaceLister {
-	return &podNamespaceLister{indexer: s.indexer, cluster: s.cluster, namespace: namespace}
+	return &podNamespaceLister{indexer: s.indexer, clusterName: s.clusterName, namespace: namespace}
 }
 
 // podNamespaceLister implements the corev1listers.PodNamespaceLister interface.
 type podNamespaceLister struct {
-	indexer   cache.Indexer
-	cluster   logicalcluster.Name
-	namespace string
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
+	namespace   string
 }
 
 // List lists all Pods in the indexer for a given workspace and namespace.
 func (s *podNamespaceLister) List(selector labels.Selector) (ret []*corev1.Pod, err error) {
-	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.cluster, s.namespace, selector, func(i interface{}) {
+	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.clusterName, s.namespace, selector, func(i interface{}) {
 		ret = append(ret, i.(*corev1.Pod))
 	})
 	return ret, err
@@ -106,7 +106,7 @@ func (s *podNamespaceLister) List(selector labels.Selector) (ret []*corev1.Pod, 
 
 // Get retrieves the Pod from the indexer for a given workspace, namespace and name.
 func (s *podNamespaceLister) Get(name string) (*corev1.Pod, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), s.namespace, name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), s.namespace, name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

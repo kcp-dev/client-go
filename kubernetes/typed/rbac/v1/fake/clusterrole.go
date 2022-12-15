@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type clusterRolesClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *clusterRolesClusterClient) Cluster(cluster logicalcluster.Name) rbacv1client.ClusterRoleInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *clusterRolesClusterClient) Cluster(clusterPath logicalcluster.Path) rbacv1client.ClusterRoleInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &clusterRolesClient{Fake: c.Fake, Cluster: cluster}
+	return &clusterRolesClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of ClusterRoles that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *clusterRolesClusterClient) Watch(ctx context.Context, opts metav1.ListO
 
 type clusterRolesClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *clusterRolesClient) Create(ctx context.Context, clusterRole *rbacv1.ClusterRole, opts metav1.CreateOptions) (*rbacv1.ClusterRole, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(clusterRolesResource, c.Cluster, clusterRole), &rbacv1.ClusterRole{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(clusterRolesResource, c.ClusterPath, clusterRole), &rbacv1.ClusterRole{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *clusterRolesClient) Create(ctx context.Context, clusterRole *rbacv1.Clu
 }
 
 func (c *clusterRolesClient) Update(ctx context.Context, clusterRole *rbacv1.ClusterRole, opts metav1.UpdateOptions) (*rbacv1.ClusterRole, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(clusterRolesResource, c.Cluster, clusterRole), &rbacv1.ClusterRole{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(clusterRolesResource, c.ClusterPath, clusterRole), &rbacv1.ClusterRole{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *clusterRolesClient) Update(ctx context.Context, clusterRole *rbacv1.Clu
 }
 
 func (c *clusterRolesClient) UpdateStatus(ctx context.Context, clusterRole *rbacv1.ClusterRole, opts metav1.UpdateOptions) (*rbacv1.ClusterRole, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(clusterRolesResource, c.Cluster, "status", clusterRole), &rbacv1.ClusterRole{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(clusterRolesResource, c.ClusterPath, "status", clusterRole), &rbacv1.ClusterRole{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *clusterRolesClient) UpdateStatus(ctx context.Context, clusterRole *rbac
 }
 
 func (c *clusterRolesClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(clusterRolesResource, c.Cluster, name, opts), &rbacv1.ClusterRole{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(clusterRolesResource, c.ClusterPath, name, opts), &rbacv1.ClusterRole{})
 	return err
 }
 
 func (c *clusterRolesClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(clusterRolesResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(clusterRolesResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &rbacv1.ClusterRoleList{})
 	return err
 }
 
 func (c *clusterRolesClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*rbacv1.ClusterRole, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(clusterRolesResource, c.Cluster, name), &rbacv1.ClusterRole{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(clusterRolesResource, c.ClusterPath, name), &rbacv1.ClusterRole{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *clusterRolesClient) Get(ctx context.Context, name string, options metav
 
 // List takes label and field selectors, and returns the list of ClusterRoles that match those selectors.
 func (c *clusterRolesClient) List(ctx context.Context, opts metav1.ListOptions) (*rbacv1.ClusterRoleList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(clusterRolesResource, clusterRolesKind, c.Cluster, opts), &rbacv1.ClusterRoleList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(clusterRolesResource, clusterRolesKind, c.ClusterPath, opts), &rbacv1.ClusterRoleList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *clusterRolesClient) List(ctx context.Context, opts metav1.ListOptions) 
 }
 
 func (c *clusterRolesClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(clusterRolesResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(clusterRolesResource, c.ClusterPath, opts))
 }
 
 func (c *clusterRolesClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*rbacv1.ClusterRole, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(clusterRolesResource, c.Cluster, name, pt, data, subresources...), &rbacv1.ClusterRole{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(clusterRolesResource, c.ClusterPath, name, pt, data, subresources...), &rbacv1.ClusterRole{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *clusterRolesClient) Apply(ctx context.Context, applyConfiguration *appl
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(clusterRolesResource, c.Cluster, *name, types.ApplyPatchType, data), &rbacv1.ClusterRole{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(clusterRolesResource, c.ClusterPath, *name, types.ApplyPatchType, data), &rbacv1.ClusterRole{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *clusterRolesClient) ApplyStatus(ctx context.Context, applyConfiguration
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(clusterRolesResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &rbacv1.ClusterRole{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(clusterRolesResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &rbacv1.ClusterRole{})
 	if obj == nil {
 		return nil, err
 	}

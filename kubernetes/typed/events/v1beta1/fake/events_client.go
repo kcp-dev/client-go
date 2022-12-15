@@ -22,7 +22,7 @@ limitations under the License.
 package v1beta1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	eventsv1beta1 "k8s.io/client-go/kubernetes/typed/events/v1beta1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type EventsV1beta1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *EventsV1beta1ClusterClient) Cluster(cluster logicalcluster.Name) eventsv1beta1.EventsV1beta1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *EventsV1beta1ClusterClient) Cluster(clusterPath logicalcluster.Path) eventsv1beta1.EventsV1beta1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &EventsV1beta1Client{Fake: c.Fake, Cluster: cluster}
+	return &EventsV1beta1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *EventsV1beta1ClusterClient) Events() kcpeventsv1beta1.EventClusterInterface {
@@ -52,7 +52,7 @@ var _ eventsv1beta1.EventsV1beta1Interface = (*EventsV1beta1Client)(nil)
 
 type EventsV1beta1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *EventsV1beta1Client) RESTClient() rest.Interface {
@@ -61,5 +61,5 @@ func (c *EventsV1beta1Client) RESTClient() rest.Interface {
 }
 
 func (c *EventsV1beta1Client) Events(namespace string) eventsv1beta1.EventInterface {
-	return &eventsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &eventsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }

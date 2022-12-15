@@ -24,8 +24,8 @@ package v1beta1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type NetworkPoliciesClusterGetter interface {
 // NetworkPolicyClusterInterface can operate on NetworkPolicies across all clusters,
 // or scope down to one cluster and return a NetworkPoliciesNamespacer.
 type NetworkPolicyClusterInterface interface {
-	Cluster(logicalcluster.Name) NetworkPoliciesNamespacer
+	Cluster(logicalcluster.Path) NetworkPoliciesNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*extensionsv1beta1.NetworkPolicyList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type networkPoliciesClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *networkPoliciesClusterInterface) Cluster(name logicalcluster.Name) NetworkPoliciesNamespacer {
-	if name == logicalcluster.Wildcard {
+func (c *networkPoliciesClusterInterface) Cluster(clusterPath logicalcluster.Path) NetworkPoliciesNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &networkPoliciesNamespacer{clientCache: c.clientCache, name: name}
+	return &networkPoliciesNamespacer{clientCache: c.clientCache, clusterPath: clusterPath}
 }
 
 // List returns the entire collection of all NetworkPolicies across all clusters.
@@ -77,9 +77,9 @@ type NetworkPoliciesNamespacer interface {
 
 type networkPoliciesNamespacer struct {
 	clientCache kcpclient.Cache[*extensionsv1beta1client.ExtensionsV1beta1Client]
-	name        logicalcluster.Name
+	clusterPath logicalcluster.Path
 }
 
 func (n *networkPoliciesNamespacer) Namespace(namespace string) extensionsv1beta1client.NetworkPolicyInterface {
-	return n.clientCache.ClusterOrDie(n.name).NetworkPolicies(namespace)
+	return n.clientCache.ClusterOrDie(n.clusterPath).NetworkPolicies(namespace)
 }

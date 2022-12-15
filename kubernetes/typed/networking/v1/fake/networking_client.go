@@ -22,7 +22,7 @@ limitations under the License.
 package v1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	networkingv1 "k8s.io/client-go/kubernetes/typed/networking/v1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type NetworkingV1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *NetworkingV1ClusterClient) Cluster(cluster logicalcluster.Name) networkingv1.NetworkingV1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *NetworkingV1ClusterClient) Cluster(clusterPath logicalcluster.Path) networkingv1.NetworkingV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &NetworkingV1Client{Fake: c.Fake, Cluster: cluster}
+	return &NetworkingV1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *NetworkingV1ClusterClient) NetworkPolicies() kcpnetworkingv1.NetworkPolicyClusterInterface {
@@ -60,7 +60,7 @@ var _ networkingv1.NetworkingV1Interface = (*NetworkingV1Client)(nil)
 
 type NetworkingV1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *NetworkingV1Client) RESTClient() rest.Interface {
@@ -69,13 +69,13 @@ func (c *NetworkingV1Client) RESTClient() rest.Interface {
 }
 
 func (c *NetworkingV1Client) NetworkPolicies(namespace string) networkingv1.NetworkPolicyInterface {
-	return &networkPoliciesClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &networkPoliciesClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *NetworkingV1Client) Ingresses(namespace string) networkingv1.IngressInterface {
-	return &ingressesClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &ingressesClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *NetworkingV1Client) IngressClasses() networkingv1.IngressClassInterface {
-	return &ingressClassesClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &ingressClassesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }

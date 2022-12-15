@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type namespacesClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *namespacesClusterClient) Cluster(cluster logicalcluster.Name) corev1client.NamespaceInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *namespacesClusterClient) Cluster(clusterPath logicalcluster.Path) corev1client.NamespaceInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &namespacesClient{Fake: c.Fake, Cluster: cluster}
+	return &namespacesClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of Namespaces that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *namespacesClusterClient) Watch(ctx context.Context, opts metav1.ListOpt
 
 type namespacesClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *namespacesClient) Create(ctx context.Context, namespace *corev1.Namespace, opts metav1.CreateOptions) (*corev1.Namespace, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(namespacesResource, c.Cluster, namespace), &corev1.Namespace{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(namespacesResource, c.ClusterPath, namespace), &corev1.Namespace{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *namespacesClient) Create(ctx context.Context, namespace *corev1.Namespa
 }
 
 func (c *namespacesClient) Update(ctx context.Context, namespace *corev1.Namespace, opts metav1.UpdateOptions) (*corev1.Namespace, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(namespacesResource, c.Cluster, namespace), &corev1.Namespace{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(namespacesResource, c.ClusterPath, namespace), &corev1.Namespace{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *namespacesClient) Update(ctx context.Context, namespace *corev1.Namespa
 }
 
 func (c *namespacesClient) UpdateStatus(ctx context.Context, namespace *corev1.Namespace, opts metav1.UpdateOptions) (*corev1.Namespace, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(namespacesResource, c.Cluster, "status", namespace), &corev1.Namespace{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(namespacesResource, c.ClusterPath, "status", namespace), &corev1.Namespace{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,12 +112,12 @@ func (c *namespacesClient) UpdateStatus(ctx context.Context, namespace *corev1.N
 }
 
 func (c *namespacesClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(namespacesResource, c.Cluster, name, opts), &corev1.Namespace{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(namespacesResource, c.ClusterPath, name, opts), &corev1.Namespace{})
 	return err
 }
 
 func (c *namespacesClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*corev1.Namespace, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(namespacesResource, c.Cluster, name), &corev1.Namespace{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(namespacesResource, c.ClusterPath, name), &corev1.Namespace{})
 	if obj == nil {
 		return nil, err
 	}
@@ -126,7 +126,7 @@ func (c *namespacesClient) Get(ctx context.Context, name string, options metav1.
 
 // List takes label and field selectors, and returns the list of Namespaces that match those selectors.
 func (c *namespacesClient) List(ctx context.Context, opts metav1.ListOptions) (*corev1.NamespaceList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(namespacesResource, namespacesKind, c.Cluster, opts), &corev1.NamespaceList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(namespacesResource, namespacesKind, c.ClusterPath, opts), &corev1.NamespaceList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -145,11 +145,11 @@ func (c *namespacesClient) List(ctx context.Context, opts metav1.ListOptions) (*
 }
 
 func (c *namespacesClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(namespacesResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(namespacesResource, c.ClusterPath, opts))
 }
 
 func (c *namespacesClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*corev1.Namespace, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(namespacesResource, c.Cluster, name, pt, data, subresources...), &corev1.Namespace{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(namespacesResource, c.ClusterPath, name, pt, data, subresources...), &corev1.Namespace{})
 	if obj == nil {
 		return nil, err
 	}
@@ -168,7 +168,7 @@ func (c *namespacesClient) Apply(ctx context.Context, applyConfiguration *applyc
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(namespacesResource, c.Cluster, *name, types.ApplyPatchType, data), &corev1.Namespace{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(namespacesResource, c.ClusterPath, *name, types.ApplyPatchType, data), &corev1.Namespace{})
 	if obj == nil {
 		return nil, err
 	}
@@ -187,7 +187,7 @@ func (c *namespacesClient) ApplyStatus(ctx context.Context, applyConfiguration *
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(namespacesResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &corev1.Namespace{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(namespacesResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &corev1.Namespace{})
 	if obj == nil {
 		return nil, err
 	}

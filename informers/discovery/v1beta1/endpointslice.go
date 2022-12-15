@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	discoveryv1beta1 "k8s.io/api/discovery/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *endpointSliceClusterInformer) Lister() discoveryv1beta1listers.Endpoint
 	return discoveryv1beta1listers.NewEndpointSliceClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *endpointSliceClusterInformer) Cluster(cluster logicalcluster.Name) upstreamdiscoveryv1beta1informers.EndpointSliceInformer {
+func (f *endpointSliceClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamdiscoveryv1beta1informers.EndpointSliceInformer {
 	return &endpointSliceInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

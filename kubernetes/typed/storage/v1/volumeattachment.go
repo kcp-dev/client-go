@@ -24,8 +24,8 @@ package v1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type VolumeAttachmentsClusterGetter interface {
 // VolumeAttachmentClusterInterface can operate on VolumeAttachments across all clusters,
 // or scope down to one cluster and return a storagev1client.VolumeAttachmentInterface.
 type VolumeAttachmentClusterInterface interface {
-	Cluster(logicalcluster.Name) storagev1client.VolumeAttachmentInterface
+	Cluster(logicalcluster.Path) storagev1client.VolumeAttachmentInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*storagev1.VolumeAttachmentList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type volumeAttachmentsClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *volumeAttachmentsClusterInterface) Cluster(name logicalcluster.Name) storagev1client.VolumeAttachmentInterface {
-	if name == logicalcluster.Wildcard {
+func (c *volumeAttachmentsClusterInterface) Cluster(clusterPath logicalcluster.Path) storagev1client.VolumeAttachmentInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return c.clientCache.ClusterOrDie(name).VolumeAttachments()
+	return c.clientCache.ClusterOrDie(clusterPath).VolumeAttachments()
 }
 
 // List returns the entire collection of all VolumeAttachments across all clusters.

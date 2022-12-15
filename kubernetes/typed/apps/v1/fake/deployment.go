@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
@@ -52,12 +52,12 @@ type deploymentsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *deploymentsClusterClient) Cluster(cluster logicalcluster.Name) kcpappsv1.DeploymentsNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *deploymentsClusterClient) Cluster(clusterPath logicalcluster.Path) kcpappsv1.DeploymentsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &deploymentsNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &deploymentsNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of Deployments that match those selectors across all clusters.
@@ -87,21 +87,21 @@ func (c *deploymentsClusterClient) Watch(ctx context.Context, opts metav1.ListOp
 
 type deploymentsNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *deploymentsNamespacer) Namespace(namespace string) appsv1client.DeploymentInterface {
-	return &deploymentsClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &deploymentsClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type deploymentsClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *deploymentsClient) Create(ctx context.Context, deployment *appsv1.Deployment, opts metav1.CreateOptions) (*appsv1.Deployment, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(deploymentsResource, c.Cluster, c.Namespace, deployment), &appsv1.Deployment{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(deploymentsResource, c.ClusterPath, c.Namespace, deployment), &appsv1.Deployment{})
 	if obj == nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (c *deploymentsClient) Create(ctx context.Context, deployment *appsv1.Deplo
 }
 
 func (c *deploymentsClient) Update(ctx context.Context, deployment *appsv1.Deployment, opts metav1.UpdateOptions) (*appsv1.Deployment, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(deploymentsResource, c.Cluster, c.Namespace, deployment), &appsv1.Deployment{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(deploymentsResource, c.ClusterPath, c.Namespace, deployment), &appsv1.Deployment{})
 	if obj == nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (c *deploymentsClient) Update(ctx context.Context, deployment *appsv1.Deplo
 }
 
 func (c *deploymentsClient) UpdateStatus(ctx context.Context, deployment *appsv1.Deployment, opts metav1.UpdateOptions) (*appsv1.Deployment, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(deploymentsResource, c.Cluster, "status", c.Namespace, deployment), &appsv1.Deployment{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(deploymentsResource, c.ClusterPath, "status", c.Namespace, deployment), &appsv1.Deployment{})
 	if obj == nil {
 		return nil, err
 	}
@@ -125,19 +125,19 @@ func (c *deploymentsClient) UpdateStatus(ctx context.Context, deployment *appsv1
 }
 
 func (c *deploymentsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(deploymentsResource, c.Cluster, c.Namespace, name, opts), &appsv1.Deployment{})
+	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(deploymentsResource, c.ClusterPath, c.Namespace, name, opts), &appsv1.Deployment{})
 	return err
 }
 
 func (c *deploymentsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewDeleteCollectionAction(deploymentsResource, c.Cluster, c.Namespace, listOpts)
+	action := kcptesting.NewDeleteCollectionAction(deploymentsResource, c.ClusterPath, c.Namespace, listOpts)
 
 	_, err := c.Fake.Invokes(action, &appsv1.DeploymentList{})
 	return err
 }
 
 func (c *deploymentsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*appsv1.Deployment, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(deploymentsResource, c.Cluster, c.Namespace, name), &appsv1.Deployment{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(deploymentsResource, c.ClusterPath, c.Namespace, name), &appsv1.Deployment{})
 	if obj == nil {
 		return nil, err
 	}
@@ -146,7 +146,7 @@ func (c *deploymentsClient) Get(ctx context.Context, name string, options metav1
 
 // List takes label and field selectors, and returns the list of Deployments that match those selectors.
 func (c *deploymentsClient) List(ctx context.Context, opts metav1.ListOptions) (*appsv1.DeploymentList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewListAction(deploymentsResource, deploymentsKind, c.Cluster, c.Namespace, opts), &appsv1.DeploymentList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewListAction(deploymentsResource, deploymentsKind, c.ClusterPath, c.Namespace, opts), &appsv1.DeploymentList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -165,11 +165,11 @@ func (c *deploymentsClient) List(ctx context.Context, opts metav1.ListOptions) (
 }
 
 func (c *deploymentsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(deploymentsResource, c.Cluster, c.Namespace, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(deploymentsResource, c.ClusterPath, c.Namespace, opts))
 }
 
 func (c *deploymentsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*appsv1.Deployment, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(deploymentsResource, c.Cluster, c.Namespace, name, pt, data, subresources...), &appsv1.Deployment{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(deploymentsResource, c.ClusterPath, c.Namespace, name, pt, data, subresources...), &appsv1.Deployment{})
 	if obj == nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ func (c *deploymentsClient) Apply(ctx context.Context, applyConfiguration *apply
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(deploymentsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &appsv1.Deployment{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(deploymentsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &appsv1.Deployment{})
 	if obj == nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func (c *deploymentsClient) ApplyStatus(ctx context.Context, applyConfiguration 
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(deploymentsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data, "status"), &appsv1.Deployment{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(deploymentsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data, "status"), &appsv1.Deployment{})
 	if obj == nil {
 		return nil, err
 	}
@@ -215,7 +215,7 @@ func (c *deploymentsClient) ApplyStatus(ctx context.Context, applyConfiguration 
 }
 
 func (c *deploymentsClient) GetScale(ctx context.Context, deploymentName string, options metav1.GetOptions) (*autoscalingv1.Scale, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetSubresourceAction(deploymentsResource, c.Cluster, "scale", c.Namespace, deploymentName), &autoscalingv1.Scale{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetSubresourceAction(deploymentsResource, c.ClusterPath, "scale", c.Namespace, deploymentName), &autoscalingv1.Scale{})
 	if obj == nil {
 		return nil, err
 	}
@@ -223,7 +223,7 @@ func (c *deploymentsClient) GetScale(ctx context.Context, deploymentName string,
 }
 
 func (c *deploymentsClient) UpdateScale(ctx context.Context, deploymentName string, scale *autoscalingv1.Scale, opts metav1.UpdateOptions) (*autoscalingv1.Scale, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(deploymentsResource, c.Cluster, "scale", c.Namespace, scale), &autoscalingv1.Scale{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(deploymentsResource, c.ClusterPath, "scale", c.Namespace, scale), &autoscalingv1.Scale{})
 	if obj == nil {
 		return nil, err
 	}
@@ -242,7 +242,7 @@ func (c *deploymentsClient) ApplyScale(ctx context.Context, deploymentName strin
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(deploymentsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &autoscalingv1.Scale{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(deploymentsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &autoscalingv1.Scale{})
 	if obj == nil {
 		return nil, err
 	}

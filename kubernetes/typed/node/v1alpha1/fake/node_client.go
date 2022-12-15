@@ -22,7 +22,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	nodev1alpha1 "k8s.io/client-go/kubernetes/typed/node/v1alpha1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type NodeV1alpha1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *NodeV1alpha1ClusterClient) Cluster(cluster logicalcluster.Name) nodev1alpha1.NodeV1alpha1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *NodeV1alpha1ClusterClient) Cluster(clusterPath logicalcluster.Path) nodev1alpha1.NodeV1alpha1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &NodeV1alpha1Client{Fake: c.Fake, Cluster: cluster}
+	return &NodeV1alpha1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *NodeV1alpha1ClusterClient) RuntimeClasses() kcpnodev1alpha1.RuntimeClassClusterInterface {
@@ -52,7 +52,7 @@ var _ nodev1alpha1.NodeV1alpha1Interface = (*NodeV1alpha1Client)(nil)
 
 type NodeV1alpha1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *NodeV1alpha1Client) RESTClient() rest.Interface {
@@ -61,5 +61,5 @@ func (c *NodeV1alpha1Client) RESTClient() rest.Interface {
 }
 
 func (c *NodeV1alpha1Client) RuntimeClasses() nodev1alpha1.RuntimeClassInterface {
-	return &runtimeClassesClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &runtimeClassesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }

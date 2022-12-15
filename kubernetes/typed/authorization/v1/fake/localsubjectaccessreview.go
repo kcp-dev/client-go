@@ -24,7 +24,7 @@ package v1
 import (
 	"context"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	authorizationv1 "k8s.io/api/authorization/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -43,31 +43,31 @@ type localSubjectAccessReviewsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *localSubjectAccessReviewsClusterClient) Cluster(cluster logicalcluster.Name) kcpauthorizationv1.LocalSubjectAccessReviewsNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *localSubjectAccessReviewsClusterClient) Cluster(clusterPath logicalcluster.Path) kcpauthorizationv1.LocalSubjectAccessReviewsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &localSubjectAccessReviewsNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &localSubjectAccessReviewsNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 type localSubjectAccessReviewsNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *localSubjectAccessReviewsNamespacer) Namespace(namespace string) authorizationv1client.LocalSubjectAccessReviewInterface {
-	return &localSubjectAccessReviewsClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &localSubjectAccessReviewsClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type localSubjectAccessReviewsClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *localSubjectAccessReviewsClient) Create(ctx context.Context, localSubjectAccessReview *authorizationv1.LocalSubjectAccessReview, opts metav1.CreateOptions) (*authorizationv1.LocalSubjectAccessReview, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(localSubjectAccessReviewsResource, c.Cluster, c.Namespace, localSubjectAccessReview), &authorizationv1.LocalSubjectAccessReview{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(localSubjectAccessReviewsResource, c.ClusterPath, c.Namespace, localSubjectAccessReview), &authorizationv1.LocalSubjectAccessReview{})
 	if obj == nil {
 		return nil, err
 	}

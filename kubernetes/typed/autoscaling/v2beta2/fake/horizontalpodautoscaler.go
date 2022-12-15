@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	autoscalingv2beta2 "k8s.io/api/autoscaling/v2beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,12 +50,12 @@ type horizontalPodAutoscalersClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *horizontalPodAutoscalersClusterClient) Cluster(cluster logicalcluster.Name) kcpautoscalingv2beta2.HorizontalPodAutoscalersNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *horizontalPodAutoscalersClusterClient) Cluster(clusterPath logicalcluster.Path) kcpautoscalingv2beta2.HorizontalPodAutoscalersNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &horizontalPodAutoscalersNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &horizontalPodAutoscalersNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of HorizontalPodAutoscalers that match those selectors across all clusters.
@@ -85,21 +85,21 @@ func (c *horizontalPodAutoscalersClusterClient) Watch(ctx context.Context, opts 
 
 type horizontalPodAutoscalersNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *horizontalPodAutoscalersNamespacer) Namespace(namespace string) autoscalingv2beta2client.HorizontalPodAutoscalerInterface {
-	return &horizontalPodAutoscalersClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &horizontalPodAutoscalersClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type horizontalPodAutoscalersClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *horizontalPodAutoscalersClient) Create(ctx context.Context, horizontalPodAutoscaler *autoscalingv2beta2.HorizontalPodAutoscaler, opts metav1.CreateOptions) (*autoscalingv2beta2.HorizontalPodAutoscaler, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(horizontalPodAutoscalersResource, c.Cluster, c.Namespace, horizontalPodAutoscaler), &autoscalingv2beta2.HorizontalPodAutoscaler{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(horizontalPodAutoscalersResource, c.ClusterPath, c.Namespace, horizontalPodAutoscaler), &autoscalingv2beta2.HorizontalPodAutoscaler{})
 	if obj == nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (c *horizontalPodAutoscalersClient) Create(ctx context.Context, horizontalP
 }
 
 func (c *horizontalPodAutoscalersClient) Update(ctx context.Context, horizontalPodAutoscaler *autoscalingv2beta2.HorizontalPodAutoscaler, opts metav1.UpdateOptions) (*autoscalingv2beta2.HorizontalPodAutoscaler, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(horizontalPodAutoscalersResource, c.Cluster, c.Namespace, horizontalPodAutoscaler), &autoscalingv2beta2.HorizontalPodAutoscaler{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(horizontalPodAutoscalersResource, c.ClusterPath, c.Namespace, horizontalPodAutoscaler), &autoscalingv2beta2.HorizontalPodAutoscaler{})
 	if obj == nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (c *horizontalPodAutoscalersClient) Update(ctx context.Context, horizontalP
 }
 
 func (c *horizontalPodAutoscalersClient) UpdateStatus(ctx context.Context, horizontalPodAutoscaler *autoscalingv2beta2.HorizontalPodAutoscaler, opts metav1.UpdateOptions) (*autoscalingv2beta2.HorizontalPodAutoscaler, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(horizontalPodAutoscalersResource, c.Cluster, "status", c.Namespace, horizontalPodAutoscaler), &autoscalingv2beta2.HorizontalPodAutoscaler{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(horizontalPodAutoscalersResource, c.ClusterPath, "status", c.Namespace, horizontalPodAutoscaler), &autoscalingv2beta2.HorizontalPodAutoscaler{})
 	if obj == nil {
 		return nil, err
 	}
@@ -123,19 +123,19 @@ func (c *horizontalPodAutoscalersClient) UpdateStatus(ctx context.Context, horiz
 }
 
 func (c *horizontalPodAutoscalersClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(horizontalPodAutoscalersResource, c.Cluster, c.Namespace, name, opts), &autoscalingv2beta2.HorizontalPodAutoscaler{})
+	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(horizontalPodAutoscalersResource, c.ClusterPath, c.Namespace, name, opts), &autoscalingv2beta2.HorizontalPodAutoscaler{})
 	return err
 }
 
 func (c *horizontalPodAutoscalersClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewDeleteCollectionAction(horizontalPodAutoscalersResource, c.Cluster, c.Namespace, listOpts)
+	action := kcptesting.NewDeleteCollectionAction(horizontalPodAutoscalersResource, c.ClusterPath, c.Namespace, listOpts)
 
 	_, err := c.Fake.Invokes(action, &autoscalingv2beta2.HorizontalPodAutoscalerList{})
 	return err
 }
 
 func (c *horizontalPodAutoscalersClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*autoscalingv2beta2.HorizontalPodAutoscaler, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(horizontalPodAutoscalersResource, c.Cluster, c.Namespace, name), &autoscalingv2beta2.HorizontalPodAutoscaler{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(horizontalPodAutoscalersResource, c.ClusterPath, c.Namespace, name), &autoscalingv2beta2.HorizontalPodAutoscaler{})
 	if obj == nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (c *horizontalPodAutoscalersClient) Get(ctx context.Context, name string, o
 
 // List takes label and field selectors, and returns the list of HorizontalPodAutoscalers that match those selectors.
 func (c *horizontalPodAutoscalersClient) List(ctx context.Context, opts metav1.ListOptions) (*autoscalingv2beta2.HorizontalPodAutoscalerList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewListAction(horizontalPodAutoscalersResource, horizontalPodAutoscalersKind, c.Cluster, c.Namespace, opts), &autoscalingv2beta2.HorizontalPodAutoscalerList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewListAction(horizontalPodAutoscalersResource, horizontalPodAutoscalersKind, c.ClusterPath, c.Namespace, opts), &autoscalingv2beta2.HorizontalPodAutoscalerList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -163,11 +163,11 @@ func (c *horizontalPodAutoscalersClient) List(ctx context.Context, opts metav1.L
 }
 
 func (c *horizontalPodAutoscalersClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(horizontalPodAutoscalersResource, c.Cluster, c.Namespace, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(horizontalPodAutoscalersResource, c.ClusterPath, c.Namespace, opts))
 }
 
 func (c *horizontalPodAutoscalersClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*autoscalingv2beta2.HorizontalPodAutoscaler, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(horizontalPodAutoscalersResource, c.Cluster, c.Namespace, name, pt, data, subresources...), &autoscalingv2beta2.HorizontalPodAutoscaler{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(horizontalPodAutoscalersResource, c.ClusterPath, c.Namespace, name, pt, data, subresources...), &autoscalingv2beta2.HorizontalPodAutoscaler{})
 	if obj == nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (c *horizontalPodAutoscalersClient) Apply(ctx context.Context, applyConfigu
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(horizontalPodAutoscalersResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &autoscalingv2beta2.HorizontalPodAutoscaler{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(horizontalPodAutoscalersResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &autoscalingv2beta2.HorizontalPodAutoscaler{})
 	if obj == nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (c *horizontalPodAutoscalersClient) ApplyStatus(ctx context.Context, applyC
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(horizontalPodAutoscalersResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data, "status"), &autoscalingv2beta2.HorizontalPodAutoscaler{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(horizontalPodAutoscalersResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data, "status"), &autoscalingv2beta2.HorizontalPodAutoscaler{})
 	if obj == nil {
 		return nil, err
 	}

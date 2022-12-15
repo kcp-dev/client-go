@@ -24,8 +24,8 @@ package v1beta1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type CronJobsClusterGetter interface {
 // CronJobClusterInterface can operate on CronJobs across all clusters,
 // or scope down to one cluster and return a CronJobsNamespacer.
 type CronJobClusterInterface interface {
-	Cluster(logicalcluster.Name) CronJobsNamespacer
+	Cluster(logicalcluster.Path) CronJobsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*batchv1beta1.CronJobList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type cronJobsClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *cronJobsClusterInterface) Cluster(name logicalcluster.Name) CronJobsNamespacer {
-	if name == logicalcluster.Wildcard {
+func (c *cronJobsClusterInterface) Cluster(clusterPath logicalcluster.Path) CronJobsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &cronJobsNamespacer{clientCache: c.clientCache, name: name}
+	return &cronJobsNamespacer{clientCache: c.clientCache, clusterPath: clusterPath}
 }
 
 // List returns the entire collection of all CronJobs across all clusters.
@@ -77,9 +77,9 @@ type CronJobsNamespacer interface {
 
 type cronJobsNamespacer struct {
 	clientCache kcpclient.Cache[*batchv1beta1client.BatchV1beta1Client]
-	name        logicalcluster.Name
+	clusterPath logicalcluster.Path
 }
 
 func (n *cronJobsNamespacer) Namespace(namespace string) batchv1beta1client.CronJobInterface {
-	return n.clientCache.ClusterOrDie(n.name).CronJobs(namespace)
+	return n.clientCache.ClusterOrDie(n.clusterPath).CronJobs(namespace)
 }

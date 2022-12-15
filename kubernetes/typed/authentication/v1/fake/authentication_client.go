@@ -22,7 +22,7 @@ limitations under the License.
 package v1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	authenticationv1 "k8s.io/client-go/kubernetes/typed/authentication/v1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type AuthenticationV1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *AuthenticationV1ClusterClient) Cluster(cluster logicalcluster.Name) authenticationv1.AuthenticationV1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *AuthenticationV1ClusterClient) Cluster(clusterPath logicalcluster.Path) authenticationv1.AuthenticationV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &AuthenticationV1Client{Fake: c.Fake, Cluster: cluster}
+	return &AuthenticationV1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *AuthenticationV1ClusterClient) TokenReviews() kcpauthenticationv1.TokenReviewClusterInterface {
@@ -52,7 +52,7 @@ var _ authenticationv1.AuthenticationV1Interface = (*AuthenticationV1Client)(nil
 
 type AuthenticationV1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *AuthenticationV1Client) RESTClient() rest.Interface {
@@ -61,5 +61,5 @@ func (c *AuthenticationV1Client) RESTClient() rest.Interface {
 }
 
 func (c *AuthenticationV1Client) TokenReviews() authenticationv1.TokenReviewInterface {
-	return &tokenReviewsClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &tokenReviewsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }

@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	flowcontrolv1beta1 "k8s.io/api/flowcontrol/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type flowSchemasClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *flowSchemasClusterClient) Cluster(cluster logicalcluster.Name) flowcontrolv1beta1client.FlowSchemaInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *flowSchemasClusterClient) Cluster(clusterPath logicalcluster.Path) flowcontrolv1beta1client.FlowSchemaInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &flowSchemasClient{Fake: c.Fake, Cluster: cluster}
+	return &flowSchemasClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of FlowSchemas that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *flowSchemasClusterClient) Watch(ctx context.Context, opts metav1.ListOp
 
 type flowSchemasClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *flowSchemasClient) Create(ctx context.Context, flowSchema *flowcontrolv1beta1.FlowSchema, opts metav1.CreateOptions) (*flowcontrolv1beta1.FlowSchema, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(flowSchemasResource, c.Cluster, flowSchema), &flowcontrolv1beta1.FlowSchema{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(flowSchemasResource, c.ClusterPath, flowSchema), &flowcontrolv1beta1.FlowSchema{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *flowSchemasClient) Create(ctx context.Context, flowSchema *flowcontrolv
 }
 
 func (c *flowSchemasClient) Update(ctx context.Context, flowSchema *flowcontrolv1beta1.FlowSchema, opts metav1.UpdateOptions) (*flowcontrolv1beta1.FlowSchema, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(flowSchemasResource, c.Cluster, flowSchema), &flowcontrolv1beta1.FlowSchema{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(flowSchemasResource, c.ClusterPath, flowSchema), &flowcontrolv1beta1.FlowSchema{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *flowSchemasClient) Update(ctx context.Context, flowSchema *flowcontrolv
 }
 
 func (c *flowSchemasClient) UpdateStatus(ctx context.Context, flowSchema *flowcontrolv1beta1.FlowSchema, opts metav1.UpdateOptions) (*flowcontrolv1beta1.FlowSchema, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(flowSchemasResource, c.Cluster, "status", flowSchema), &flowcontrolv1beta1.FlowSchema{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(flowSchemasResource, c.ClusterPath, "status", flowSchema), &flowcontrolv1beta1.FlowSchema{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *flowSchemasClient) UpdateStatus(ctx context.Context, flowSchema *flowco
 }
 
 func (c *flowSchemasClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(flowSchemasResource, c.Cluster, name, opts), &flowcontrolv1beta1.FlowSchema{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(flowSchemasResource, c.ClusterPath, name, opts), &flowcontrolv1beta1.FlowSchema{})
 	return err
 }
 
 func (c *flowSchemasClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(flowSchemasResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(flowSchemasResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &flowcontrolv1beta1.FlowSchemaList{})
 	return err
 }
 
 func (c *flowSchemasClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*flowcontrolv1beta1.FlowSchema, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(flowSchemasResource, c.Cluster, name), &flowcontrolv1beta1.FlowSchema{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(flowSchemasResource, c.ClusterPath, name), &flowcontrolv1beta1.FlowSchema{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *flowSchemasClient) Get(ctx context.Context, name string, options metav1
 
 // List takes label and field selectors, and returns the list of FlowSchemas that match those selectors.
 func (c *flowSchemasClient) List(ctx context.Context, opts metav1.ListOptions) (*flowcontrolv1beta1.FlowSchemaList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(flowSchemasResource, flowSchemasKind, c.Cluster, opts), &flowcontrolv1beta1.FlowSchemaList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(flowSchemasResource, flowSchemasKind, c.ClusterPath, opts), &flowcontrolv1beta1.FlowSchemaList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *flowSchemasClient) List(ctx context.Context, opts metav1.ListOptions) (
 }
 
 func (c *flowSchemasClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(flowSchemasResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(flowSchemasResource, c.ClusterPath, opts))
 }
 
 func (c *flowSchemasClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*flowcontrolv1beta1.FlowSchema, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(flowSchemasResource, c.Cluster, name, pt, data, subresources...), &flowcontrolv1beta1.FlowSchema{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(flowSchemasResource, c.ClusterPath, name, pt, data, subresources...), &flowcontrolv1beta1.FlowSchema{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *flowSchemasClient) Apply(ctx context.Context, applyConfiguration *apply
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(flowSchemasResource, c.Cluster, *name, types.ApplyPatchType, data), &flowcontrolv1beta1.FlowSchema{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(flowSchemasResource, c.ClusterPath, *name, types.ApplyPatchType, data), &flowcontrolv1beta1.FlowSchema{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *flowSchemasClient) ApplyStatus(ctx context.Context, applyConfiguration 
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(flowSchemasResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &flowcontrolv1beta1.FlowSchema{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(flowSchemasResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &flowcontrolv1beta1.FlowSchema{})
 	if obj == nil {
 		return nil, err
 	}

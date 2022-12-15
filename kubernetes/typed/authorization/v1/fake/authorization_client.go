@@ -22,7 +22,7 @@ limitations under the License.
 package v1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	authorizationv1 "k8s.io/client-go/kubernetes/typed/authorization/v1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type AuthorizationV1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *AuthorizationV1ClusterClient) Cluster(cluster logicalcluster.Name) authorizationv1.AuthorizationV1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *AuthorizationV1ClusterClient) Cluster(clusterPath logicalcluster.Path) authorizationv1.AuthorizationV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &AuthorizationV1Client{Fake: c.Fake, Cluster: cluster}
+	return &AuthorizationV1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *AuthorizationV1ClusterClient) SubjectAccessReviews() kcpauthorizationv1.SubjectAccessReviewClusterInterface {
@@ -64,7 +64,7 @@ var _ authorizationv1.AuthorizationV1Interface = (*AuthorizationV1Client)(nil)
 
 type AuthorizationV1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *AuthorizationV1Client) RESTClient() rest.Interface {
@@ -73,17 +73,17 @@ func (c *AuthorizationV1Client) RESTClient() rest.Interface {
 }
 
 func (c *AuthorizationV1Client) SubjectAccessReviews() authorizationv1.SubjectAccessReviewInterface {
-	return &subjectAccessReviewsClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &subjectAccessReviewsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
 
 func (c *AuthorizationV1Client) SelfSubjectAccessReviews() authorizationv1.SelfSubjectAccessReviewInterface {
-	return &selfSubjectAccessReviewsClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &selfSubjectAccessReviewsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
 
 func (c *AuthorizationV1Client) LocalSubjectAccessReviews(namespace string) authorizationv1.LocalSubjectAccessReviewInterface {
-	return &localSubjectAccessReviewsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &localSubjectAccessReviewsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *AuthorizationV1Client) SelfSubjectRulesReviews() authorizationv1.SelfSubjectRulesReviewInterface {
-	return &selfSubjectRulesReviewsClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &selfSubjectRulesReviewsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }

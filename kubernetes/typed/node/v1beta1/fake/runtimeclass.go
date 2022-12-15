@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	nodev1beta1 "k8s.io/api/node/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type runtimeClassesClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *runtimeClassesClusterClient) Cluster(cluster logicalcluster.Name) nodev1beta1client.RuntimeClassInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *runtimeClassesClusterClient) Cluster(clusterPath logicalcluster.Path) nodev1beta1client.RuntimeClassInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &runtimeClassesClient{Fake: c.Fake, Cluster: cluster}
+	return &runtimeClassesClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of RuntimeClasses that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *runtimeClassesClusterClient) Watch(ctx context.Context, opts metav1.Lis
 
 type runtimeClassesClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *runtimeClassesClient) Create(ctx context.Context, runtimeClass *nodev1beta1.RuntimeClass, opts metav1.CreateOptions) (*nodev1beta1.RuntimeClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(runtimeClassesResource, c.Cluster, runtimeClass), &nodev1beta1.RuntimeClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(runtimeClassesResource, c.ClusterPath, runtimeClass), &nodev1beta1.RuntimeClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *runtimeClassesClient) Create(ctx context.Context, runtimeClass *nodev1b
 }
 
 func (c *runtimeClassesClient) Update(ctx context.Context, runtimeClass *nodev1beta1.RuntimeClass, opts metav1.UpdateOptions) (*nodev1beta1.RuntimeClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(runtimeClassesResource, c.Cluster, runtimeClass), &nodev1beta1.RuntimeClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(runtimeClassesResource, c.ClusterPath, runtimeClass), &nodev1beta1.RuntimeClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *runtimeClassesClient) Update(ctx context.Context, runtimeClass *nodev1b
 }
 
 func (c *runtimeClassesClient) UpdateStatus(ctx context.Context, runtimeClass *nodev1beta1.RuntimeClass, opts metav1.UpdateOptions) (*nodev1beta1.RuntimeClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(runtimeClassesResource, c.Cluster, "status", runtimeClass), &nodev1beta1.RuntimeClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(runtimeClassesResource, c.ClusterPath, "status", runtimeClass), &nodev1beta1.RuntimeClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *runtimeClassesClient) UpdateStatus(ctx context.Context, runtimeClass *n
 }
 
 func (c *runtimeClassesClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(runtimeClassesResource, c.Cluster, name, opts), &nodev1beta1.RuntimeClass{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(runtimeClassesResource, c.ClusterPath, name, opts), &nodev1beta1.RuntimeClass{})
 	return err
 }
 
 func (c *runtimeClassesClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(runtimeClassesResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(runtimeClassesResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &nodev1beta1.RuntimeClassList{})
 	return err
 }
 
 func (c *runtimeClassesClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*nodev1beta1.RuntimeClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(runtimeClassesResource, c.Cluster, name), &nodev1beta1.RuntimeClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(runtimeClassesResource, c.ClusterPath, name), &nodev1beta1.RuntimeClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *runtimeClassesClient) Get(ctx context.Context, name string, options met
 
 // List takes label and field selectors, and returns the list of RuntimeClasses that match those selectors.
 func (c *runtimeClassesClient) List(ctx context.Context, opts metav1.ListOptions) (*nodev1beta1.RuntimeClassList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(runtimeClassesResource, runtimeClassesKind, c.Cluster, opts), &nodev1beta1.RuntimeClassList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(runtimeClassesResource, runtimeClassesKind, c.ClusterPath, opts), &nodev1beta1.RuntimeClassList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *runtimeClassesClient) List(ctx context.Context, opts metav1.ListOptions
 }
 
 func (c *runtimeClassesClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(runtimeClassesResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(runtimeClassesResource, c.ClusterPath, opts))
 }
 
 func (c *runtimeClassesClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*nodev1beta1.RuntimeClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(runtimeClassesResource, c.Cluster, name, pt, data, subresources...), &nodev1beta1.RuntimeClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(runtimeClassesResource, c.ClusterPath, name, pt, data, subresources...), &nodev1beta1.RuntimeClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *runtimeClassesClient) Apply(ctx context.Context, applyConfiguration *ap
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(runtimeClassesResource, c.Cluster, *name, types.ApplyPatchType, data), &nodev1beta1.RuntimeClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(runtimeClassesResource, c.ClusterPath, *name, types.ApplyPatchType, data), &nodev1beta1.RuntimeClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *runtimeClassesClient) ApplyStatus(ctx context.Context, applyConfigurati
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(runtimeClassesResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &nodev1beta1.RuntimeClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(runtimeClassesResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &nodev1beta1.RuntimeClass{})
 	if obj == nil {
 		return nil, err
 	}

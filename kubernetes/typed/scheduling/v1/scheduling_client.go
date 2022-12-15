@@ -24,8 +24,8 @@ package v1
 import (
 	"net/http"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	schedulingv1 "k8s.io/client-go/kubernetes/typed/scheduling/v1"
 	"k8s.io/client-go/rest"
@@ -37,18 +37,18 @@ type SchedulingV1ClusterInterface interface {
 }
 
 type SchedulingV1ClusterScoper interface {
-	Cluster(logicalcluster.Name) schedulingv1.SchedulingV1Interface
+	Cluster(logicalcluster.Path) schedulingv1.SchedulingV1Interface
 }
 
 type SchedulingV1ClusterClient struct {
 	clientCache kcpclient.Cache[*schedulingv1.SchedulingV1Client]
 }
 
-func (c *SchedulingV1ClusterClient) Cluster(name logicalcluster.Name) schedulingv1.SchedulingV1Interface {
-	if name == logicalcluster.Wildcard {
+func (c *SchedulingV1ClusterClient) Cluster(clusterPath logicalcluster.Path) schedulingv1.SchedulingV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return c.clientCache.ClusterOrDie(name)
+	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
 func (c *SchedulingV1ClusterClient) PriorityClasses() PriorityClassClusterInterface {
@@ -72,7 +72,7 @@ func NewForConfigAndClient(c *rest.Config, h *http.Client) (*SchedulingV1Cluster
 	cache := kcpclient.NewCache(c, h, &kcpclient.Constructor[*schedulingv1.SchedulingV1Client]{
 		NewForConfigAndClient: schedulingv1.NewForConfigAndClient,
 	})
-	if _, err := cache.Cluster(logicalcluster.New("root")); err != nil {
+	if _, err := cache.Cluster(logicalcluster.Name("root").Path()); err != nil {
 		return nil, err
 	}
 	return &SchedulingV1ClusterClient{clientCache: cache}, nil

@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,12 +50,12 @@ type roleBindingsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *roleBindingsClusterClient) Cluster(cluster logicalcluster.Name) kcprbacv1.RoleBindingsNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *roleBindingsClusterClient) Cluster(clusterPath logicalcluster.Path) kcprbacv1.RoleBindingsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &roleBindingsNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &roleBindingsNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of RoleBindings that match those selectors across all clusters.
@@ -85,21 +85,21 @@ func (c *roleBindingsClusterClient) Watch(ctx context.Context, opts metav1.ListO
 
 type roleBindingsNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *roleBindingsNamespacer) Namespace(namespace string) rbacv1client.RoleBindingInterface {
-	return &roleBindingsClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &roleBindingsClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type roleBindingsClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *roleBindingsClient) Create(ctx context.Context, roleBinding *rbacv1.RoleBinding, opts metav1.CreateOptions) (*rbacv1.RoleBinding, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(roleBindingsResource, c.Cluster, c.Namespace, roleBinding), &rbacv1.RoleBinding{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(roleBindingsResource, c.ClusterPath, c.Namespace, roleBinding), &rbacv1.RoleBinding{})
 	if obj == nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (c *roleBindingsClient) Create(ctx context.Context, roleBinding *rbacv1.Rol
 }
 
 func (c *roleBindingsClient) Update(ctx context.Context, roleBinding *rbacv1.RoleBinding, opts metav1.UpdateOptions) (*rbacv1.RoleBinding, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(roleBindingsResource, c.Cluster, c.Namespace, roleBinding), &rbacv1.RoleBinding{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(roleBindingsResource, c.ClusterPath, c.Namespace, roleBinding), &rbacv1.RoleBinding{})
 	if obj == nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (c *roleBindingsClient) Update(ctx context.Context, roleBinding *rbacv1.Rol
 }
 
 func (c *roleBindingsClient) UpdateStatus(ctx context.Context, roleBinding *rbacv1.RoleBinding, opts metav1.UpdateOptions) (*rbacv1.RoleBinding, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(roleBindingsResource, c.Cluster, "status", c.Namespace, roleBinding), &rbacv1.RoleBinding{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(roleBindingsResource, c.ClusterPath, "status", c.Namespace, roleBinding), &rbacv1.RoleBinding{})
 	if obj == nil {
 		return nil, err
 	}
@@ -123,19 +123,19 @@ func (c *roleBindingsClient) UpdateStatus(ctx context.Context, roleBinding *rbac
 }
 
 func (c *roleBindingsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(roleBindingsResource, c.Cluster, c.Namespace, name, opts), &rbacv1.RoleBinding{})
+	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(roleBindingsResource, c.ClusterPath, c.Namespace, name, opts), &rbacv1.RoleBinding{})
 	return err
 }
 
 func (c *roleBindingsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewDeleteCollectionAction(roleBindingsResource, c.Cluster, c.Namespace, listOpts)
+	action := kcptesting.NewDeleteCollectionAction(roleBindingsResource, c.ClusterPath, c.Namespace, listOpts)
 
 	_, err := c.Fake.Invokes(action, &rbacv1.RoleBindingList{})
 	return err
 }
 
 func (c *roleBindingsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*rbacv1.RoleBinding, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(roleBindingsResource, c.Cluster, c.Namespace, name), &rbacv1.RoleBinding{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(roleBindingsResource, c.ClusterPath, c.Namespace, name), &rbacv1.RoleBinding{})
 	if obj == nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (c *roleBindingsClient) Get(ctx context.Context, name string, options metav
 
 // List takes label and field selectors, and returns the list of RoleBindings that match those selectors.
 func (c *roleBindingsClient) List(ctx context.Context, opts metav1.ListOptions) (*rbacv1.RoleBindingList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewListAction(roleBindingsResource, roleBindingsKind, c.Cluster, c.Namespace, opts), &rbacv1.RoleBindingList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewListAction(roleBindingsResource, roleBindingsKind, c.ClusterPath, c.Namespace, opts), &rbacv1.RoleBindingList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -163,11 +163,11 @@ func (c *roleBindingsClient) List(ctx context.Context, opts metav1.ListOptions) 
 }
 
 func (c *roleBindingsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(roleBindingsResource, c.Cluster, c.Namespace, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(roleBindingsResource, c.ClusterPath, c.Namespace, opts))
 }
 
 func (c *roleBindingsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*rbacv1.RoleBinding, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(roleBindingsResource, c.Cluster, c.Namespace, name, pt, data, subresources...), &rbacv1.RoleBinding{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(roleBindingsResource, c.ClusterPath, c.Namespace, name, pt, data, subresources...), &rbacv1.RoleBinding{})
 	if obj == nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (c *roleBindingsClient) Apply(ctx context.Context, applyConfiguration *appl
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(roleBindingsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &rbacv1.RoleBinding{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(roleBindingsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &rbacv1.RoleBinding{})
 	if obj == nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (c *roleBindingsClient) ApplyStatus(ctx context.Context, applyConfiguration
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(roleBindingsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data, "status"), &rbacv1.RoleBinding{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(roleBindingsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data, "status"), &rbacv1.RoleBinding{})
 	if obj == nil {
 		return nil, err
 	}

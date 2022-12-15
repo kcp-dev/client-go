@@ -22,7 +22,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	flowcontrolv1alpha1 "k8s.io/client-go/kubernetes/typed/flowcontrol/v1alpha1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type FlowcontrolV1alpha1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *FlowcontrolV1alpha1ClusterClient) Cluster(cluster logicalcluster.Name) flowcontrolv1alpha1.FlowcontrolV1alpha1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *FlowcontrolV1alpha1ClusterClient) Cluster(clusterPath logicalcluster.Path) flowcontrolv1alpha1.FlowcontrolV1alpha1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &FlowcontrolV1alpha1Client{Fake: c.Fake, Cluster: cluster}
+	return &FlowcontrolV1alpha1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *FlowcontrolV1alpha1ClusterClient) FlowSchemas() kcpflowcontrolv1alpha1.FlowSchemaClusterInterface {
@@ -56,7 +56,7 @@ var _ flowcontrolv1alpha1.FlowcontrolV1alpha1Interface = (*FlowcontrolV1alpha1Cl
 
 type FlowcontrolV1alpha1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *FlowcontrolV1alpha1Client) RESTClient() rest.Interface {
@@ -65,9 +65,9 @@ func (c *FlowcontrolV1alpha1Client) RESTClient() rest.Interface {
 }
 
 func (c *FlowcontrolV1alpha1Client) FlowSchemas() flowcontrolv1alpha1.FlowSchemaInterface {
-	return &flowSchemasClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &flowSchemasClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
 
 func (c *FlowcontrolV1alpha1Client) PriorityLevelConfigurations() flowcontrolv1alpha1.PriorityLevelConfigurationInterface {
-	return &priorityLevelConfigurationsClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &priorityLevelConfigurationsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }

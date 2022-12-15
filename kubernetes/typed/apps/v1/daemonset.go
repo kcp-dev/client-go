@@ -24,8 +24,8 @@ package v1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type DaemonSetsClusterGetter interface {
 // DaemonSetClusterInterface can operate on DaemonSets across all clusters,
 // or scope down to one cluster and return a DaemonSetsNamespacer.
 type DaemonSetClusterInterface interface {
-	Cluster(logicalcluster.Name) DaemonSetsNamespacer
+	Cluster(logicalcluster.Path) DaemonSetsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*appsv1.DaemonSetList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type daemonSetsClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *daemonSetsClusterInterface) Cluster(name logicalcluster.Name) DaemonSetsNamespacer {
-	if name == logicalcluster.Wildcard {
+func (c *daemonSetsClusterInterface) Cluster(clusterPath logicalcluster.Path) DaemonSetsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &daemonSetsNamespacer{clientCache: c.clientCache, name: name}
+	return &daemonSetsNamespacer{clientCache: c.clientCache, clusterPath: clusterPath}
 }
 
 // List returns the entire collection of all DaemonSets across all clusters.
@@ -77,9 +77,9 @@ type DaemonSetsNamespacer interface {
 
 type daemonSetsNamespacer struct {
 	clientCache kcpclient.Cache[*appsv1client.AppsV1Client]
-	name        logicalcluster.Name
+	clusterPath logicalcluster.Path
 }
 
 func (n *daemonSetsNamespacer) Namespace(namespace string) appsv1client.DaemonSetInterface {
-	return n.clientCache.ClusterOrDie(n.name).DaemonSets(namespace)
+	return n.clientCache.ClusterOrDie(n.clusterPath).DaemonSets(namespace)
 }

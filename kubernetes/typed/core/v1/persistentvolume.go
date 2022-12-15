@@ -24,8 +24,8 @@ package v1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type PersistentVolumesClusterGetter interface {
 // PersistentVolumeClusterInterface can operate on PersistentVolumes across all clusters,
 // or scope down to one cluster and return a corev1client.PersistentVolumeInterface.
 type PersistentVolumeClusterInterface interface {
-	Cluster(logicalcluster.Name) corev1client.PersistentVolumeInterface
+	Cluster(logicalcluster.Path) corev1client.PersistentVolumeInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.PersistentVolumeList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type persistentVolumesClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *persistentVolumesClusterInterface) Cluster(name logicalcluster.Name) corev1client.PersistentVolumeInterface {
-	if name == logicalcluster.Wildcard {
+func (c *persistentVolumesClusterInterface) Cluster(clusterPath logicalcluster.Path) corev1client.PersistentVolumeInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return c.clientCache.ClusterOrDie(name).PersistentVolumes()
+	return c.clientCache.ClusterOrDie(clusterPath).PersistentVolumes()
 }
 
 // List returns the entire collection of all PersistentVolumes across all clusters.

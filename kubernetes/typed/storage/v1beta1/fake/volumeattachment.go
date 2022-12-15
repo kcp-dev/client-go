@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	storagev1beta1 "k8s.io/api/storage/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type volumeAttachmentsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *volumeAttachmentsClusterClient) Cluster(cluster logicalcluster.Name) storagev1beta1client.VolumeAttachmentInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *volumeAttachmentsClusterClient) Cluster(clusterPath logicalcluster.Path) storagev1beta1client.VolumeAttachmentInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &volumeAttachmentsClient{Fake: c.Fake, Cluster: cluster}
+	return &volumeAttachmentsClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of VolumeAttachments that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *volumeAttachmentsClusterClient) Watch(ctx context.Context, opts metav1.
 
 type volumeAttachmentsClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *volumeAttachmentsClient) Create(ctx context.Context, volumeAttachment *storagev1beta1.VolumeAttachment, opts metav1.CreateOptions) (*storagev1beta1.VolumeAttachment, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(volumeAttachmentsResource, c.Cluster, volumeAttachment), &storagev1beta1.VolumeAttachment{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(volumeAttachmentsResource, c.ClusterPath, volumeAttachment), &storagev1beta1.VolumeAttachment{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *volumeAttachmentsClient) Create(ctx context.Context, volumeAttachment *
 }
 
 func (c *volumeAttachmentsClient) Update(ctx context.Context, volumeAttachment *storagev1beta1.VolumeAttachment, opts metav1.UpdateOptions) (*storagev1beta1.VolumeAttachment, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(volumeAttachmentsResource, c.Cluster, volumeAttachment), &storagev1beta1.VolumeAttachment{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(volumeAttachmentsResource, c.ClusterPath, volumeAttachment), &storagev1beta1.VolumeAttachment{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *volumeAttachmentsClient) Update(ctx context.Context, volumeAttachment *
 }
 
 func (c *volumeAttachmentsClient) UpdateStatus(ctx context.Context, volumeAttachment *storagev1beta1.VolumeAttachment, opts metav1.UpdateOptions) (*storagev1beta1.VolumeAttachment, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(volumeAttachmentsResource, c.Cluster, "status", volumeAttachment), &storagev1beta1.VolumeAttachment{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(volumeAttachmentsResource, c.ClusterPath, "status", volumeAttachment), &storagev1beta1.VolumeAttachment{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *volumeAttachmentsClient) UpdateStatus(ctx context.Context, volumeAttach
 }
 
 func (c *volumeAttachmentsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(volumeAttachmentsResource, c.Cluster, name, opts), &storagev1beta1.VolumeAttachment{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(volumeAttachmentsResource, c.ClusterPath, name, opts), &storagev1beta1.VolumeAttachment{})
 	return err
 }
 
 func (c *volumeAttachmentsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(volumeAttachmentsResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(volumeAttachmentsResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &storagev1beta1.VolumeAttachmentList{})
 	return err
 }
 
 func (c *volumeAttachmentsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*storagev1beta1.VolumeAttachment, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(volumeAttachmentsResource, c.Cluster, name), &storagev1beta1.VolumeAttachment{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(volumeAttachmentsResource, c.ClusterPath, name), &storagev1beta1.VolumeAttachment{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *volumeAttachmentsClient) Get(ctx context.Context, name string, options 
 
 // List takes label and field selectors, and returns the list of VolumeAttachments that match those selectors.
 func (c *volumeAttachmentsClient) List(ctx context.Context, opts metav1.ListOptions) (*storagev1beta1.VolumeAttachmentList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(volumeAttachmentsResource, volumeAttachmentsKind, c.Cluster, opts), &storagev1beta1.VolumeAttachmentList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(volumeAttachmentsResource, volumeAttachmentsKind, c.ClusterPath, opts), &storagev1beta1.VolumeAttachmentList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *volumeAttachmentsClient) List(ctx context.Context, opts metav1.ListOpti
 }
 
 func (c *volumeAttachmentsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(volumeAttachmentsResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(volumeAttachmentsResource, c.ClusterPath, opts))
 }
 
 func (c *volumeAttachmentsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*storagev1beta1.VolumeAttachment, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(volumeAttachmentsResource, c.Cluster, name, pt, data, subresources...), &storagev1beta1.VolumeAttachment{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(volumeAttachmentsResource, c.ClusterPath, name, pt, data, subresources...), &storagev1beta1.VolumeAttachment{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *volumeAttachmentsClient) Apply(ctx context.Context, applyConfiguration 
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(volumeAttachmentsResource, c.Cluster, *name, types.ApplyPatchType, data), &storagev1beta1.VolumeAttachment{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(volumeAttachmentsResource, c.ClusterPath, *name, types.ApplyPatchType, data), &storagev1beta1.VolumeAttachment{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *volumeAttachmentsClient) ApplyStatus(ctx context.Context, applyConfigur
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(volumeAttachmentsResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &storagev1beta1.VolumeAttachment{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(volumeAttachmentsResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &storagev1beta1.VolumeAttachment{})
 	if obj == nil {
 		return nil, err
 	}

@@ -22,8 +22,8 @@ limitations under the License.
 package v1beta1
 
 import (
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	authorizationv1beta1client "k8s.io/client-go/kubernetes/typed/authorization/v1beta1"
 )
@@ -36,7 +36,7 @@ type SelfSubjectRulesReviewsClusterGetter interface {
 
 // SelfSubjectRulesReviewClusterInterface can scope down to one cluster and return a authorizationv1beta1client.SelfSubjectRulesReviewInterface.
 type SelfSubjectRulesReviewClusterInterface interface {
-	Cluster(logicalcluster.Name) authorizationv1beta1client.SelfSubjectRulesReviewInterface
+	Cluster(logicalcluster.Path) authorizationv1beta1client.SelfSubjectRulesReviewInterface
 }
 
 type selfSubjectRulesReviewsClusterInterface struct {
@@ -44,10 +44,10 @@ type selfSubjectRulesReviewsClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *selfSubjectRulesReviewsClusterInterface) Cluster(name logicalcluster.Name) authorizationv1beta1client.SelfSubjectRulesReviewInterface {
-	if name == logicalcluster.Wildcard {
+func (c *selfSubjectRulesReviewsClusterInterface) Cluster(clusterPath logicalcluster.Path) authorizationv1beta1client.SelfSubjectRulesReviewInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return c.clientCache.ClusterOrDie(name).SelfSubjectRulesReviews()
+	return c.clientCache.ClusterOrDie(clusterPath).SelfSubjectRulesReviews()
 }

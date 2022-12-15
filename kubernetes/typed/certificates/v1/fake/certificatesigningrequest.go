@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	certificatesv1 "k8s.io/api/certificates/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type certificateSigningRequestsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *certificateSigningRequestsClusterClient) Cluster(cluster logicalcluster.Name) certificatesv1client.CertificateSigningRequestInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *certificateSigningRequestsClusterClient) Cluster(clusterPath logicalcluster.Path) certificatesv1client.CertificateSigningRequestInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &certificateSigningRequestsClient{Fake: c.Fake, Cluster: cluster}
+	return &certificateSigningRequestsClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of CertificateSigningRequests that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *certificateSigningRequestsClusterClient) Watch(ctx context.Context, opt
 
 type certificateSigningRequestsClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *certificateSigningRequestsClient) Create(ctx context.Context, certificateSigningRequest *certificatesv1.CertificateSigningRequest, opts metav1.CreateOptions) (*certificatesv1.CertificateSigningRequest, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(certificateSigningRequestsResource, c.Cluster, certificateSigningRequest), &certificatesv1.CertificateSigningRequest{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(certificateSigningRequestsResource, c.ClusterPath, certificateSigningRequest), &certificatesv1.CertificateSigningRequest{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *certificateSigningRequestsClient) Create(ctx context.Context, certifica
 }
 
 func (c *certificateSigningRequestsClient) Update(ctx context.Context, certificateSigningRequest *certificatesv1.CertificateSigningRequest, opts metav1.UpdateOptions) (*certificatesv1.CertificateSigningRequest, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(certificateSigningRequestsResource, c.Cluster, certificateSigningRequest), &certificatesv1.CertificateSigningRequest{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(certificateSigningRequestsResource, c.ClusterPath, certificateSigningRequest), &certificatesv1.CertificateSigningRequest{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *certificateSigningRequestsClient) Update(ctx context.Context, certifica
 }
 
 func (c *certificateSigningRequestsClient) UpdateStatus(ctx context.Context, certificateSigningRequest *certificatesv1.CertificateSigningRequest, opts metav1.UpdateOptions) (*certificatesv1.CertificateSigningRequest, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(certificateSigningRequestsResource, c.Cluster, "status", certificateSigningRequest), &certificatesv1.CertificateSigningRequest{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(certificateSigningRequestsResource, c.ClusterPath, "status", certificateSigningRequest), &certificatesv1.CertificateSigningRequest{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *certificateSigningRequestsClient) UpdateStatus(ctx context.Context, cer
 }
 
 func (c *certificateSigningRequestsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(certificateSigningRequestsResource, c.Cluster, name, opts), &certificatesv1.CertificateSigningRequest{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(certificateSigningRequestsResource, c.ClusterPath, name, opts), &certificatesv1.CertificateSigningRequest{})
 	return err
 }
 
 func (c *certificateSigningRequestsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(certificateSigningRequestsResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(certificateSigningRequestsResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &certificatesv1.CertificateSigningRequestList{})
 	return err
 }
 
 func (c *certificateSigningRequestsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*certificatesv1.CertificateSigningRequest, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(certificateSigningRequestsResource, c.Cluster, name), &certificatesv1.CertificateSigningRequest{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(certificateSigningRequestsResource, c.ClusterPath, name), &certificatesv1.CertificateSigningRequest{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *certificateSigningRequestsClient) Get(ctx context.Context, name string,
 
 // List takes label and field selectors, and returns the list of CertificateSigningRequests that match those selectors.
 func (c *certificateSigningRequestsClient) List(ctx context.Context, opts metav1.ListOptions) (*certificatesv1.CertificateSigningRequestList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(certificateSigningRequestsResource, certificateSigningRequestsKind, c.Cluster, opts), &certificatesv1.CertificateSigningRequestList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(certificateSigningRequestsResource, certificateSigningRequestsKind, c.ClusterPath, opts), &certificatesv1.CertificateSigningRequestList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *certificateSigningRequestsClient) List(ctx context.Context, opts metav1
 }
 
 func (c *certificateSigningRequestsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(certificateSigningRequestsResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(certificateSigningRequestsResource, c.ClusterPath, opts))
 }
 
 func (c *certificateSigningRequestsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*certificatesv1.CertificateSigningRequest, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(certificateSigningRequestsResource, c.Cluster, name, pt, data, subresources...), &certificatesv1.CertificateSigningRequest{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(certificateSigningRequestsResource, c.ClusterPath, name, pt, data, subresources...), &certificatesv1.CertificateSigningRequest{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *certificateSigningRequestsClient) Apply(ctx context.Context, applyConfi
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(certificateSigningRequestsResource, c.Cluster, *name, types.ApplyPatchType, data), &certificatesv1.CertificateSigningRequest{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(certificateSigningRequestsResource, c.ClusterPath, *name, types.ApplyPatchType, data), &certificatesv1.CertificateSigningRequest{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *certificateSigningRequestsClient) ApplyStatus(ctx context.Context, appl
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(certificateSigningRequestsResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &certificatesv1.CertificateSigningRequest{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(certificateSigningRequestsResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &certificatesv1.CertificateSigningRequest{})
 	if obj == nil {
 		return nil, err
 	}
@@ -202,7 +202,7 @@ func (c *certificateSigningRequestsClient) ApplyStatus(ctx context.Context, appl
 }
 
 func (c *certificateSigningRequestsClient) UpdateApproval(ctx context.Context, certificateSigningRequestName string, certificateSigningRequest *certificatesv1.CertificateSigningRequest, opts metav1.UpdateOptions) (*certificatesv1.CertificateSigningRequest, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(certificateSigningRequestsResource, c.Cluster, "approval", certificateSigningRequest), &certificatesv1.CertificateSigningRequest{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(certificateSigningRequestsResource, c.ClusterPath, "approval", certificateSigningRequest), &certificatesv1.CertificateSigningRequest{})
 	if obj == nil {
 		return nil, err
 	}

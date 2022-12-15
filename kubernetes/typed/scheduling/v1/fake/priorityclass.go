@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	schedulingv1 "k8s.io/api/scheduling/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type priorityClassesClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *priorityClassesClusterClient) Cluster(cluster logicalcluster.Name) schedulingv1client.PriorityClassInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *priorityClassesClusterClient) Cluster(clusterPath logicalcluster.Path) schedulingv1client.PriorityClassInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &priorityClassesClient{Fake: c.Fake, Cluster: cluster}
+	return &priorityClassesClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of PriorityClasses that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *priorityClassesClusterClient) Watch(ctx context.Context, opts metav1.Li
 
 type priorityClassesClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *priorityClassesClient) Create(ctx context.Context, priorityClass *schedulingv1.PriorityClass, opts metav1.CreateOptions) (*schedulingv1.PriorityClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(priorityClassesResource, c.Cluster, priorityClass), &schedulingv1.PriorityClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(priorityClassesResource, c.ClusterPath, priorityClass), &schedulingv1.PriorityClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *priorityClassesClient) Create(ctx context.Context, priorityClass *sched
 }
 
 func (c *priorityClassesClient) Update(ctx context.Context, priorityClass *schedulingv1.PriorityClass, opts metav1.UpdateOptions) (*schedulingv1.PriorityClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(priorityClassesResource, c.Cluster, priorityClass), &schedulingv1.PriorityClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(priorityClassesResource, c.ClusterPath, priorityClass), &schedulingv1.PriorityClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *priorityClassesClient) Update(ctx context.Context, priorityClass *sched
 }
 
 func (c *priorityClassesClient) UpdateStatus(ctx context.Context, priorityClass *schedulingv1.PriorityClass, opts metav1.UpdateOptions) (*schedulingv1.PriorityClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(priorityClassesResource, c.Cluster, "status", priorityClass), &schedulingv1.PriorityClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(priorityClassesResource, c.ClusterPath, "status", priorityClass), &schedulingv1.PriorityClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *priorityClassesClient) UpdateStatus(ctx context.Context, priorityClass 
 }
 
 func (c *priorityClassesClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(priorityClassesResource, c.Cluster, name, opts), &schedulingv1.PriorityClass{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(priorityClassesResource, c.ClusterPath, name, opts), &schedulingv1.PriorityClass{})
 	return err
 }
 
 func (c *priorityClassesClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(priorityClassesResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(priorityClassesResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &schedulingv1.PriorityClassList{})
 	return err
 }
 
 func (c *priorityClassesClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*schedulingv1.PriorityClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(priorityClassesResource, c.Cluster, name), &schedulingv1.PriorityClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(priorityClassesResource, c.ClusterPath, name), &schedulingv1.PriorityClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *priorityClassesClient) Get(ctx context.Context, name string, options me
 
 // List takes label and field selectors, and returns the list of PriorityClasses that match those selectors.
 func (c *priorityClassesClient) List(ctx context.Context, opts metav1.ListOptions) (*schedulingv1.PriorityClassList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(priorityClassesResource, priorityClassesKind, c.Cluster, opts), &schedulingv1.PriorityClassList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(priorityClassesResource, priorityClassesKind, c.ClusterPath, opts), &schedulingv1.PriorityClassList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *priorityClassesClient) List(ctx context.Context, opts metav1.ListOption
 }
 
 func (c *priorityClassesClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(priorityClassesResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(priorityClassesResource, c.ClusterPath, opts))
 }
 
 func (c *priorityClassesClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*schedulingv1.PriorityClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(priorityClassesResource, c.Cluster, name, pt, data, subresources...), &schedulingv1.PriorityClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(priorityClassesResource, c.ClusterPath, name, pt, data, subresources...), &schedulingv1.PriorityClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *priorityClassesClient) Apply(ctx context.Context, applyConfiguration *a
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(priorityClassesResource, c.Cluster, *name, types.ApplyPatchType, data), &schedulingv1.PriorityClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(priorityClassesResource, c.ClusterPath, *name, types.ApplyPatchType, data), &schedulingv1.PriorityClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *priorityClassesClient) ApplyStatus(ctx context.Context, applyConfigurat
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(priorityClassesResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &schedulingv1.PriorityClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(priorityClassesResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &schedulingv1.PriorityClass{})
 	if obj == nil {
 		return nil, err
 	}

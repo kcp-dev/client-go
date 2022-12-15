@@ -24,8 +24,8 @@ package v1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type PersistentVolumeClaimsClusterGetter interface {
 // PersistentVolumeClaimClusterInterface can operate on PersistentVolumeClaims across all clusters,
 // or scope down to one cluster and return a PersistentVolumeClaimsNamespacer.
 type PersistentVolumeClaimClusterInterface interface {
-	Cluster(logicalcluster.Name) PersistentVolumeClaimsNamespacer
+	Cluster(logicalcluster.Path) PersistentVolumeClaimsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.PersistentVolumeClaimList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type persistentVolumeClaimsClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *persistentVolumeClaimsClusterInterface) Cluster(name logicalcluster.Name) PersistentVolumeClaimsNamespacer {
-	if name == logicalcluster.Wildcard {
+func (c *persistentVolumeClaimsClusterInterface) Cluster(clusterPath logicalcluster.Path) PersistentVolumeClaimsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &persistentVolumeClaimsNamespacer{clientCache: c.clientCache, name: name}
+	return &persistentVolumeClaimsNamespacer{clientCache: c.clientCache, clusterPath: clusterPath}
 }
 
 // List returns the entire collection of all PersistentVolumeClaims across all clusters.
@@ -77,9 +77,9 @@ type PersistentVolumeClaimsNamespacer interface {
 
 type persistentVolumeClaimsNamespacer struct {
 	clientCache kcpclient.Cache[*corev1client.CoreV1Client]
-	name        logicalcluster.Name
+	clusterPath logicalcluster.Path
 }
 
 func (n *persistentVolumeClaimsNamespacer) Namespace(namespace string) corev1client.PersistentVolumeClaimInterface {
-	return n.clientCache.ClusterOrDie(n.name).PersistentVolumeClaims(namespace)
+	return n.clientCache.ClusterOrDie(n.clusterPath).PersistentVolumeClaims(namespace)
 }

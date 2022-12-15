@@ -24,8 +24,8 @@ package v1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type SecretsClusterGetter interface {
 // SecretClusterInterface can operate on Secrets across all clusters,
 // or scope down to one cluster and return a SecretsNamespacer.
 type SecretClusterInterface interface {
-	Cluster(logicalcluster.Name) SecretsNamespacer
+	Cluster(logicalcluster.Path) SecretsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.SecretList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type secretsClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *secretsClusterInterface) Cluster(name logicalcluster.Name) SecretsNamespacer {
-	if name == logicalcluster.Wildcard {
+func (c *secretsClusterInterface) Cluster(clusterPath logicalcluster.Path) SecretsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &secretsNamespacer{clientCache: c.clientCache, name: name}
+	return &secretsNamespacer{clientCache: c.clientCache, clusterPath: clusterPath}
 }
 
 // List returns the entire collection of all Secrets across all clusters.
@@ -77,9 +77,9 @@ type SecretsNamespacer interface {
 
 type secretsNamespacer struct {
 	clientCache kcpclient.Cache[*corev1client.CoreV1Client]
-	name        logicalcluster.Name
+	clusterPath logicalcluster.Path
 }
 
 func (n *secretsNamespacer) Namespace(namespace string) corev1client.SecretInterface {
-	return n.clientCache.ClusterOrDie(n.name).Secrets(namespace)
+	return n.clientCache.ClusterOrDie(n.clusterPath).Secrets(namespace)
 }

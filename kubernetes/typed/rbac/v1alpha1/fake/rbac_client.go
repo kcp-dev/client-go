@@ -22,7 +22,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	rbacv1alpha1 "k8s.io/client-go/kubernetes/typed/rbac/v1alpha1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type RbacV1alpha1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *RbacV1alpha1ClusterClient) Cluster(cluster logicalcluster.Name) rbacv1alpha1.RbacV1alpha1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *RbacV1alpha1ClusterClient) Cluster(clusterPath logicalcluster.Path) rbacv1alpha1.RbacV1alpha1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &RbacV1alpha1Client{Fake: c.Fake, Cluster: cluster}
+	return &RbacV1alpha1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *RbacV1alpha1ClusterClient) Roles() kcprbacv1alpha1.RoleClusterInterface {
@@ -64,7 +64,7 @@ var _ rbacv1alpha1.RbacV1alpha1Interface = (*RbacV1alpha1Client)(nil)
 
 type RbacV1alpha1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *RbacV1alpha1Client) RESTClient() rest.Interface {
@@ -73,17 +73,17 @@ func (c *RbacV1alpha1Client) RESTClient() rest.Interface {
 }
 
 func (c *RbacV1alpha1Client) Roles(namespace string) rbacv1alpha1.RoleInterface {
-	return &rolesClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &rolesClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *RbacV1alpha1Client) RoleBindings(namespace string) rbacv1alpha1.RoleBindingInterface {
-	return &roleBindingsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &roleBindingsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *RbacV1alpha1Client) ClusterRoles() rbacv1alpha1.ClusterRoleInterface {
-	return &clusterRolesClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &clusterRolesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
 
 func (c *RbacV1alpha1Client) ClusterRoleBindings() rbacv1alpha1.ClusterRoleBindingInterface {
-	return &clusterRoleBindingsClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &clusterRoleBindingsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }

@@ -24,8 +24,8 @@ package v1
 import (
 	"net/http"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	certificatesv1 "k8s.io/client-go/kubernetes/typed/certificates/v1"
 	"k8s.io/client-go/rest"
@@ -37,18 +37,18 @@ type CertificatesV1ClusterInterface interface {
 }
 
 type CertificatesV1ClusterScoper interface {
-	Cluster(logicalcluster.Name) certificatesv1.CertificatesV1Interface
+	Cluster(logicalcluster.Path) certificatesv1.CertificatesV1Interface
 }
 
 type CertificatesV1ClusterClient struct {
 	clientCache kcpclient.Cache[*certificatesv1.CertificatesV1Client]
 }
 
-func (c *CertificatesV1ClusterClient) Cluster(name logicalcluster.Name) certificatesv1.CertificatesV1Interface {
-	if name == logicalcluster.Wildcard {
+func (c *CertificatesV1ClusterClient) Cluster(clusterPath logicalcluster.Path) certificatesv1.CertificatesV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return c.clientCache.ClusterOrDie(name)
+	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
 func (c *CertificatesV1ClusterClient) CertificateSigningRequests() CertificateSigningRequestClusterInterface {
@@ -72,7 +72,7 @@ func NewForConfigAndClient(c *rest.Config, h *http.Client) (*CertificatesV1Clust
 	cache := kcpclient.NewCache(c, h, &kcpclient.Constructor[*certificatesv1.CertificatesV1Client]{
 		NewForConfigAndClient: certificatesv1.NewForConfigAndClient,
 	})
-	if _, err := cache.Cluster(logicalcluster.New("root")); err != nil {
+	if _, err := cache.Cluster(logicalcluster.Name("root").Path()); err != nil {
 		return nil, err
 	}
 	return &CertificatesV1ClusterClient{clientCache: cache}, nil

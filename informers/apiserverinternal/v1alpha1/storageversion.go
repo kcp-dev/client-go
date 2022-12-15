@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	internalv1alpha1 "k8s.io/api/apiserverinternal/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *storageVersionClusterInformer) Lister() internalv1alpha1listers.Storage
 	return internalv1alpha1listers.NewStorageVersionClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *storageVersionClusterInformer) Cluster(cluster logicalcluster.Name) upstreaminternalv1alpha1informers.StorageVersionInformer {
+func (f *storageVersionClusterInformer) Cluster(clusterName logicalcluster.Name) upstreaminternalv1alpha1informers.StorageVersionInformer {
 	return &storageVersionInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

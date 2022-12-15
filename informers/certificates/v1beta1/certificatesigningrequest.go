@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	certificatesv1beta1 "k8s.io/api/certificates/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *certificateSigningRequestClusterInformer) Lister() certificatesv1beta1l
 	return certificatesv1beta1listers.NewCertificateSigningRequestClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *certificateSigningRequestClusterInformer) Cluster(cluster logicalcluster.Name) upstreamcertificatesv1beta1informers.CertificateSigningRequestInformer {
+func (f *certificateSigningRequestClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamcertificatesv1beta1informers.CertificateSigningRequestInformer {
 	return &certificateSigningRequestInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

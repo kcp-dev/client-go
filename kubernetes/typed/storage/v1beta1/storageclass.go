@@ -24,8 +24,8 @@ package v1beta1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	storagev1beta1 "k8s.io/api/storage/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type StorageClassesClusterGetter interface {
 // StorageClassClusterInterface can operate on StorageClasses across all clusters,
 // or scope down to one cluster and return a storagev1beta1client.StorageClassInterface.
 type StorageClassClusterInterface interface {
-	Cluster(logicalcluster.Name) storagev1beta1client.StorageClassInterface
+	Cluster(logicalcluster.Path) storagev1beta1client.StorageClassInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*storagev1beta1.StorageClassList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type storageClassesClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *storageClassesClusterInterface) Cluster(name logicalcluster.Name) storagev1beta1client.StorageClassInterface {
-	if name == logicalcluster.Wildcard {
+func (c *storageClassesClusterInterface) Cluster(clusterPath logicalcluster.Path) storagev1beta1client.StorageClassInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return c.clientCache.ClusterOrDie(name).StorageClasses()
+	return c.clientCache.ClusterOrDie(clusterPath).StorageClasses()
 }
 
 // List returns the entire collection of all StorageClasses across all clusters.

@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *cronJobClusterInformer) Lister() batchv1listers.CronJobClusterLister {
 	return batchv1listers.NewCronJobClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *cronJobClusterInformer) Cluster(cluster logicalcluster.Name) upstreambatchv1informers.CronJobInformer {
+func (f *cronJobClusterInformer) Cluster(clusterName logicalcluster.Name) upstreambatchv1informers.CronJobInformer {
 	return &cronJobInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

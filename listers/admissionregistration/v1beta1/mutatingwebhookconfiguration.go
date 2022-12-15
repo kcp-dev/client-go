@@ -22,8 +22,8 @@ limitations under the License.
 package v1beta1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type MutatingWebhookConfigurationClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*admissionregistrationv1beta1.MutatingWebhookConfiguration, err error)
 	// Cluster returns a lister that can list and get MutatingWebhookConfigurations in one workspace.
-	Cluster(cluster logicalcluster.Name) admissionregistrationv1beta1listers.MutatingWebhookConfigurationLister
+	Cluster(clusterName logicalcluster.Name) admissionregistrationv1beta1listers.MutatingWebhookConfigurationLister
 	MutatingWebhookConfigurationClusterListerExpansion
 }
 
@@ -65,19 +65,19 @@ func (s *mutatingWebhookConfigurationClusterLister) List(selector labels.Selecto
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get MutatingWebhookConfigurations.
-func (s *mutatingWebhookConfigurationClusterLister) Cluster(cluster logicalcluster.Name) admissionregistrationv1beta1listers.MutatingWebhookConfigurationLister {
-	return &mutatingWebhookConfigurationLister{indexer: s.indexer, cluster: cluster}
+func (s *mutatingWebhookConfigurationClusterLister) Cluster(clusterName logicalcluster.Name) admissionregistrationv1beta1listers.MutatingWebhookConfigurationLister {
+	return &mutatingWebhookConfigurationLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // mutatingWebhookConfigurationLister implements the admissionregistrationv1beta1listers.MutatingWebhookConfigurationLister interface.
 type mutatingWebhookConfigurationLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all MutatingWebhookConfigurations in the indexer for a workspace.
 func (s *mutatingWebhookConfigurationLister) List(selector labels.Selector) (ret []*admissionregistrationv1beta1.MutatingWebhookConfiguration, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*admissionregistrationv1beta1.MutatingWebhookConfiguration))
 	})
 	return ret, err
@@ -85,7 +85,7 @@ func (s *mutatingWebhookConfigurationLister) List(selector labels.Selector) (ret
 
 // Get retrieves the MutatingWebhookConfiguration from the indexer for a given workspace and name.
 func (s *mutatingWebhookConfigurationLister) Get(name string) (*admissionregistrationv1beta1.MutatingWebhookConfiguration, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), "", name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), "", name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

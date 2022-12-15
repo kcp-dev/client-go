@@ -24,8 +24,8 @@ package v1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type ReplicaSetsClusterGetter interface {
 // ReplicaSetClusterInterface can operate on ReplicaSets across all clusters,
 // or scope down to one cluster and return a ReplicaSetsNamespacer.
 type ReplicaSetClusterInterface interface {
-	Cluster(logicalcluster.Name) ReplicaSetsNamespacer
+	Cluster(logicalcluster.Path) ReplicaSetsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*appsv1.ReplicaSetList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type replicaSetsClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *replicaSetsClusterInterface) Cluster(name logicalcluster.Name) ReplicaSetsNamespacer {
-	if name == logicalcluster.Wildcard {
+func (c *replicaSetsClusterInterface) Cluster(clusterPath logicalcluster.Path) ReplicaSetsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &replicaSetsNamespacer{clientCache: c.clientCache, name: name}
+	return &replicaSetsNamespacer{clientCache: c.clientCache, clusterPath: clusterPath}
 }
 
 // List returns the entire collection of all ReplicaSets across all clusters.
@@ -77,9 +77,9 @@ type ReplicaSetsNamespacer interface {
 
 type replicaSetsNamespacer struct {
 	clientCache kcpclient.Cache[*appsv1client.AppsV1Client]
-	name        logicalcluster.Name
+	clusterPath logicalcluster.Path
 }
 
 func (n *replicaSetsNamespacer) Namespace(namespace string) appsv1client.ReplicaSetInterface {
-	return n.clientCache.ClusterOrDie(n.name).ReplicaSets(namespace)
+	return n.clientCache.ClusterOrDie(n.clusterPath).ReplicaSets(namespace)
 }

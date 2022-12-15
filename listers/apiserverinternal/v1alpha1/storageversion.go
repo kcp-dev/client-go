@@ -22,8 +22,8 @@ limitations under the License.
 package v1alpha1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	internalv1alpha1 "k8s.io/api/apiserverinternal/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type StorageVersionClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*internalv1alpha1.StorageVersion, err error)
 	// Cluster returns a lister that can list and get StorageVersions in one workspace.
-	Cluster(cluster logicalcluster.Name) internalv1alpha1listers.StorageVersionLister
+	Cluster(clusterName logicalcluster.Name) internalv1alpha1listers.StorageVersionLister
 	StorageVersionClusterListerExpansion
 }
 
@@ -65,19 +65,19 @@ func (s *storageVersionClusterLister) List(selector labels.Selector) (ret []*int
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get StorageVersions.
-func (s *storageVersionClusterLister) Cluster(cluster logicalcluster.Name) internalv1alpha1listers.StorageVersionLister {
-	return &storageVersionLister{indexer: s.indexer, cluster: cluster}
+func (s *storageVersionClusterLister) Cluster(clusterName logicalcluster.Name) internalv1alpha1listers.StorageVersionLister {
+	return &storageVersionLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // storageVersionLister implements the internalv1alpha1listers.StorageVersionLister interface.
 type storageVersionLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all StorageVersions in the indexer for a workspace.
 func (s *storageVersionLister) List(selector labels.Selector) (ret []*internalv1alpha1.StorageVersion, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*internalv1alpha1.StorageVersion))
 	})
 	return ret, err
@@ -85,7 +85,7 @@ func (s *storageVersionLister) List(selector labels.Selector) (ret []*internalv1
 
 // Get retrieves the StorageVersion from the indexer for a given workspace and name.
 func (s *storageVersionLister) Get(name string) (*internalv1alpha1.StorageVersion, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), "", name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), "", name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

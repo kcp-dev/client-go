@@ -24,8 +24,8 @@ package v1beta1
 import (
 	"net/http"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	policyv1beta1 "k8s.io/client-go/kubernetes/typed/policy/v1beta1"
 	"k8s.io/client-go/rest"
@@ -39,18 +39,18 @@ type PolicyV1beta1ClusterInterface interface {
 }
 
 type PolicyV1beta1ClusterScoper interface {
-	Cluster(logicalcluster.Name) policyv1beta1.PolicyV1beta1Interface
+	Cluster(logicalcluster.Path) policyv1beta1.PolicyV1beta1Interface
 }
 
 type PolicyV1beta1ClusterClient struct {
 	clientCache kcpclient.Cache[*policyv1beta1.PolicyV1beta1Client]
 }
 
-func (c *PolicyV1beta1ClusterClient) Cluster(name logicalcluster.Name) policyv1beta1.PolicyV1beta1Interface {
-	if name == logicalcluster.Wildcard {
+func (c *PolicyV1beta1ClusterClient) Cluster(clusterPath logicalcluster.Path) policyv1beta1.PolicyV1beta1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return c.clientCache.ClusterOrDie(name)
+	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
 func (c *PolicyV1beta1ClusterClient) PodDisruptionBudgets() PodDisruptionBudgetClusterInterface {
@@ -82,7 +82,7 @@ func NewForConfigAndClient(c *rest.Config, h *http.Client) (*PolicyV1beta1Cluste
 	cache := kcpclient.NewCache(c, h, &kcpclient.Constructor[*policyv1beta1.PolicyV1beta1Client]{
 		NewForConfigAndClient: policyv1beta1.NewForConfigAndClient,
 	})
-	if _, err := cache.Cluster(logicalcluster.New("root")); err != nil {
+	if _, err := cache.Cluster(logicalcluster.Name("root").Path()); err != nil {
 		return nil, err
 	}
 	return &PolicyV1beta1ClusterClient{clientCache: cache}, nil

@@ -24,8 +24,8 @@ package v1
 import (
 	"net/http"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	coordinationv1 "k8s.io/client-go/kubernetes/typed/coordination/v1"
 	"k8s.io/client-go/rest"
@@ -37,18 +37,18 @@ type CoordinationV1ClusterInterface interface {
 }
 
 type CoordinationV1ClusterScoper interface {
-	Cluster(logicalcluster.Name) coordinationv1.CoordinationV1Interface
+	Cluster(logicalcluster.Path) coordinationv1.CoordinationV1Interface
 }
 
 type CoordinationV1ClusterClient struct {
 	clientCache kcpclient.Cache[*coordinationv1.CoordinationV1Client]
 }
 
-func (c *CoordinationV1ClusterClient) Cluster(name logicalcluster.Name) coordinationv1.CoordinationV1Interface {
-	if name == logicalcluster.Wildcard {
+func (c *CoordinationV1ClusterClient) Cluster(clusterPath logicalcluster.Path) coordinationv1.CoordinationV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return c.clientCache.ClusterOrDie(name)
+	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
 func (c *CoordinationV1ClusterClient) Leases() LeaseClusterInterface {
@@ -72,7 +72,7 @@ func NewForConfigAndClient(c *rest.Config, h *http.Client) (*CoordinationV1Clust
 	cache := kcpclient.NewCache(c, h, &kcpclient.Constructor[*coordinationv1.CoordinationV1Client]{
 		NewForConfigAndClient: coordinationv1.NewForConfigAndClient,
 	})
-	if _, err := cache.Cluster(logicalcluster.New("root")); err != nil {
+	if _, err := cache.Cluster(logicalcluster.Name("root").Path()); err != nil {
 		return nil, err
 	}
 	return &CoordinationV1ClusterClient{clientCache: cache}, nil

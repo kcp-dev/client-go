@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	autoscalingv2beta1 "k8s.io/api/autoscaling/v2beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *horizontalPodAutoscalerClusterInformer) Lister() autoscalingv2beta1list
 	return autoscalingv2beta1listers.NewHorizontalPodAutoscalerClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *horizontalPodAutoscalerClusterInformer) Cluster(cluster logicalcluster.Name) upstreamautoscalingv2beta1informers.HorizontalPodAutoscalerInformer {
+func (f *horizontalPodAutoscalerClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamautoscalingv2beta1informers.HorizontalPodAutoscalerInformer {
 	return &horizontalPodAutoscalerInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

@@ -24,8 +24,8 @@ package v1
 import (
 	"net/http"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	storagev1 "k8s.io/client-go/kubernetes/typed/storage/v1"
 	"k8s.io/client-go/rest"
@@ -41,18 +41,18 @@ type StorageV1ClusterInterface interface {
 }
 
 type StorageV1ClusterScoper interface {
-	Cluster(logicalcluster.Name) storagev1.StorageV1Interface
+	Cluster(logicalcluster.Path) storagev1.StorageV1Interface
 }
 
 type StorageV1ClusterClient struct {
 	clientCache kcpclient.Cache[*storagev1.StorageV1Client]
 }
 
-func (c *StorageV1ClusterClient) Cluster(name logicalcluster.Name) storagev1.StorageV1Interface {
-	if name == logicalcluster.Wildcard {
+func (c *StorageV1ClusterClient) Cluster(clusterPath logicalcluster.Path) storagev1.StorageV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return c.clientCache.ClusterOrDie(name)
+	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
 func (c *StorageV1ClusterClient) StorageClasses() StorageClassClusterInterface {
@@ -92,7 +92,7 @@ func NewForConfigAndClient(c *rest.Config, h *http.Client) (*StorageV1ClusterCli
 	cache := kcpclient.NewCache(c, h, &kcpclient.Constructor[*storagev1.StorageV1Client]{
 		NewForConfigAndClient: storagev1.NewForConfigAndClient,
 	})
-	if _, err := cache.Cluster(logicalcluster.New("root")); err != nil {
+	if _, err := cache.Cluster(logicalcluster.Name("root").Path()); err != nil {
 		return nil, err
 	}
 	return &StorageV1ClusterClient{clientCache: cache}, nil

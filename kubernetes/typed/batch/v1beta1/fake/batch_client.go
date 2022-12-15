@@ -22,7 +22,7 @@ limitations under the License.
 package v1beta1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	batchv1beta1 "k8s.io/client-go/kubernetes/typed/batch/v1beta1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type BatchV1beta1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *BatchV1beta1ClusterClient) Cluster(cluster logicalcluster.Name) batchv1beta1.BatchV1beta1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *BatchV1beta1ClusterClient) Cluster(clusterPath logicalcluster.Path) batchv1beta1.BatchV1beta1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &BatchV1beta1Client{Fake: c.Fake, Cluster: cluster}
+	return &BatchV1beta1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *BatchV1beta1ClusterClient) CronJobs() kcpbatchv1beta1.CronJobClusterInterface {
@@ -52,7 +52,7 @@ var _ batchv1beta1.BatchV1beta1Interface = (*BatchV1beta1Client)(nil)
 
 type BatchV1beta1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *BatchV1beta1Client) RESTClient() rest.Interface {
@@ -61,5 +61,5 @@ func (c *BatchV1beta1Client) RESTClient() rest.Interface {
 }
 
 func (c *BatchV1beta1Client) CronJobs(namespace string) batchv1beta1.CronJobInterface {
-	return &cronJobsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &cronJobsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }

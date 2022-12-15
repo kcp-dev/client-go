@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *mutatingWebhookConfigurationClusterInformer) Lister() admissionregistra
 	return admissionregistrationv1beta1listers.NewMutatingWebhookConfigurationClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *mutatingWebhookConfigurationClusterInformer) Cluster(cluster logicalcluster.Name) upstreamadmissionregistrationv1beta1informers.MutatingWebhookConfigurationInformer {
+func (f *mutatingWebhookConfigurationClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamadmissionregistrationv1beta1informers.MutatingWebhookConfigurationInformer {
 	return &mutatingWebhookConfigurationInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

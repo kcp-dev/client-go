@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	discoveryv1 "k8s.io/api/discovery/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,12 +50,12 @@ type endpointSlicesClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *endpointSlicesClusterClient) Cluster(cluster logicalcluster.Name) kcpdiscoveryv1.EndpointSlicesNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *endpointSlicesClusterClient) Cluster(clusterPath logicalcluster.Path) kcpdiscoveryv1.EndpointSlicesNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &endpointSlicesNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &endpointSlicesNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of EndpointSlices that match those selectors across all clusters.
@@ -85,21 +85,21 @@ func (c *endpointSlicesClusterClient) Watch(ctx context.Context, opts metav1.Lis
 
 type endpointSlicesNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *endpointSlicesNamespacer) Namespace(namespace string) discoveryv1client.EndpointSliceInterface {
-	return &endpointSlicesClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &endpointSlicesClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type endpointSlicesClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *endpointSlicesClient) Create(ctx context.Context, endpointSlice *discoveryv1.EndpointSlice, opts metav1.CreateOptions) (*discoveryv1.EndpointSlice, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(endpointSlicesResource, c.Cluster, c.Namespace, endpointSlice), &discoveryv1.EndpointSlice{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(endpointSlicesResource, c.ClusterPath, c.Namespace, endpointSlice), &discoveryv1.EndpointSlice{})
 	if obj == nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (c *endpointSlicesClient) Create(ctx context.Context, endpointSlice *discov
 }
 
 func (c *endpointSlicesClient) Update(ctx context.Context, endpointSlice *discoveryv1.EndpointSlice, opts metav1.UpdateOptions) (*discoveryv1.EndpointSlice, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(endpointSlicesResource, c.Cluster, c.Namespace, endpointSlice), &discoveryv1.EndpointSlice{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(endpointSlicesResource, c.ClusterPath, c.Namespace, endpointSlice), &discoveryv1.EndpointSlice{})
 	if obj == nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (c *endpointSlicesClient) Update(ctx context.Context, endpointSlice *discov
 }
 
 func (c *endpointSlicesClient) UpdateStatus(ctx context.Context, endpointSlice *discoveryv1.EndpointSlice, opts metav1.UpdateOptions) (*discoveryv1.EndpointSlice, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(endpointSlicesResource, c.Cluster, "status", c.Namespace, endpointSlice), &discoveryv1.EndpointSlice{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(endpointSlicesResource, c.ClusterPath, "status", c.Namespace, endpointSlice), &discoveryv1.EndpointSlice{})
 	if obj == nil {
 		return nil, err
 	}
@@ -123,19 +123,19 @@ func (c *endpointSlicesClient) UpdateStatus(ctx context.Context, endpointSlice *
 }
 
 func (c *endpointSlicesClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(endpointSlicesResource, c.Cluster, c.Namespace, name, opts), &discoveryv1.EndpointSlice{})
+	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(endpointSlicesResource, c.ClusterPath, c.Namespace, name, opts), &discoveryv1.EndpointSlice{})
 	return err
 }
 
 func (c *endpointSlicesClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewDeleteCollectionAction(endpointSlicesResource, c.Cluster, c.Namespace, listOpts)
+	action := kcptesting.NewDeleteCollectionAction(endpointSlicesResource, c.ClusterPath, c.Namespace, listOpts)
 
 	_, err := c.Fake.Invokes(action, &discoveryv1.EndpointSliceList{})
 	return err
 }
 
 func (c *endpointSlicesClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*discoveryv1.EndpointSlice, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(endpointSlicesResource, c.Cluster, c.Namespace, name), &discoveryv1.EndpointSlice{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(endpointSlicesResource, c.ClusterPath, c.Namespace, name), &discoveryv1.EndpointSlice{})
 	if obj == nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (c *endpointSlicesClient) Get(ctx context.Context, name string, options met
 
 // List takes label and field selectors, and returns the list of EndpointSlices that match those selectors.
 func (c *endpointSlicesClient) List(ctx context.Context, opts metav1.ListOptions) (*discoveryv1.EndpointSliceList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewListAction(endpointSlicesResource, endpointSlicesKind, c.Cluster, c.Namespace, opts), &discoveryv1.EndpointSliceList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewListAction(endpointSlicesResource, endpointSlicesKind, c.ClusterPath, c.Namespace, opts), &discoveryv1.EndpointSliceList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -163,11 +163,11 @@ func (c *endpointSlicesClient) List(ctx context.Context, opts metav1.ListOptions
 }
 
 func (c *endpointSlicesClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(endpointSlicesResource, c.Cluster, c.Namespace, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(endpointSlicesResource, c.ClusterPath, c.Namespace, opts))
 }
 
 func (c *endpointSlicesClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*discoveryv1.EndpointSlice, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(endpointSlicesResource, c.Cluster, c.Namespace, name, pt, data, subresources...), &discoveryv1.EndpointSlice{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(endpointSlicesResource, c.ClusterPath, c.Namespace, name, pt, data, subresources...), &discoveryv1.EndpointSlice{})
 	if obj == nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (c *endpointSlicesClient) Apply(ctx context.Context, applyConfiguration *ap
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(endpointSlicesResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &discoveryv1.EndpointSlice{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(endpointSlicesResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &discoveryv1.EndpointSlice{})
 	if obj == nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (c *endpointSlicesClient) ApplyStatus(ctx context.Context, applyConfigurati
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(endpointSlicesResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data, "status"), &discoveryv1.EndpointSlice{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(endpointSlicesResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data, "status"), &discoveryv1.EndpointSlice{})
 	if obj == nil {
 		return nil, err
 	}

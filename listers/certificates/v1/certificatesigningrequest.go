@@ -22,8 +22,8 @@ limitations under the License.
 package v1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	certificatesv1 "k8s.io/api/certificates/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type CertificateSigningRequestClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*certificatesv1.CertificateSigningRequest, err error)
 	// Cluster returns a lister that can list and get CertificateSigningRequests in one workspace.
-	Cluster(cluster logicalcluster.Name) certificatesv1listers.CertificateSigningRequestLister
+	Cluster(clusterName logicalcluster.Name) certificatesv1listers.CertificateSigningRequestLister
 	CertificateSigningRequestClusterListerExpansion
 }
 
@@ -65,19 +65,19 @@ func (s *certificateSigningRequestClusterLister) List(selector labels.Selector) 
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get CertificateSigningRequests.
-func (s *certificateSigningRequestClusterLister) Cluster(cluster logicalcluster.Name) certificatesv1listers.CertificateSigningRequestLister {
-	return &certificateSigningRequestLister{indexer: s.indexer, cluster: cluster}
+func (s *certificateSigningRequestClusterLister) Cluster(clusterName logicalcluster.Name) certificatesv1listers.CertificateSigningRequestLister {
+	return &certificateSigningRequestLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // certificateSigningRequestLister implements the certificatesv1listers.CertificateSigningRequestLister interface.
 type certificateSigningRequestLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all CertificateSigningRequests in the indexer for a workspace.
 func (s *certificateSigningRequestLister) List(selector labels.Selector) (ret []*certificatesv1.CertificateSigningRequest, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*certificatesv1.CertificateSigningRequest))
 	})
 	return ret, err
@@ -85,7 +85,7 @@ func (s *certificateSigningRequestLister) List(selector labels.Selector) (ret []
 
 // Get retrieves the CertificateSigningRequest from the indexer for a given workspace and name.
 func (s *certificateSigningRequestLister) Get(name string) (*certificatesv1.CertificateSigningRequest, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), "", name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), "", name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

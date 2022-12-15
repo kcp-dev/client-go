@@ -24,8 +24,8 @@ package v1beta1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	coordinationv1beta1 "k8s.io/api/coordination/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type LeasesClusterGetter interface {
 // LeaseClusterInterface can operate on Leases across all clusters,
 // or scope down to one cluster and return a LeasesNamespacer.
 type LeaseClusterInterface interface {
-	Cluster(logicalcluster.Name) LeasesNamespacer
+	Cluster(logicalcluster.Path) LeasesNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*coordinationv1beta1.LeaseList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type leasesClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *leasesClusterInterface) Cluster(name logicalcluster.Name) LeasesNamespacer {
-	if name == logicalcluster.Wildcard {
+func (c *leasesClusterInterface) Cluster(clusterPath logicalcluster.Path) LeasesNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &leasesNamespacer{clientCache: c.clientCache, name: name}
+	return &leasesNamespacer{clientCache: c.clientCache, clusterPath: clusterPath}
 }
 
 // List returns the entire collection of all Leases across all clusters.
@@ -77,9 +77,9 @@ type LeasesNamespacer interface {
 
 type leasesNamespacer struct {
 	clientCache kcpclient.Cache[*coordinationv1beta1client.CoordinationV1beta1Client]
-	name        logicalcluster.Name
+	clusterPath logicalcluster.Path
 }
 
 func (n *leasesNamespacer) Namespace(namespace string) coordinationv1beta1client.LeaseInterface {
-	return n.clientCache.ClusterOrDie(n.name).Leases(namespace)
+	return n.clientCache.ClusterOrDie(n.clusterPath).Leases(namespace)
 }

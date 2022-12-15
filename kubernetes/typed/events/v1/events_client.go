@@ -24,8 +24,8 @@ package v1
 import (
 	"net/http"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	eventsv1 "k8s.io/client-go/kubernetes/typed/events/v1"
 	"k8s.io/client-go/rest"
@@ -37,18 +37,18 @@ type EventsV1ClusterInterface interface {
 }
 
 type EventsV1ClusterScoper interface {
-	Cluster(logicalcluster.Name) eventsv1.EventsV1Interface
+	Cluster(logicalcluster.Path) eventsv1.EventsV1Interface
 }
 
 type EventsV1ClusterClient struct {
 	clientCache kcpclient.Cache[*eventsv1.EventsV1Client]
 }
 
-func (c *EventsV1ClusterClient) Cluster(name logicalcluster.Name) eventsv1.EventsV1Interface {
-	if name == logicalcluster.Wildcard {
+func (c *EventsV1ClusterClient) Cluster(clusterPath logicalcluster.Path) eventsv1.EventsV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return c.clientCache.ClusterOrDie(name)
+	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
 func (c *EventsV1ClusterClient) Events() EventClusterInterface {
@@ -72,7 +72,7 @@ func NewForConfigAndClient(c *rest.Config, h *http.Client) (*EventsV1ClusterClie
 	cache := kcpclient.NewCache(c, h, &kcpclient.Constructor[*eventsv1.EventsV1Client]{
 		NewForConfigAndClient: eventsv1.NewForConfigAndClient,
 	})
-	if _, err := cache.Cluster(logicalcluster.New("root")); err != nil {
+	if _, err := cache.Cluster(logicalcluster.Name("root").Path()); err != nil {
 		return nil, err
 	}
 	return &EventsV1ClusterClient{clientCache: cache}, nil

@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,12 +50,12 @@ type daemonSetsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *daemonSetsClusterClient) Cluster(cluster logicalcluster.Name) kcpappsv1beta2.DaemonSetsNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *daemonSetsClusterClient) Cluster(clusterPath logicalcluster.Path) kcpappsv1beta2.DaemonSetsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &daemonSetsNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &daemonSetsNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of DaemonSets that match those selectors across all clusters.
@@ -85,21 +85,21 @@ func (c *daemonSetsClusterClient) Watch(ctx context.Context, opts metav1.ListOpt
 
 type daemonSetsNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *daemonSetsNamespacer) Namespace(namespace string) appsv1beta2client.DaemonSetInterface {
-	return &daemonSetsClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &daemonSetsClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type daemonSetsClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *daemonSetsClient) Create(ctx context.Context, daemonSet *appsv1beta2.DaemonSet, opts metav1.CreateOptions) (*appsv1beta2.DaemonSet, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(daemonSetsResource, c.Cluster, c.Namespace, daemonSet), &appsv1beta2.DaemonSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(daemonSetsResource, c.ClusterPath, c.Namespace, daemonSet), &appsv1beta2.DaemonSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (c *daemonSetsClient) Create(ctx context.Context, daemonSet *appsv1beta2.Da
 }
 
 func (c *daemonSetsClient) Update(ctx context.Context, daemonSet *appsv1beta2.DaemonSet, opts metav1.UpdateOptions) (*appsv1beta2.DaemonSet, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(daemonSetsResource, c.Cluster, c.Namespace, daemonSet), &appsv1beta2.DaemonSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(daemonSetsResource, c.ClusterPath, c.Namespace, daemonSet), &appsv1beta2.DaemonSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (c *daemonSetsClient) Update(ctx context.Context, daemonSet *appsv1beta2.Da
 }
 
 func (c *daemonSetsClient) UpdateStatus(ctx context.Context, daemonSet *appsv1beta2.DaemonSet, opts metav1.UpdateOptions) (*appsv1beta2.DaemonSet, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(daemonSetsResource, c.Cluster, "status", c.Namespace, daemonSet), &appsv1beta2.DaemonSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(daemonSetsResource, c.ClusterPath, "status", c.Namespace, daemonSet), &appsv1beta2.DaemonSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -123,19 +123,19 @@ func (c *daemonSetsClient) UpdateStatus(ctx context.Context, daemonSet *appsv1be
 }
 
 func (c *daemonSetsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(daemonSetsResource, c.Cluster, c.Namespace, name, opts), &appsv1beta2.DaemonSet{})
+	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(daemonSetsResource, c.ClusterPath, c.Namespace, name, opts), &appsv1beta2.DaemonSet{})
 	return err
 }
 
 func (c *daemonSetsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewDeleteCollectionAction(daemonSetsResource, c.Cluster, c.Namespace, listOpts)
+	action := kcptesting.NewDeleteCollectionAction(daemonSetsResource, c.ClusterPath, c.Namespace, listOpts)
 
 	_, err := c.Fake.Invokes(action, &appsv1beta2.DaemonSetList{})
 	return err
 }
 
 func (c *daemonSetsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*appsv1beta2.DaemonSet, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(daemonSetsResource, c.Cluster, c.Namespace, name), &appsv1beta2.DaemonSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(daemonSetsResource, c.ClusterPath, c.Namespace, name), &appsv1beta2.DaemonSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (c *daemonSetsClient) Get(ctx context.Context, name string, options metav1.
 
 // List takes label and field selectors, and returns the list of DaemonSets that match those selectors.
 func (c *daemonSetsClient) List(ctx context.Context, opts metav1.ListOptions) (*appsv1beta2.DaemonSetList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewListAction(daemonSetsResource, daemonSetsKind, c.Cluster, c.Namespace, opts), &appsv1beta2.DaemonSetList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewListAction(daemonSetsResource, daemonSetsKind, c.ClusterPath, c.Namespace, opts), &appsv1beta2.DaemonSetList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -163,11 +163,11 @@ func (c *daemonSetsClient) List(ctx context.Context, opts metav1.ListOptions) (*
 }
 
 func (c *daemonSetsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(daemonSetsResource, c.Cluster, c.Namespace, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(daemonSetsResource, c.ClusterPath, c.Namespace, opts))
 }
 
 func (c *daemonSetsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*appsv1beta2.DaemonSet, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(daemonSetsResource, c.Cluster, c.Namespace, name, pt, data, subresources...), &appsv1beta2.DaemonSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(daemonSetsResource, c.ClusterPath, c.Namespace, name, pt, data, subresources...), &appsv1beta2.DaemonSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (c *daemonSetsClient) Apply(ctx context.Context, applyConfiguration *applyc
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(daemonSetsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &appsv1beta2.DaemonSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(daemonSetsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &appsv1beta2.DaemonSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (c *daemonSetsClient) ApplyStatus(ctx context.Context, applyConfiguration *
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(daemonSetsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data, "status"), &appsv1beta2.DaemonSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(daemonSetsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data, "status"), &appsv1beta2.DaemonSet{})
 	if obj == nil {
 		return nil, err
 	}

@@ -22,8 +22,8 @@ limitations under the License.
 package v1beta1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type ReplicaSetClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*extensionsv1beta1.ReplicaSet, err error)
 	// Cluster returns a lister that can list and get ReplicaSets in one workspace.
-	Cluster(cluster logicalcluster.Name) extensionsv1beta1listers.ReplicaSetLister
+	Cluster(clusterName logicalcluster.Name) extensionsv1beta1listers.ReplicaSetLister
 	ReplicaSetClusterListerExpansion
 }
 
@@ -66,19 +66,19 @@ func (s *replicaSetClusterLister) List(selector labels.Selector) (ret []*extensi
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get ReplicaSets.
-func (s *replicaSetClusterLister) Cluster(cluster logicalcluster.Name) extensionsv1beta1listers.ReplicaSetLister {
-	return &replicaSetLister{indexer: s.indexer, cluster: cluster}
+func (s *replicaSetClusterLister) Cluster(clusterName logicalcluster.Name) extensionsv1beta1listers.ReplicaSetLister {
+	return &replicaSetLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // replicaSetLister implements the extensionsv1beta1listers.ReplicaSetLister interface.
 type replicaSetLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all ReplicaSets in the indexer for a workspace.
 func (s *replicaSetLister) List(selector labels.Selector) (ret []*extensionsv1beta1.ReplicaSet, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*extensionsv1beta1.ReplicaSet))
 	})
 	return ret, err
@@ -86,19 +86,19 @@ func (s *replicaSetLister) List(selector labels.Selector) (ret []*extensionsv1be
 
 // ReplicaSets returns an object that can list and get ReplicaSets in one namespace.
 func (s *replicaSetLister) ReplicaSets(namespace string) extensionsv1beta1listers.ReplicaSetNamespaceLister {
-	return &replicaSetNamespaceLister{indexer: s.indexer, cluster: s.cluster, namespace: namespace}
+	return &replicaSetNamespaceLister{indexer: s.indexer, clusterName: s.clusterName, namespace: namespace}
 }
 
 // replicaSetNamespaceLister implements the extensionsv1beta1listers.ReplicaSetNamespaceLister interface.
 type replicaSetNamespaceLister struct {
-	indexer   cache.Indexer
-	cluster   logicalcluster.Name
-	namespace string
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
+	namespace   string
 }
 
 // List lists all ReplicaSets in the indexer for a given workspace and namespace.
 func (s *replicaSetNamespaceLister) List(selector labels.Selector) (ret []*extensionsv1beta1.ReplicaSet, err error) {
-	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.cluster, s.namespace, selector, func(i interface{}) {
+	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.clusterName, s.namespace, selector, func(i interface{}) {
 		ret = append(ret, i.(*extensionsv1beta1.ReplicaSet))
 	})
 	return ret, err
@@ -106,7 +106,7 @@ func (s *replicaSetNamespaceLister) List(selector labels.Selector) (ret []*exten
 
 // Get retrieves the ReplicaSet from the indexer for a given workspace, namespace and name.
 func (s *replicaSetNamespaceLister) Get(name string) (*extensionsv1beta1.ReplicaSet, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), s.namespace, name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), s.namespace, name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

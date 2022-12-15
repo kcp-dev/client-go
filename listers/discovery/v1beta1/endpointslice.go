@@ -22,8 +22,8 @@ limitations under the License.
 package v1beta1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	discoveryv1beta1 "k8s.io/api/discovery/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type EndpointSliceClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*discoveryv1beta1.EndpointSlice, err error)
 	// Cluster returns a lister that can list and get EndpointSlices in one workspace.
-	Cluster(cluster logicalcluster.Name) discoveryv1beta1listers.EndpointSliceLister
+	Cluster(clusterName logicalcluster.Name) discoveryv1beta1listers.EndpointSliceLister
 	EndpointSliceClusterListerExpansion
 }
 
@@ -66,19 +66,19 @@ func (s *endpointSliceClusterLister) List(selector labels.Selector) (ret []*disc
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get EndpointSlices.
-func (s *endpointSliceClusterLister) Cluster(cluster logicalcluster.Name) discoveryv1beta1listers.EndpointSliceLister {
-	return &endpointSliceLister{indexer: s.indexer, cluster: cluster}
+func (s *endpointSliceClusterLister) Cluster(clusterName logicalcluster.Name) discoveryv1beta1listers.EndpointSliceLister {
+	return &endpointSliceLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // endpointSliceLister implements the discoveryv1beta1listers.EndpointSliceLister interface.
 type endpointSliceLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all EndpointSlices in the indexer for a workspace.
 func (s *endpointSliceLister) List(selector labels.Selector) (ret []*discoveryv1beta1.EndpointSlice, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*discoveryv1beta1.EndpointSlice))
 	})
 	return ret, err
@@ -86,19 +86,19 @@ func (s *endpointSliceLister) List(selector labels.Selector) (ret []*discoveryv1
 
 // EndpointSlices returns an object that can list and get EndpointSlices in one namespace.
 func (s *endpointSliceLister) EndpointSlices(namespace string) discoveryv1beta1listers.EndpointSliceNamespaceLister {
-	return &endpointSliceNamespaceLister{indexer: s.indexer, cluster: s.cluster, namespace: namespace}
+	return &endpointSliceNamespaceLister{indexer: s.indexer, clusterName: s.clusterName, namespace: namespace}
 }
 
 // endpointSliceNamespaceLister implements the discoveryv1beta1listers.EndpointSliceNamespaceLister interface.
 type endpointSliceNamespaceLister struct {
-	indexer   cache.Indexer
-	cluster   logicalcluster.Name
-	namespace string
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
+	namespace   string
 }
 
 // List lists all EndpointSlices in the indexer for a given workspace and namespace.
 func (s *endpointSliceNamespaceLister) List(selector labels.Selector) (ret []*discoveryv1beta1.EndpointSlice, err error) {
-	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.cluster, s.namespace, selector, func(i interface{}) {
+	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.clusterName, s.namespace, selector, func(i interface{}) {
 		ret = append(ret, i.(*discoveryv1beta1.EndpointSlice))
 	})
 	return ret, err
@@ -106,7 +106,7 @@ func (s *endpointSliceNamespaceLister) List(selector labels.Selector) (ret []*di
 
 // Get retrieves the EndpointSlice from the indexer for a given workspace, namespace and name.
 func (s *endpointSliceNamespaceLister) Get(name string) (*discoveryv1beta1.EndpointSlice, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), s.namespace, name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), s.namespace, name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

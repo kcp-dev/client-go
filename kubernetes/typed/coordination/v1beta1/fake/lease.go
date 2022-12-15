@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	coordinationv1beta1 "k8s.io/api/coordination/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,12 +50,12 @@ type leasesClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *leasesClusterClient) Cluster(cluster logicalcluster.Name) kcpcoordinationv1beta1.LeasesNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *leasesClusterClient) Cluster(clusterPath logicalcluster.Path) kcpcoordinationv1beta1.LeasesNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &leasesNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &leasesNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of Leases that match those selectors across all clusters.
@@ -85,21 +85,21 @@ func (c *leasesClusterClient) Watch(ctx context.Context, opts metav1.ListOptions
 
 type leasesNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *leasesNamespacer) Namespace(namespace string) coordinationv1beta1client.LeaseInterface {
-	return &leasesClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &leasesClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type leasesClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *leasesClient) Create(ctx context.Context, lease *coordinationv1beta1.Lease, opts metav1.CreateOptions) (*coordinationv1beta1.Lease, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(leasesResource, c.Cluster, c.Namespace, lease), &coordinationv1beta1.Lease{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(leasesResource, c.ClusterPath, c.Namespace, lease), &coordinationv1beta1.Lease{})
 	if obj == nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (c *leasesClient) Create(ctx context.Context, lease *coordinationv1beta1.Le
 }
 
 func (c *leasesClient) Update(ctx context.Context, lease *coordinationv1beta1.Lease, opts metav1.UpdateOptions) (*coordinationv1beta1.Lease, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(leasesResource, c.Cluster, c.Namespace, lease), &coordinationv1beta1.Lease{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(leasesResource, c.ClusterPath, c.Namespace, lease), &coordinationv1beta1.Lease{})
 	if obj == nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (c *leasesClient) Update(ctx context.Context, lease *coordinationv1beta1.Le
 }
 
 func (c *leasesClient) UpdateStatus(ctx context.Context, lease *coordinationv1beta1.Lease, opts metav1.UpdateOptions) (*coordinationv1beta1.Lease, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(leasesResource, c.Cluster, "status", c.Namespace, lease), &coordinationv1beta1.Lease{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(leasesResource, c.ClusterPath, "status", c.Namespace, lease), &coordinationv1beta1.Lease{})
 	if obj == nil {
 		return nil, err
 	}
@@ -123,19 +123,19 @@ func (c *leasesClient) UpdateStatus(ctx context.Context, lease *coordinationv1be
 }
 
 func (c *leasesClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(leasesResource, c.Cluster, c.Namespace, name, opts), &coordinationv1beta1.Lease{})
+	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(leasesResource, c.ClusterPath, c.Namespace, name, opts), &coordinationv1beta1.Lease{})
 	return err
 }
 
 func (c *leasesClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewDeleteCollectionAction(leasesResource, c.Cluster, c.Namespace, listOpts)
+	action := kcptesting.NewDeleteCollectionAction(leasesResource, c.ClusterPath, c.Namespace, listOpts)
 
 	_, err := c.Fake.Invokes(action, &coordinationv1beta1.LeaseList{})
 	return err
 }
 
 func (c *leasesClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*coordinationv1beta1.Lease, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(leasesResource, c.Cluster, c.Namespace, name), &coordinationv1beta1.Lease{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(leasesResource, c.ClusterPath, c.Namespace, name), &coordinationv1beta1.Lease{})
 	if obj == nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (c *leasesClient) Get(ctx context.Context, name string, options metav1.GetO
 
 // List takes label and field selectors, and returns the list of Leases that match those selectors.
 func (c *leasesClient) List(ctx context.Context, opts metav1.ListOptions) (*coordinationv1beta1.LeaseList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewListAction(leasesResource, leasesKind, c.Cluster, c.Namespace, opts), &coordinationv1beta1.LeaseList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewListAction(leasesResource, leasesKind, c.ClusterPath, c.Namespace, opts), &coordinationv1beta1.LeaseList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -163,11 +163,11 @@ func (c *leasesClient) List(ctx context.Context, opts metav1.ListOptions) (*coor
 }
 
 func (c *leasesClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(leasesResource, c.Cluster, c.Namespace, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(leasesResource, c.ClusterPath, c.Namespace, opts))
 }
 
 func (c *leasesClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*coordinationv1beta1.Lease, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(leasesResource, c.Cluster, c.Namespace, name, pt, data, subresources...), &coordinationv1beta1.Lease{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(leasesResource, c.ClusterPath, c.Namespace, name, pt, data, subresources...), &coordinationv1beta1.Lease{})
 	if obj == nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (c *leasesClient) Apply(ctx context.Context, applyConfiguration *applyconfi
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(leasesResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &coordinationv1beta1.Lease{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(leasesResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &coordinationv1beta1.Lease{})
 	if obj == nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (c *leasesClient) ApplyStatus(ctx context.Context, applyConfiguration *appl
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(leasesResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data, "status"), &coordinationv1beta1.Lease{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(leasesResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data, "status"), &coordinationv1beta1.Lease{})
 	if obj == nil {
 		return nil, err
 	}

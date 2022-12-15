@@ -24,8 +24,8 @@ package v1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type ReplicationControllersClusterGetter interface {
 // ReplicationControllerClusterInterface can operate on ReplicationControllers across all clusters,
 // or scope down to one cluster and return a ReplicationControllersNamespacer.
 type ReplicationControllerClusterInterface interface {
-	Cluster(logicalcluster.Name) ReplicationControllersNamespacer
+	Cluster(logicalcluster.Path) ReplicationControllersNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.ReplicationControllerList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type replicationControllersClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *replicationControllersClusterInterface) Cluster(name logicalcluster.Name) ReplicationControllersNamespacer {
-	if name == logicalcluster.Wildcard {
+func (c *replicationControllersClusterInterface) Cluster(clusterPath logicalcluster.Path) ReplicationControllersNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &replicationControllersNamespacer{clientCache: c.clientCache, name: name}
+	return &replicationControllersNamespacer{clientCache: c.clientCache, clusterPath: clusterPath}
 }
 
 // List returns the entire collection of all ReplicationControllers across all clusters.
@@ -77,9 +77,9 @@ type ReplicationControllersNamespacer interface {
 
 type replicationControllersNamespacer struct {
 	clientCache kcpclient.Cache[*corev1client.CoreV1Client]
-	name        logicalcluster.Name
+	clusterPath logicalcluster.Path
 }
 
 func (n *replicationControllersNamespacer) Namespace(namespace string) corev1client.ReplicationControllerInterface {
-	return n.clientCache.ClusterOrDie(n.name).ReplicationControllers(namespace)
+	return n.clientCache.ClusterOrDie(n.clusterPath).ReplicationControllers(namespace)
 }

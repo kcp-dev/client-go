@@ -24,8 +24,8 @@ package v1beta1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type PodSecurityPoliciesClusterGetter interface {
 // PodSecurityPolicyClusterInterface can operate on PodSecurityPolicies across all clusters,
 // or scope down to one cluster and return a extensionsv1beta1client.PodSecurityPolicyInterface.
 type PodSecurityPolicyClusterInterface interface {
-	Cluster(logicalcluster.Name) extensionsv1beta1client.PodSecurityPolicyInterface
+	Cluster(logicalcluster.Path) extensionsv1beta1client.PodSecurityPolicyInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*extensionsv1beta1.PodSecurityPolicyList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type podSecurityPoliciesClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *podSecurityPoliciesClusterInterface) Cluster(name logicalcluster.Name) extensionsv1beta1client.PodSecurityPolicyInterface {
-	if name == logicalcluster.Wildcard {
+func (c *podSecurityPoliciesClusterInterface) Cluster(clusterPath logicalcluster.Path) extensionsv1beta1client.PodSecurityPolicyInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return c.clientCache.ClusterOrDie(name).PodSecurityPolicies()
+	return c.clientCache.ClusterOrDie(clusterPath).PodSecurityPolicies()
 }
 
 // List returns the entire collection of all PodSecurityPolicies across all clusters.

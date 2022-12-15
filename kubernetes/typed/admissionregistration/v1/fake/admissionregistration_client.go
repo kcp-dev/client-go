@@ -22,7 +22,7 @@ limitations under the License.
 package v1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	admissionregistrationv1 "k8s.io/client-go/kubernetes/typed/admissionregistration/v1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type AdmissionregistrationV1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *AdmissionregistrationV1ClusterClient) Cluster(cluster logicalcluster.Name) admissionregistrationv1.AdmissionregistrationV1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *AdmissionregistrationV1ClusterClient) Cluster(clusterPath logicalcluster.Path) admissionregistrationv1.AdmissionregistrationV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &AdmissionregistrationV1Client{Fake: c.Fake, Cluster: cluster}
+	return &AdmissionregistrationV1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *AdmissionregistrationV1ClusterClient) ValidatingWebhookConfigurations() kcpadmissionregistrationv1.ValidatingWebhookConfigurationClusterInterface {
@@ -56,7 +56,7 @@ var _ admissionregistrationv1.AdmissionregistrationV1Interface = (*Admissionregi
 
 type AdmissionregistrationV1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *AdmissionregistrationV1Client) RESTClient() rest.Interface {
@@ -65,9 +65,9 @@ func (c *AdmissionregistrationV1Client) RESTClient() rest.Interface {
 }
 
 func (c *AdmissionregistrationV1Client) ValidatingWebhookConfigurations() admissionregistrationv1.ValidatingWebhookConfigurationInterface {
-	return &validatingWebhookConfigurationsClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &validatingWebhookConfigurationsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
 
 func (c *AdmissionregistrationV1Client) MutatingWebhookConfigurations() admissionregistrationv1.MutatingWebhookConfigurationInterface {
-	return &mutatingWebhookConfigurationsClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &mutatingWebhookConfigurationsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }

@@ -24,7 +24,7 @@ package v1
 import (
 	"context"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	authorizationv1 "k8s.io/api/authorization/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,21 +42,21 @@ type selfSubjectRulesReviewsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *selfSubjectRulesReviewsClusterClient) Cluster(cluster logicalcluster.Name) authorizationv1client.SelfSubjectRulesReviewInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *selfSubjectRulesReviewsClusterClient) Cluster(clusterPath logicalcluster.Path) authorizationv1client.SelfSubjectRulesReviewInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &selfSubjectRulesReviewsClient{Fake: c.Fake, Cluster: cluster}
+	return &selfSubjectRulesReviewsClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 type selfSubjectRulesReviewsClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *selfSubjectRulesReviewsClient) Create(ctx context.Context, selfSubjectRulesReview *authorizationv1.SelfSubjectRulesReview, opts metav1.CreateOptions) (*authorizationv1.SelfSubjectRulesReview, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(selfSubjectRulesReviewsResource, c.Cluster, selfSubjectRulesReview), &authorizationv1.SelfSubjectRulesReview{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(selfSubjectRulesReviewsResource, c.ClusterPath, selfSubjectRulesReview), &authorizationv1.SelfSubjectRulesReview{})
 	if obj == nil {
 		return nil, err
 	}

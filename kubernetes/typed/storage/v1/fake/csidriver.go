@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type cSIDriversClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *cSIDriversClusterClient) Cluster(cluster logicalcluster.Name) storagev1client.CSIDriverInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *cSIDriversClusterClient) Cluster(clusterPath logicalcluster.Path) storagev1client.CSIDriverInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &cSIDriversClient{Fake: c.Fake, Cluster: cluster}
+	return &cSIDriversClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of CSIDrivers that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *cSIDriversClusterClient) Watch(ctx context.Context, opts metav1.ListOpt
 
 type cSIDriversClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *cSIDriversClient) Create(ctx context.Context, cSIDriver *storagev1.CSIDriver, opts metav1.CreateOptions) (*storagev1.CSIDriver, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(cSIDriversResource, c.Cluster, cSIDriver), &storagev1.CSIDriver{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(cSIDriversResource, c.ClusterPath, cSIDriver), &storagev1.CSIDriver{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *cSIDriversClient) Create(ctx context.Context, cSIDriver *storagev1.CSID
 }
 
 func (c *cSIDriversClient) Update(ctx context.Context, cSIDriver *storagev1.CSIDriver, opts metav1.UpdateOptions) (*storagev1.CSIDriver, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(cSIDriversResource, c.Cluster, cSIDriver), &storagev1.CSIDriver{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(cSIDriversResource, c.ClusterPath, cSIDriver), &storagev1.CSIDriver{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *cSIDriversClient) Update(ctx context.Context, cSIDriver *storagev1.CSID
 }
 
 func (c *cSIDriversClient) UpdateStatus(ctx context.Context, cSIDriver *storagev1.CSIDriver, opts metav1.UpdateOptions) (*storagev1.CSIDriver, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(cSIDriversResource, c.Cluster, "status", cSIDriver), &storagev1.CSIDriver{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(cSIDriversResource, c.ClusterPath, "status", cSIDriver), &storagev1.CSIDriver{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *cSIDriversClient) UpdateStatus(ctx context.Context, cSIDriver *storagev
 }
 
 func (c *cSIDriversClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(cSIDriversResource, c.Cluster, name, opts), &storagev1.CSIDriver{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(cSIDriversResource, c.ClusterPath, name, opts), &storagev1.CSIDriver{})
 	return err
 }
 
 func (c *cSIDriversClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(cSIDriversResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(cSIDriversResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &storagev1.CSIDriverList{})
 	return err
 }
 
 func (c *cSIDriversClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*storagev1.CSIDriver, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(cSIDriversResource, c.Cluster, name), &storagev1.CSIDriver{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(cSIDriversResource, c.ClusterPath, name), &storagev1.CSIDriver{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *cSIDriversClient) Get(ctx context.Context, name string, options metav1.
 
 // List takes label and field selectors, and returns the list of CSIDrivers that match those selectors.
 func (c *cSIDriversClient) List(ctx context.Context, opts metav1.ListOptions) (*storagev1.CSIDriverList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(cSIDriversResource, cSIDriversKind, c.Cluster, opts), &storagev1.CSIDriverList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(cSIDriversResource, cSIDriversKind, c.ClusterPath, opts), &storagev1.CSIDriverList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *cSIDriversClient) List(ctx context.Context, opts metav1.ListOptions) (*
 }
 
 func (c *cSIDriversClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(cSIDriversResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(cSIDriversResource, c.ClusterPath, opts))
 }
 
 func (c *cSIDriversClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*storagev1.CSIDriver, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(cSIDriversResource, c.Cluster, name, pt, data, subresources...), &storagev1.CSIDriver{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(cSIDriversResource, c.ClusterPath, name, pt, data, subresources...), &storagev1.CSIDriver{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *cSIDriversClient) Apply(ctx context.Context, applyConfiguration *applyc
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(cSIDriversResource, c.Cluster, *name, types.ApplyPatchType, data), &storagev1.CSIDriver{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(cSIDriversResource, c.ClusterPath, *name, types.ApplyPatchType, data), &storagev1.CSIDriver{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *cSIDriversClient) ApplyStatus(ctx context.Context, applyConfiguration *
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(cSIDriversResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &storagev1.CSIDriver{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(cSIDriversResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &storagev1.CSIDriver{})
 	if obj == nil {
 		return nil, err
 	}

@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	coordinationv1beta1 "k8s.io/api/coordination/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *leaseClusterInformer) Lister() coordinationv1beta1listers.LeaseClusterL
 	return coordinationv1beta1listers.NewLeaseClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *leaseClusterInformer) Cluster(cluster logicalcluster.Name) upstreamcoordinationv1beta1informers.LeaseInformer {
+func (f *leaseClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamcoordinationv1beta1informers.LeaseInformer {
 	return &leaseInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

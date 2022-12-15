@@ -22,8 +22,8 @@ limitations under the License.
 package v1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	schedulingv1 "k8s.io/api/scheduling/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type PriorityClassClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*schedulingv1.PriorityClass, err error)
 	// Cluster returns a lister that can list and get PriorityClasses in one workspace.
-	Cluster(cluster logicalcluster.Name) schedulingv1listers.PriorityClassLister
+	Cluster(clusterName logicalcluster.Name) schedulingv1listers.PriorityClassLister
 	PriorityClassClusterListerExpansion
 }
 
@@ -65,19 +65,19 @@ func (s *priorityClassClusterLister) List(selector labels.Selector) (ret []*sche
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get PriorityClasses.
-func (s *priorityClassClusterLister) Cluster(cluster logicalcluster.Name) schedulingv1listers.PriorityClassLister {
-	return &priorityClassLister{indexer: s.indexer, cluster: cluster}
+func (s *priorityClassClusterLister) Cluster(clusterName logicalcluster.Name) schedulingv1listers.PriorityClassLister {
+	return &priorityClassLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // priorityClassLister implements the schedulingv1listers.PriorityClassLister interface.
 type priorityClassLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all PriorityClasses in the indexer for a workspace.
 func (s *priorityClassLister) List(selector labels.Selector) (ret []*schedulingv1.PriorityClass, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*schedulingv1.PriorityClass))
 	})
 	return ret, err
@@ -85,7 +85,7 @@ func (s *priorityClassLister) List(selector labels.Selector) (ret []*schedulingv
 
 // Get retrieves the PriorityClass from the indexer for a given workspace and name.
 func (s *priorityClassLister) Get(name string) (*schedulingv1.PriorityClass, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), "", name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), "", name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

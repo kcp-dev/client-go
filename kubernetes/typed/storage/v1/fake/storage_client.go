@@ -22,7 +22,7 @@ limitations under the License.
 package v1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	storagev1 "k8s.io/client-go/kubernetes/typed/storage/v1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type StorageV1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *StorageV1ClusterClient) Cluster(cluster logicalcluster.Name) storagev1.StorageV1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *StorageV1ClusterClient) Cluster(clusterPath logicalcluster.Path) storagev1.StorageV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &StorageV1Client{Fake: c.Fake, Cluster: cluster}
+	return &StorageV1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *StorageV1ClusterClient) StorageClasses() kcpstoragev1.StorageClassClusterInterface {
@@ -68,7 +68,7 @@ var _ storagev1.StorageV1Interface = (*StorageV1Client)(nil)
 
 type StorageV1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *StorageV1Client) RESTClient() rest.Interface {
@@ -77,21 +77,21 @@ func (c *StorageV1Client) RESTClient() rest.Interface {
 }
 
 func (c *StorageV1Client) StorageClasses() storagev1.StorageClassInterface {
-	return &storageClassesClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &storageClassesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
 
 func (c *StorageV1Client) VolumeAttachments() storagev1.VolumeAttachmentInterface {
-	return &volumeAttachmentsClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &volumeAttachmentsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
 
 func (c *StorageV1Client) CSIDrivers() storagev1.CSIDriverInterface {
-	return &cSIDriversClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &cSIDriversClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
 
 func (c *StorageV1Client) CSINodes() storagev1.CSINodeInterface {
-	return &cSINodesClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &cSINodesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
 
 func (c *StorageV1Client) CSIStorageCapacities(namespace string) storagev1.CSIStorageCapacityInterface {
-	return &cSIStorageCapacitiesClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &cSIStorageCapacitiesClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
