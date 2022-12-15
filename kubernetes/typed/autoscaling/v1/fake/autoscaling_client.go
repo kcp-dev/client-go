@@ -22,7 +22,7 @@ limitations under the License.
 package v1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	autoscalingv1 "k8s.io/client-go/kubernetes/typed/autoscaling/v1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type AutoscalingV1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *AutoscalingV1ClusterClient) Cluster(cluster logicalcluster.Name) autoscalingv1.AutoscalingV1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *AutoscalingV1ClusterClient) Cluster(clusterPath logicalcluster.Path) autoscalingv1.AutoscalingV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &AutoscalingV1Client{Fake: c.Fake, Cluster: cluster}
+	return &AutoscalingV1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *AutoscalingV1ClusterClient) HorizontalPodAutoscalers() kcpautoscalingv1.HorizontalPodAutoscalerClusterInterface {
@@ -52,7 +52,7 @@ var _ autoscalingv1.AutoscalingV1Interface = (*AutoscalingV1Client)(nil)
 
 type AutoscalingV1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *AutoscalingV1Client) RESTClient() rest.Interface {
@@ -61,5 +61,5 @@ func (c *AutoscalingV1Client) RESTClient() rest.Interface {
 }
 
 func (c *AutoscalingV1Client) HorizontalPodAutoscalers(namespace string) autoscalingv1.HorizontalPodAutoscalerInterface {
-	return &horizontalPodAutoscalersClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &horizontalPodAutoscalersClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }

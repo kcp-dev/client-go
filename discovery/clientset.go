@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"net/http"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
@@ -36,8 +36,8 @@ type ClusterClientset struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *ClusterClientset) Cluster(name logicalcluster.Name) discovery.DiscoveryInterface {
-	return c.clientCache.ClusterOrDie(name)
+func (c *ClusterClientset) Cluster(clusterPath logicalcluster.Path) discovery.DiscoveryInterface {
+	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
 // NewForConfig creates a new ClusterClientset for the given config.

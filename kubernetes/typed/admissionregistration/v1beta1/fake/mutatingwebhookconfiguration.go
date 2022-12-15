@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type mutatingWebhookConfigurationsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *mutatingWebhookConfigurationsClusterClient) Cluster(cluster logicalcluster.Name) admissionregistrationv1beta1client.MutatingWebhookConfigurationInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *mutatingWebhookConfigurationsClusterClient) Cluster(clusterPath logicalcluster.Path) admissionregistrationv1beta1client.MutatingWebhookConfigurationInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &mutatingWebhookConfigurationsClient{Fake: c.Fake, Cluster: cluster}
+	return &mutatingWebhookConfigurationsClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of MutatingWebhookConfigurations that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *mutatingWebhookConfigurationsClusterClient) Watch(ctx context.Context, 
 
 type mutatingWebhookConfigurationsClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *mutatingWebhookConfigurationsClient) Create(ctx context.Context, mutatingWebhookConfiguration *admissionregistrationv1beta1.MutatingWebhookConfiguration, opts metav1.CreateOptions) (*admissionregistrationv1beta1.MutatingWebhookConfiguration, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(mutatingWebhookConfigurationsResource, c.Cluster, mutatingWebhookConfiguration), &admissionregistrationv1beta1.MutatingWebhookConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(mutatingWebhookConfigurationsResource, c.ClusterPath, mutatingWebhookConfiguration), &admissionregistrationv1beta1.MutatingWebhookConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *mutatingWebhookConfigurationsClient) Create(ctx context.Context, mutati
 }
 
 func (c *mutatingWebhookConfigurationsClient) Update(ctx context.Context, mutatingWebhookConfiguration *admissionregistrationv1beta1.MutatingWebhookConfiguration, opts metav1.UpdateOptions) (*admissionregistrationv1beta1.MutatingWebhookConfiguration, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(mutatingWebhookConfigurationsResource, c.Cluster, mutatingWebhookConfiguration), &admissionregistrationv1beta1.MutatingWebhookConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(mutatingWebhookConfigurationsResource, c.ClusterPath, mutatingWebhookConfiguration), &admissionregistrationv1beta1.MutatingWebhookConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *mutatingWebhookConfigurationsClient) Update(ctx context.Context, mutati
 }
 
 func (c *mutatingWebhookConfigurationsClient) UpdateStatus(ctx context.Context, mutatingWebhookConfiguration *admissionregistrationv1beta1.MutatingWebhookConfiguration, opts metav1.UpdateOptions) (*admissionregistrationv1beta1.MutatingWebhookConfiguration, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(mutatingWebhookConfigurationsResource, c.Cluster, "status", mutatingWebhookConfiguration), &admissionregistrationv1beta1.MutatingWebhookConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(mutatingWebhookConfigurationsResource, c.ClusterPath, "status", mutatingWebhookConfiguration), &admissionregistrationv1beta1.MutatingWebhookConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *mutatingWebhookConfigurationsClient) UpdateStatus(ctx context.Context, 
 }
 
 func (c *mutatingWebhookConfigurationsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(mutatingWebhookConfigurationsResource, c.Cluster, name, opts), &admissionregistrationv1beta1.MutatingWebhookConfiguration{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(mutatingWebhookConfigurationsResource, c.ClusterPath, name, opts), &admissionregistrationv1beta1.MutatingWebhookConfiguration{})
 	return err
 }
 
 func (c *mutatingWebhookConfigurationsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(mutatingWebhookConfigurationsResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(mutatingWebhookConfigurationsResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &admissionregistrationv1beta1.MutatingWebhookConfigurationList{})
 	return err
 }
 
 func (c *mutatingWebhookConfigurationsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*admissionregistrationv1beta1.MutatingWebhookConfiguration, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(mutatingWebhookConfigurationsResource, c.Cluster, name), &admissionregistrationv1beta1.MutatingWebhookConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(mutatingWebhookConfigurationsResource, c.ClusterPath, name), &admissionregistrationv1beta1.MutatingWebhookConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *mutatingWebhookConfigurationsClient) Get(ctx context.Context, name stri
 
 // List takes label and field selectors, and returns the list of MutatingWebhookConfigurations that match those selectors.
 func (c *mutatingWebhookConfigurationsClient) List(ctx context.Context, opts metav1.ListOptions) (*admissionregistrationv1beta1.MutatingWebhookConfigurationList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(mutatingWebhookConfigurationsResource, mutatingWebhookConfigurationsKind, c.Cluster, opts), &admissionregistrationv1beta1.MutatingWebhookConfigurationList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(mutatingWebhookConfigurationsResource, mutatingWebhookConfigurationsKind, c.ClusterPath, opts), &admissionregistrationv1beta1.MutatingWebhookConfigurationList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *mutatingWebhookConfigurationsClient) List(ctx context.Context, opts met
 }
 
 func (c *mutatingWebhookConfigurationsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(mutatingWebhookConfigurationsResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(mutatingWebhookConfigurationsResource, c.ClusterPath, opts))
 }
 
 func (c *mutatingWebhookConfigurationsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*admissionregistrationv1beta1.MutatingWebhookConfiguration, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(mutatingWebhookConfigurationsResource, c.Cluster, name, pt, data, subresources...), &admissionregistrationv1beta1.MutatingWebhookConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(mutatingWebhookConfigurationsResource, c.ClusterPath, name, pt, data, subresources...), &admissionregistrationv1beta1.MutatingWebhookConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *mutatingWebhookConfigurationsClient) Apply(ctx context.Context, applyCo
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(mutatingWebhookConfigurationsResource, c.Cluster, *name, types.ApplyPatchType, data), &admissionregistrationv1beta1.MutatingWebhookConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(mutatingWebhookConfigurationsResource, c.ClusterPath, *name, types.ApplyPatchType, data), &admissionregistrationv1beta1.MutatingWebhookConfiguration{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *mutatingWebhookConfigurationsClient) ApplyStatus(ctx context.Context, a
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(mutatingWebhookConfigurationsResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &admissionregistrationv1beta1.MutatingWebhookConfiguration{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(mutatingWebhookConfigurationsResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &admissionregistrationv1beta1.MutatingWebhookConfiguration{})
 	if obj == nil {
 		return nil, err
 	}

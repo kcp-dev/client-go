@@ -22,8 +22,8 @@ limitations under the License.
 package v1beta2
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	flowcontrolv1beta2 "k8s.io/api/flowcontrol/v1beta2"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type FlowSchemaClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*flowcontrolv1beta2.FlowSchema, err error)
 	// Cluster returns a lister that can list and get FlowSchemas in one workspace.
-	Cluster(cluster logicalcluster.Name) flowcontrolv1beta2listers.FlowSchemaLister
+	Cluster(clusterName logicalcluster.Name) flowcontrolv1beta2listers.FlowSchemaLister
 	FlowSchemaClusterListerExpansion
 }
 
@@ -65,19 +65,19 @@ func (s *flowSchemaClusterLister) List(selector labels.Selector) (ret []*flowcon
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get FlowSchemas.
-func (s *flowSchemaClusterLister) Cluster(cluster logicalcluster.Name) flowcontrolv1beta2listers.FlowSchemaLister {
-	return &flowSchemaLister{indexer: s.indexer, cluster: cluster}
+func (s *flowSchemaClusterLister) Cluster(clusterName logicalcluster.Name) flowcontrolv1beta2listers.FlowSchemaLister {
+	return &flowSchemaLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // flowSchemaLister implements the flowcontrolv1beta2listers.FlowSchemaLister interface.
 type flowSchemaLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all FlowSchemas in the indexer for a workspace.
 func (s *flowSchemaLister) List(selector labels.Selector) (ret []*flowcontrolv1beta2.FlowSchema, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*flowcontrolv1beta2.FlowSchema))
 	})
 	return ret, err
@@ -85,7 +85,7 @@ func (s *flowSchemaLister) List(selector labels.Selector) (ret []*flowcontrolv1b
 
 // Get retrieves the FlowSchema from the indexer for a given workspace and name.
 func (s *flowSchemaLister) Get(name string) (*flowcontrolv1beta2.FlowSchema, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), "", name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), "", name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

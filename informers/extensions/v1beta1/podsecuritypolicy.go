@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *podSecurityPolicyClusterInformer) Lister() extensionsv1beta1listers.Pod
 	return extensionsv1beta1listers.NewPodSecurityPolicyClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *podSecurityPolicyClusterInformer) Cluster(cluster logicalcluster.Name) upstreamextensionsv1beta1informers.PodSecurityPolicyInformer {
+func (f *podSecurityPolicyClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamextensionsv1beta1informers.PodSecurityPolicyInformer {
 	return &podSecurityPolicyInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

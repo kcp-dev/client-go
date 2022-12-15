@@ -22,7 +22,7 @@ limitations under the License.
 package v1beta1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	extensionsv1beta1 "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type ExtensionsV1beta1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *ExtensionsV1beta1ClusterClient) Cluster(cluster logicalcluster.Name) extensionsv1beta1.ExtensionsV1beta1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *ExtensionsV1beta1ClusterClient) Cluster(clusterPath logicalcluster.Path) extensionsv1beta1.ExtensionsV1beta1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &ExtensionsV1beta1Client{Fake: c.Fake, Cluster: cluster}
+	return &ExtensionsV1beta1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *ExtensionsV1beta1ClusterClient) Deployments() kcpextensionsv1beta1.DeploymentClusterInterface {
@@ -72,7 +72,7 @@ var _ extensionsv1beta1.ExtensionsV1beta1Interface = (*ExtensionsV1beta1Client)(
 
 type ExtensionsV1beta1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *ExtensionsV1beta1Client) RESTClient() rest.Interface {
@@ -81,25 +81,25 @@ func (c *ExtensionsV1beta1Client) RESTClient() rest.Interface {
 }
 
 func (c *ExtensionsV1beta1Client) Deployments(namespace string) extensionsv1beta1.DeploymentInterface {
-	return &deploymentsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &deploymentsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *ExtensionsV1beta1Client) DaemonSets(namespace string) extensionsv1beta1.DaemonSetInterface {
-	return &daemonSetsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &daemonSetsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *ExtensionsV1beta1Client) Ingresses(namespace string) extensionsv1beta1.IngressInterface {
-	return &ingressesClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &ingressesClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *ExtensionsV1beta1Client) ReplicaSets(namespace string) extensionsv1beta1.ReplicaSetInterface {
-	return &replicaSetsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &replicaSetsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *ExtensionsV1beta1Client) PodSecurityPolicies() extensionsv1beta1.PodSecurityPolicyInterface {
-	return &podSecurityPoliciesClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &podSecurityPoliciesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
 
 func (c *ExtensionsV1beta1Client) NetworkPolicies(namespace string) extensionsv1beta1.NetworkPolicyInterface {
-	return &networkPoliciesClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &networkPoliciesClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }

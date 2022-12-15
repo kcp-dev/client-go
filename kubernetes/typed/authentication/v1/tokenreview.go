@@ -22,8 +22,8 @@ limitations under the License.
 package v1
 
 import (
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	authenticationv1client "k8s.io/client-go/kubernetes/typed/authentication/v1"
 )
@@ -36,7 +36,7 @@ type TokenReviewsClusterGetter interface {
 
 // TokenReviewClusterInterface can scope down to one cluster and return a authenticationv1client.TokenReviewInterface.
 type TokenReviewClusterInterface interface {
-	Cluster(logicalcluster.Name) authenticationv1client.TokenReviewInterface
+	Cluster(logicalcluster.Path) authenticationv1client.TokenReviewInterface
 }
 
 type tokenReviewsClusterInterface struct {
@@ -44,10 +44,10 @@ type tokenReviewsClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *tokenReviewsClusterInterface) Cluster(name logicalcluster.Name) authenticationv1client.TokenReviewInterface {
-	if name == logicalcluster.Wildcard {
+func (c *tokenReviewsClusterInterface) Cluster(clusterPath logicalcluster.Path) authenticationv1client.TokenReviewInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return c.clientCache.ClusterOrDie(name).TokenReviews()
+	return c.clientCache.ClusterOrDie(clusterPath).TokenReviews()
 }

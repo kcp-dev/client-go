@@ -22,8 +22,8 @@ limitations under the License.
 package v1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type CronJobClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*batchv1.CronJob, err error)
 	// Cluster returns a lister that can list and get CronJobs in one workspace.
-	Cluster(cluster logicalcluster.Name) batchv1listers.CronJobLister
+	Cluster(clusterName logicalcluster.Name) batchv1listers.CronJobLister
 	CronJobClusterListerExpansion
 }
 
@@ -66,19 +66,19 @@ func (s *cronJobClusterLister) List(selector labels.Selector) (ret []*batchv1.Cr
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get CronJobs.
-func (s *cronJobClusterLister) Cluster(cluster logicalcluster.Name) batchv1listers.CronJobLister {
-	return &cronJobLister{indexer: s.indexer, cluster: cluster}
+func (s *cronJobClusterLister) Cluster(clusterName logicalcluster.Name) batchv1listers.CronJobLister {
+	return &cronJobLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // cronJobLister implements the batchv1listers.CronJobLister interface.
 type cronJobLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all CronJobs in the indexer for a workspace.
 func (s *cronJobLister) List(selector labels.Selector) (ret []*batchv1.CronJob, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*batchv1.CronJob))
 	})
 	return ret, err
@@ -86,19 +86,19 @@ func (s *cronJobLister) List(selector labels.Selector) (ret []*batchv1.CronJob, 
 
 // CronJobs returns an object that can list and get CronJobs in one namespace.
 func (s *cronJobLister) CronJobs(namespace string) batchv1listers.CronJobNamespaceLister {
-	return &cronJobNamespaceLister{indexer: s.indexer, cluster: s.cluster, namespace: namespace}
+	return &cronJobNamespaceLister{indexer: s.indexer, clusterName: s.clusterName, namespace: namespace}
 }
 
 // cronJobNamespaceLister implements the batchv1listers.CronJobNamespaceLister interface.
 type cronJobNamespaceLister struct {
-	indexer   cache.Indexer
-	cluster   logicalcluster.Name
-	namespace string
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
+	namespace   string
 }
 
 // List lists all CronJobs in the indexer for a given workspace and namespace.
 func (s *cronJobNamespaceLister) List(selector labels.Selector) (ret []*batchv1.CronJob, err error) {
-	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.cluster, s.namespace, selector, func(i interface{}) {
+	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.clusterName, s.namespace, selector, func(i interface{}) {
 		ret = append(ret, i.(*batchv1.CronJob))
 	})
 	return ret, err
@@ -106,7 +106,7 @@ func (s *cronJobNamespaceLister) List(selector labels.Selector) (ret []*batchv1.
 
 // Get retrieves the CronJob from the indexer for a given workspace, namespace and name.
 func (s *cronJobNamespaceLister) Get(name string) (*batchv1.CronJob, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), s.namespace, name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), s.namespace, name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

@@ -22,7 +22,7 @@ limitations under the License.
 package fake
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
@@ -178,7 +178,7 @@ func NewSimpleClientset(objects ...runtime.Object) *ClusterClientset {
 	o.AddAll(objects...)
 
 	cs := &ClusterClientset{Fake: &kcptesting.Fake{}, tracker: o}
-	cs.discovery = &kcpfakediscovery.FakeDiscovery{Fake: cs.Fake, Cluster: logicalcluster.Wildcard}
+	cs.discovery = &kcpfakediscovery.FakeDiscovery{Fake: cs.Fake, ClusterPath: logicalcluster.Wildcard}
 	cs.AddReactor("*", "*", kcptesting.ObjectReaction(o))
 	cs.AddWatchReactor("*", kcptesting.WatchReaction(o))
 
@@ -429,15 +429,15 @@ func (c *ClusterClientset) StorageV1beta1() kcpstoragev1beta1.StorageV1beta1Clus
 }
 
 // Cluster scopes this clientset to one cluster.
-func (c *ClusterClientset) Cluster(cluster logicalcluster.Name) client.Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *ClusterClientset) Cluster(clusterPath logicalcluster.Path) client.Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 	return &Clientset{
-		Fake:      c.Fake,
-		discovery: &kcpfakediscovery.FakeDiscovery{Fake: c.Fake, Cluster: cluster},
-		tracker:   c.tracker.Cluster(cluster),
-		cluster:   cluster,
+		Fake:        c.Fake,
+		discovery:   &kcpfakediscovery.FakeDiscovery{Fake: c.Fake, ClusterPath: clusterPath},
+		tracker:     c.tracker.Cluster(clusterPath),
+		clusterPath: clusterPath,
 	}
 }
 
@@ -446,9 +446,9 @@ var _ client.Interface = (*Clientset)(nil)
 // Clientset contains the clients for groups.
 type Clientset struct {
 	*kcptesting.Fake
-	discovery *kcpfakediscovery.FakeDiscovery
-	tracker   kcptesting.ScopedObjectTracker
-	cluster   logicalcluster.Name
+	discovery   *kcpfakediscovery.FakeDiscovery
+	tracker     kcptesting.ScopedObjectTracker
+	clusterPath logicalcluster.Path
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -462,225 +462,225 @@ func (c *Clientset) Tracker() kcptesting.ScopedObjectTracker {
 
 // AdmissionregistrationV1 retrieves the AdmissionregistrationV1Client.
 func (c *Clientset) AdmissionregistrationV1() admissionregistrationv1.AdmissionregistrationV1Interface {
-	return &fakeadmissionregistrationv1.AdmissionregistrationV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeadmissionregistrationv1.AdmissionregistrationV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // AdmissionregistrationV1beta1 retrieves the AdmissionregistrationV1beta1Client.
 func (c *Clientset) AdmissionregistrationV1beta1() admissionregistrationv1beta1.AdmissionregistrationV1beta1Interface {
-	return &fakeadmissionregistrationv1beta1.AdmissionregistrationV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeadmissionregistrationv1beta1.AdmissionregistrationV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // AppsV1 retrieves the AppsV1Client.
 func (c *Clientset) AppsV1() appsv1.AppsV1Interface {
-	return &fakeappsv1.AppsV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeappsv1.AppsV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // AppsV1beta1 retrieves the AppsV1beta1Client.
 func (c *Clientset) AppsV1beta1() appsv1beta1.AppsV1beta1Interface {
-	return &fakeappsv1beta1.AppsV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeappsv1beta1.AppsV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // AppsV1beta2 retrieves the AppsV1beta2Client.
 func (c *Clientset) AppsV1beta2() appsv1beta2.AppsV1beta2Interface {
-	return &fakeappsv1beta2.AppsV1beta2Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeappsv1beta2.AppsV1beta2Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // AuthenticationV1 retrieves the AuthenticationV1Client.
 func (c *Clientset) AuthenticationV1() authenticationv1.AuthenticationV1Interface {
-	return &fakeauthenticationv1.AuthenticationV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeauthenticationv1.AuthenticationV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // AuthenticationV1beta1 retrieves the AuthenticationV1beta1Client.
 func (c *Clientset) AuthenticationV1beta1() authenticationv1beta1.AuthenticationV1beta1Interface {
-	return &fakeauthenticationv1beta1.AuthenticationV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeauthenticationv1beta1.AuthenticationV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // AuthorizationV1 retrieves the AuthorizationV1Client.
 func (c *Clientset) AuthorizationV1() authorizationv1.AuthorizationV1Interface {
-	return &fakeauthorizationv1.AuthorizationV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeauthorizationv1.AuthorizationV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // AuthorizationV1beta1 retrieves the AuthorizationV1beta1Client.
 func (c *Clientset) AuthorizationV1beta1() authorizationv1beta1.AuthorizationV1beta1Interface {
-	return &fakeauthorizationv1beta1.AuthorizationV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeauthorizationv1beta1.AuthorizationV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // AutoscalingV1 retrieves the AutoscalingV1Client.
 func (c *Clientset) AutoscalingV1() autoscalingv1.AutoscalingV1Interface {
-	return &fakeautoscalingv1.AutoscalingV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeautoscalingv1.AutoscalingV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // AutoscalingV2 retrieves the AutoscalingV2Client.
 func (c *Clientset) AutoscalingV2() autoscalingv2.AutoscalingV2Interface {
-	return &fakeautoscalingv2.AutoscalingV2Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeautoscalingv2.AutoscalingV2Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // AutoscalingV2beta1 retrieves the AutoscalingV2beta1Client.
 func (c *Clientset) AutoscalingV2beta1() autoscalingv2beta1.AutoscalingV2beta1Interface {
-	return &fakeautoscalingv2beta1.AutoscalingV2beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeautoscalingv2beta1.AutoscalingV2beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // AutoscalingV2beta2 retrieves the AutoscalingV2beta2Client.
 func (c *Clientset) AutoscalingV2beta2() autoscalingv2beta2.AutoscalingV2beta2Interface {
-	return &fakeautoscalingv2beta2.AutoscalingV2beta2Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeautoscalingv2beta2.AutoscalingV2beta2Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // BatchV1 retrieves the BatchV1Client.
 func (c *Clientset) BatchV1() batchv1.BatchV1Interface {
-	return &fakebatchv1.BatchV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakebatchv1.BatchV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // BatchV1beta1 retrieves the BatchV1beta1Client.
 func (c *Clientset) BatchV1beta1() batchv1beta1.BatchV1beta1Interface {
-	return &fakebatchv1beta1.BatchV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakebatchv1beta1.BatchV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // CertificatesV1 retrieves the CertificatesV1Client.
 func (c *Clientset) CertificatesV1() certificatesv1.CertificatesV1Interface {
-	return &fakecertificatesv1.CertificatesV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakecertificatesv1.CertificatesV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // CertificatesV1beta1 retrieves the CertificatesV1beta1Client.
 func (c *Clientset) CertificatesV1beta1() certificatesv1beta1.CertificatesV1beta1Interface {
-	return &fakecertificatesv1beta1.CertificatesV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakecertificatesv1beta1.CertificatesV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // CoordinationV1 retrieves the CoordinationV1Client.
 func (c *Clientset) CoordinationV1() coordinationv1.CoordinationV1Interface {
-	return &fakecoordinationv1.CoordinationV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakecoordinationv1.CoordinationV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // CoordinationV1beta1 retrieves the CoordinationV1beta1Client.
 func (c *Clientset) CoordinationV1beta1() coordinationv1beta1.CoordinationV1beta1Interface {
-	return &fakecoordinationv1beta1.CoordinationV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakecoordinationv1beta1.CoordinationV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // CoreV1 retrieves the CoreV1Client.
 func (c *Clientset) CoreV1() corev1.CoreV1Interface {
-	return &fakecorev1.CoreV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakecorev1.CoreV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // DiscoveryV1 retrieves the DiscoveryV1Client.
 func (c *Clientset) DiscoveryV1() discoveryv1.DiscoveryV1Interface {
-	return &fakediscoveryv1.DiscoveryV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakediscoveryv1.DiscoveryV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // DiscoveryV1beta1 retrieves the DiscoveryV1beta1Client.
 func (c *Clientset) DiscoveryV1beta1() discoveryv1beta1.DiscoveryV1beta1Interface {
-	return &fakediscoveryv1beta1.DiscoveryV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakediscoveryv1beta1.DiscoveryV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // EventsV1 retrieves the EventsV1Client.
 func (c *Clientset) EventsV1() eventsv1.EventsV1Interface {
-	return &fakeeventsv1.EventsV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeeventsv1.EventsV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // EventsV1beta1 retrieves the EventsV1beta1Client.
 func (c *Clientset) EventsV1beta1() eventsv1beta1.EventsV1beta1Interface {
-	return &fakeeventsv1beta1.EventsV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeeventsv1beta1.EventsV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // ExtensionsV1beta1 retrieves the ExtensionsV1beta1Client.
 func (c *Clientset) ExtensionsV1beta1() extensionsv1beta1.ExtensionsV1beta1Interface {
-	return &fakeextensionsv1beta1.ExtensionsV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeextensionsv1beta1.ExtensionsV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // FlowcontrolV1alpha1 retrieves the FlowcontrolV1alpha1Client.
 func (c *Clientset) FlowcontrolV1alpha1() flowcontrolv1alpha1.FlowcontrolV1alpha1Interface {
-	return &fakeflowcontrolv1alpha1.FlowcontrolV1alpha1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeflowcontrolv1alpha1.FlowcontrolV1alpha1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // FlowcontrolV1beta1 retrieves the FlowcontrolV1beta1Client.
 func (c *Clientset) FlowcontrolV1beta1() flowcontrolv1beta1.FlowcontrolV1beta1Interface {
-	return &fakeflowcontrolv1beta1.FlowcontrolV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeflowcontrolv1beta1.FlowcontrolV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // FlowcontrolV1beta2 retrieves the FlowcontrolV1beta2Client.
 func (c *Clientset) FlowcontrolV1beta2() flowcontrolv1beta2.FlowcontrolV1beta2Interface {
-	return &fakeflowcontrolv1beta2.FlowcontrolV1beta2Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeflowcontrolv1beta2.FlowcontrolV1beta2Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // InternalV1alpha1 retrieves the InternalV1alpha1Client.
 func (c *Clientset) InternalV1alpha1() internalv1alpha1.InternalV1alpha1Interface {
-	return &fakeinternalv1alpha1.InternalV1alpha1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeinternalv1alpha1.InternalV1alpha1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // NetworkingV1 retrieves the NetworkingV1Client.
 func (c *Clientset) NetworkingV1() networkingv1.NetworkingV1Interface {
-	return &fakenetworkingv1.NetworkingV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakenetworkingv1.NetworkingV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // NetworkingV1beta1 retrieves the NetworkingV1beta1Client.
 func (c *Clientset) NetworkingV1beta1() networkingv1beta1.NetworkingV1beta1Interface {
-	return &fakenetworkingv1beta1.NetworkingV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakenetworkingv1beta1.NetworkingV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // NodeV1 retrieves the NodeV1Client.
 func (c *Clientset) NodeV1() nodev1.NodeV1Interface {
-	return &fakenodev1.NodeV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakenodev1.NodeV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // NodeV1alpha1 retrieves the NodeV1alpha1Client.
 func (c *Clientset) NodeV1alpha1() nodev1alpha1.NodeV1alpha1Interface {
-	return &fakenodev1alpha1.NodeV1alpha1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakenodev1alpha1.NodeV1alpha1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // NodeV1beta1 retrieves the NodeV1beta1Client.
 func (c *Clientset) NodeV1beta1() nodev1beta1.NodeV1beta1Interface {
-	return &fakenodev1beta1.NodeV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakenodev1beta1.NodeV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // PolicyV1 retrieves the PolicyV1Client.
 func (c *Clientset) PolicyV1() policyv1.PolicyV1Interface {
-	return &fakepolicyv1.PolicyV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakepolicyv1.PolicyV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // PolicyV1beta1 retrieves the PolicyV1beta1Client.
 func (c *Clientset) PolicyV1beta1() policyv1beta1.PolicyV1beta1Interface {
-	return &fakepolicyv1beta1.PolicyV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakepolicyv1beta1.PolicyV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // RbacV1 retrieves the RbacV1Client.
 func (c *Clientset) RbacV1() rbacv1.RbacV1Interface {
-	return &fakerbacv1.RbacV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakerbacv1.RbacV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // RbacV1alpha1 retrieves the RbacV1alpha1Client.
 func (c *Clientset) RbacV1alpha1() rbacv1alpha1.RbacV1alpha1Interface {
-	return &fakerbacv1alpha1.RbacV1alpha1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakerbacv1alpha1.RbacV1alpha1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // RbacV1beta1 retrieves the RbacV1beta1Client.
 func (c *Clientset) RbacV1beta1() rbacv1beta1.RbacV1beta1Interface {
-	return &fakerbacv1beta1.RbacV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakerbacv1beta1.RbacV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // SchedulingV1 retrieves the SchedulingV1Client.
 func (c *Clientset) SchedulingV1() schedulingv1.SchedulingV1Interface {
-	return &fakeschedulingv1.SchedulingV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeschedulingv1.SchedulingV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // SchedulingV1alpha1 retrieves the SchedulingV1alpha1Client.
 func (c *Clientset) SchedulingV1alpha1() schedulingv1alpha1.SchedulingV1alpha1Interface {
-	return &fakeschedulingv1alpha1.SchedulingV1alpha1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeschedulingv1alpha1.SchedulingV1alpha1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // SchedulingV1beta1 retrieves the SchedulingV1beta1Client.
 func (c *Clientset) SchedulingV1beta1() schedulingv1beta1.SchedulingV1beta1Interface {
-	return &fakeschedulingv1beta1.SchedulingV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakeschedulingv1beta1.SchedulingV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // StorageV1 retrieves the StorageV1Client.
 func (c *Clientset) StorageV1() storagev1.StorageV1Interface {
-	return &fakestoragev1.StorageV1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakestoragev1.StorageV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // StorageV1alpha1 retrieves the StorageV1alpha1Client.
 func (c *Clientset) StorageV1alpha1() storagev1alpha1.StorageV1alpha1Interface {
-	return &fakestoragev1alpha1.StorageV1alpha1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakestoragev1alpha1.StorageV1alpha1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // StorageV1beta1 retrieves the StorageV1beta1Client.
 func (c *Clientset) StorageV1beta1() storagev1beta1.StorageV1beta1Interface {
-	return &fakestoragev1beta1.StorageV1beta1Client{Fake: c.Fake, Cluster: c.cluster}
+	return &fakestoragev1beta1.StorageV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }

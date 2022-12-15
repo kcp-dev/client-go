@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,12 +50,12 @@ type endpointsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *endpointsClusterClient) Cluster(cluster logicalcluster.Name) kcpcorev1.EndpointsNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *endpointsClusterClient) Cluster(clusterPath logicalcluster.Path) kcpcorev1.EndpointsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &endpointsNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &endpointsNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of Endpoints that match those selectors across all clusters.
@@ -85,21 +85,21 @@ func (c *endpointsClusterClient) Watch(ctx context.Context, opts metav1.ListOpti
 
 type endpointsNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *endpointsNamespacer) Namespace(namespace string) corev1client.EndpointsInterface {
-	return &endpointsClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &endpointsClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type endpointsClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *endpointsClient) Create(ctx context.Context, endpoints *corev1.Endpoints, opts metav1.CreateOptions) (*corev1.Endpoints, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(endpointsResource, c.Cluster, c.Namespace, endpoints), &corev1.Endpoints{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(endpointsResource, c.ClusterPath, c.Namespace, endpoints), &corev1.Endpoints{})
 	if obj == nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (c *endpointsClient) Create(ctx context.Context, endpoints *corev1.Endpoint
 }
 
 func (c *endpointsClient) Update(ctx context.Context, endpoints *corev1.Endpoints, opts metav1.UpdateOptions) (*corev1.Endpoints, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(endpointsResource, c.Cluster, c.Namespace, endpoints), &corev1.Endpoints{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(endpointsResource, c.ClusterPath, c.Namespace, endpoints), &corev1.Endpoints{})
 	if obj == nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (c *endpointsClient) Update(ctx context.Context, endpoints *corev1.Endpoint
 }
 
 func (c *endpointsClient) UpdateStatus(ctx context.Context, endpoints *corev1.Endpoints, opts metav1.UpdateOptions) (*corev1.Endpoints, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(endpointsResource, c.Cluster, "status", c.Namespace, endpoints), &corev1.Endpoints{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(endpointsResource, c.ClusterPath, "status", c.Namespace, endpoints), &corev1.Endpoints{})
 	if obj == nil {
 		return nil, err
 	}
@@ -123,19 +123,19 @@ func (c *endpointsClient) UpdateStatus(ctx context.Context, endpoints *corev1.En
 }
 
 func (c *endpointsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(endpointsResource, c.Cluster, c.Namespace, name, opts), &corev1.Endpoints{})
+	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(endpointsResource, c.ClusterPath, c.Namespace, name, opts), &corev1.Endpoints{})
 	return err
 }
 
 func (c *endpointsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewDeleteCollectionAction(endpointsResource, c.Cluster, c.Namespace, listOpts)
+	action := kcptesting.NewDeleteCollectionAction(endpointsResource, c.ClusterPath, c.Namespace, listOpts)
 
 	_, err := c.Fake.Invokes(action, &corev1.EndpointsList{})
 	return err
 }
 
 func (c *endpointsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*corev1.Endpoints, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(endpointsResource, c.Cluster, c.Namespace, name), &corev1.Endpoints{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(endpointsResource, c.ClusterPath, c.Namespace, name), &corev1.Endpoints{})
 	if obj == nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (c *endpointsClient) Get(ctx context.Context, name string, options metav1.G
 
 // List takes label and field selectors, and returns the list of Endpoints that match those selectors.
 func (c *endpointsClient) List(ctx context.Context, opts metav1.ListOptions) (*corev1.EndpointsList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewListAction(endpointsResource, endpointsKind, c.Cluster, c.Namespace, opts), &corev1.EndpointsList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewListAction(endpointsResource, endpointsKind, c.ClusterPath, c.Namespace, opts), &corev1.EndpointsList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -163,11 +163,11 @@ func (c *endpointsClient) List(ctx context.Context, opts metav1.ListOptions) (*c
 }
 
 func (c *endpointsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(endpointsResource, c.Cluster, c.Namespace, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(endpointsResource, c.ClusterPath, c.Namespace, opts))
 }
 
 func (c *endpointsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*corev1.Endpoints, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(endpointsResource, c.Cluster, c.Namespace, name, pt, data, subresources...), &corev1.Endpoints{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(endpointsResource, c.ClusterPath, c.Namespace, name, pt, data, subresources...), &corev1.Endpoints{})
 	if obj == nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (c *endpointsClient) Apply(ctx context.Context, applyConfiguration *applyco
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(endpointsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &corev1.Endpoints{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(endpointsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &corev1.Endpoints{})
 	if obj == nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (c *endpointsClient) ApplyStatus(ctx context.Context, applyConfiguration *a
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(endpointsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data, "status"), &corev1.Endpoints{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(endpointsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data, "status"), &corev1.Endpoints{})
 	if obj == nil {
 		return nil, err
 	}

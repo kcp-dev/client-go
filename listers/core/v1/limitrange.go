@@ -22,8 +22,8 @@ limitations under the License.
 package v1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type LimitRangeClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*corev1.LimitRange, err error)
 	// Cluster returns a lister that can list and get LimitRanges in one workspace.
-	Cluster(cluster logicalcluster.Name) corev1listers.LimitRangeLister
+	Cluster(clusterName logicalcluster.Name) corev1listers.LimitRangeLister
 	LimitRangeClusterListerExpansion
 }
 
@@ -66,19 +66,19 @@ func (s *limitRangeClusterLister) List(selector labels.Selector) (ret []*corev1.
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get LimitRanges.
-func (s *limitRangeClusterLister) Cluster(cluster logicalcluster.Name) corev1listers.LimitRangeLister {
-	return &limitRangeLister{indexer: s.indexer, cluster: cluster}
+func (s *limitRangeClusterLister) Cluster(clusterName logicalcluster.Name) corev1listers.LimitRangeLister {
+	return &limitRangeLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // limitRangeLister implements the corev1listers.LimitRangeLister interface.
 type limitRangeLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all LimitRanges in the indexer for a workspace.
 func (s *limitRangeLister) List(selector labels.Selector) (ret []*corev1.LimitRange, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*corev1.LimitRange))
 	})
 	return ret, err
@@ -86,19 +86,19 @@ func (s *limitRangeLister) List(selector labels.Selector) (ret []*corev1.LimitRa
 
 // LimitRanges returns an object that can list and get LimitRanges in one namespace.
 func (s *limitRangeLister) LimitRanges(namespace string) corev1listers.LimitRangeNamespaceLister {
-	return &limitRangeNamespaceLister{indexer: s.indexer, cluster: s.cluster, namespace: namespace}
+	return &limitRangeNamespaceLister{indexer: s.indexer, clusterName: s.clusterName, namespace: namespace}
 }
 
 // limitRangeNamespaceLister implements the corev1listers.LimitRangeNamespaceLister interface.
 type limitRangeNamespaceLister struct {
-	indexer   cache.Indexer
-	cluster   logicalcluster.Name
-	namespace string
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
+	namespace   string
 }
 
 // List lists all LimitRanges in the indexer for a given workspace and namespace.
 func (s *limitRangeNamespaceLister) List(selector labels.Selector) (ret []*corev1.LimitRange, err error) {
-	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.cluster, s.namespace, selector, func(i interface{}) {
+	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.clusterName, s.namespace, selector, func(i interface{}) {
 		ret = append(ret, i.(*corev1.LimitRange))
 	})
 	return ret, err
@@ -106,7 +106,7 @@ func (s *limitRangeNamespaceLister) List(selector labels.Selector) (ret []*corev
 
 // Get retrieves the LimitRange from the indexer for a given workspace, namespace and name.
 func (s *limitRangeNamespaceLister) Get(name string) (*corev1.LimitRange, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), s.namespace, name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), s.namespace, name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

@@ -24,8 +24,8 @@ package v2beta2
 import (
 	"net/http"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	autoscalingv2beta2 "k8s.io/client-go/kubernetes/typed/autoscaling/v2beta2"
 	"k8s.io/client-go/rest"
@@ -37,18 +37,18 @@ type AutoscalingV2beta2ClusterInterface interface {
 }
 
 type AutoscalingV2beta2ClusterScoper interface {
-	Cluster(logicalcluster.Name) autoscalingv2beta2.AutoscalingV2beta2Interface
+	Cluster(logicalcluster.Path) autoscalingv2beta2.AutoscalingV2beta2Interface
 }
 
 type AutoscalingV2beta2ClusterClient struct {
 	clientCache kcpclient.Cache[*autoscalingv2beta2.AutoscalingV2beta2Client]
 }
 
-func (c *AutoscalingV2beta2ClusterClient) Cluster(name logicalcluster.Name) autoscalingv2beta2.AutoscalingV2beta2Interface {
-	if name == logicalcluster.Wildcard {
+func (c *AutoscalingV2beta2ClusterClient) Cluster(clusterPath logicalcluster.Path) autoscalingv2beta2.AutoscalingV2beta2Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return c.clientCache.ClusterOrDie(name)
+	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
 func (c *AutoscalingV2beta2ClusterClient) HorizontalPodAutoscalers() HorizontalPodAutoscalerClusterInterface {
@@ -72,7 +72,7 @@ func NewForConfigAndClient(c *rest.Config, h *http.Client) (*AutoscalingV2beta2C
 	cache := kcpclient.NewCache(c, h, &kcpclient.Constructor[*autoscalingv2beta2.AutoscalingV2beta2Client]{
 		NewForConfigAndClient: autoscalingv2beta2.NewForConfigAndClient,
 	})
-	if _, err := cache.Cluster(logicalcluster.New("root")); err != nil {
+	if _, err := cache.Cluster(logicalcluster.Name("root").Path()); err != nil {
 		return nil, err
 	}
 	return &AutoscalingV2beta2ClusterClient{clientCache: cache}, nil

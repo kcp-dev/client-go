@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	policyv1 "k8s.io/api/policy/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *podDisruptionBudgetClusterInformer) Lister() policyv1listers.PodDisrupt
 	return policyv1listers.NewPodDisruptionBudgetClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *podDisruptionBudgetClusterInformer) Cluster(cluster logicalcluster.Name) upstreampolicyv1informers.PodDisruptionBudgetInformer {
+func (f *podDisruptionBudgetClusterInformer) Cluster(clusterName logicalcluster.Name) upstreampolicyv1informers.PodDisruptionBudgetInformer {
 	return &podDisruptionBudgetInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

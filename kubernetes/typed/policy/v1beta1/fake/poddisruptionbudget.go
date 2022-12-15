@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,12 +50,12 @@ type podDisruptionBudgetsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *podDisruptionBudgetsClusterClient) Cluster(cluster logicalcluster.Name) kcppolicyv1beta1.PodDisruptionBudgetsNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *podDisruptionBudgetsClusterClient) Cluster(clusterPath logicalcluster.Path) kcppolicyv1beta1.PodDisruptionBudgetsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &podDisruptionBudgetsNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &podDisruptionBudgetsNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of PodDisruptionBudgets that match those selectors across all clusters.
@@ -85,21 +85,21 @@ func (c *podDisruptionBudgetsClusterClient) Watch(ctx context.Context, opts meta
 
 type podDisruptionBudgetsNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *podDisruptionBudgetsNamespacer) Namespace(namespace string) policyv1beta1client.PodDisruptionBudgetInterface {
-	return &podDisruptionBudgetsClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &podDisruptionBudgetsClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type podDisruptionBudgetsClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *podDisruptionBudgetsClient) Create(ctx context.Context, podDisruptionBudget *policyv1beta1.PodDisruptionBudget, opts metav1.CreateOptions) (*policyv1beta1.PodDisruptionBudget, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(podDisruptionBudgetsResource, c.Cluster, c.Namespace, podDisruptionBudget), &policyv1beta1.PodDisruptionBudget{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(podDisruptionBudgetsResource, c.ClusterPath, c.Namespace, podDisruptionBudget), &policyv1beta1.PodDisruptionBudget{})
 	if obj == nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (c *podDisruptionBudgetsClient) Create(ctx context.Context, podDisruptionBu
 }
 
 func (c *podDisruptionBudgetsClient) Update(ctx context.Context, podDisruptionBudget *policyv1beta1.PodDisruptionBudget, opts metav1.UpdateOptions) (*policyv1beta1.PodDisruptionBudget, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(podDisruptionBudgetsResource, c.Cluster, c.Namespace, podDisruptionBudget), &policyv1beta1.PodDisruptionBudget{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(podDisruptionBudgetsResource, c.ClusterPath, c.Namespace, podDisruptionBudget), &policyv1beta1.PodDisruptionBudget{})
 	if obj == nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (c *podDisruptionBudgetsClient) Update(ctx context.Context, podDisruptionBu
 }
 
 func (c *podDisruptionBudgetsClient) UpdateStatus(ctx context.Context, podDisruptionBudget *policyv1beta1.PodDisruptionBudget, opts metav1.UpdateOptions) (*policyv1beta1.PodDisruptionBudget, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(podDisruptionBudgetsResource, c.Cluster, "status", c.Namespace, podDisruptionBudget), &policyv1beta1.PodDisruptionBudget{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(podDisruptionBudgetsResource, c.ClusterPath, "status", c.Namespace, podDisruptionBudget), &policyv1beta1.PodDisruptionBudget{})
 	if obj == nil {
 		return nil, err
 	}
@@ -123,19 +123,19 @@ func (c *podDisruptionBudgetsClient) UpdateStatus(ctx context.Context, podDisrup
 }
 
 func (c *podDisruptionBudgetsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(podDisruptionBudgetsResource, c.Cluster, c.Namespace, name, opts), &policyv1beta1.PodDisruptionBudget{})
+	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(podDisruptionBudgetsResource, c.ClusterPath, c.Namespace, name, opts), &policyv1beta1.PodDisruptionBudget{})
 	return err
 }
 
 func (c *podDisruptionBudgetsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewDeleteCollectionAction(podDisruptionBudgetsResource, c.Cluster, c.Namespace, listOpts)
+	action := kcptesting.NewDeleteCollectionAction(podDisruptionBudgetsResource, c.ClusterPath, c.Namespace, listOpts)
 
 	_, err := c.Fake.Invokes(action, &policyv1beta1.PodDisruptionBudgetList{})
 	return err
 }
 
 func (c *podDisruptionBudgetsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*policyv1beta1.PodDisruptionBudget, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(podDisruptionBudgetsResource, c.Cluster, c.Namespace, name), &policyv1beta1.PodDisruptionBudget{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(podDisruptionBudgetsResource, c.ClusterPath, c.Namespace, name), &policyv1beta1.PodDisruptionBudget{})
 	if obj == nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (c *podDisruptionBudgetsClient) Get(ctx context.Context, name string, optio
 
 // List takes label and field selectors, and returns the list of PodDisruptionBudgets that match those selectors.
 func (c *podDisruptionBudgetsClient) List(ctx context.Context, opts metav1.ListOptions) (*policyv1beta1.PodDisruptionBudgetList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewListAction(podDisruptionBudgetsResource, podDisruptionBudgetsKind, c.Cluster, c.Namespace, opts), &policyv1beta1.PodDisruptionBudgetList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewListAction(podDisruptionBudgetsResource, podDisruptionBudgetsKind, c.ClusterPath, c.Namespace, opts), &policyv1beta1.PodDisruptionBudgetList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -163,11 +163,11 @@ func (c *podDisruptionBudgetsClient) List(ctx context.Context, opts metav1.ListO
 }
 
 func (c *podDisruptionBudgetsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(podDisruptionBudgetsResource, c.Cluster, c.Namespace, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(podDisruptionBudgetsResource, c.ClusterPath, c.Namespace, opts))
 }
 
 func (c *podDisruptionBudgetsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*policyv1beta1.PodDisruptionBudget, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(podDisruptionBudgetsResource, c.Cluster, c.Namespace, name, pt, data, subresources...), &policyv1beta1.PodDisruptionBudget{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(podDisruptionBudgetsResource, c.ClusterPath, c.Namespace, name, pt, data, subresources...), &policyv1beta1.PodDisruptionBudget{})
 	if obj == nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (c *podDisruptionBudgetsClient) Apply(ctx context.Context, applyConfigurati
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(podDisruptionBudgetsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &policyv1beta1.PodDisruptionBudget{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(podDisruptionBudgetsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &policyv1beta1.PodDisruptionBudget{})
 	if obj == nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (c *podDisruptionBudgetsClient) ApplyStatus(ctx context.Context, applyConfi
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(podDisruptionBudgetsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data, "status"), &policyv1beta1.PodDisruptionBudget{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(podDisruptionBudgetsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data, "status"), &policyv1beta1.PodDisruptionBudget{})
 	if obj == nil {
 		return nil, err
 	}

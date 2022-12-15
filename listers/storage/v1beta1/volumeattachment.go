@@ -22,8 +22,8 @@ limitations under the License.
 package v1beta1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	storagev1beta1 "k8s.io/api/storage/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type VolumeAttachmentClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*storagev1beta1.VolumeAttachment, err error)
 	// Cluster returns a lister that can list and get VolumeAttachments in one workspace.
-	Cluster(cluster logicalcluster.Name) storagev1beta1listers.VolumeAttachmentLister
+	Cluster(clusterName logicalcluster.Name) storagev1beta1listers.VolumeAttachmentLister
 	VolumeAttachmentClusterListerExpansion
 }
 
@@ -65,19 +65,19 @@ func (s *volumeAttachmentClusterLister) List(selector labels.Selector) (ret []*s
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get VolumeAttachments.
-func (s *volumeAttachmentClusterLister) Cluster(cluster logicalcluster.Name) storagev1beta1listers.VolumeAttachmentLister {
-	return &volumeAttachmentLister{indexer: s.indexer, cluster: cluster}
+func (s *volumeAttachmentClusterLister) Cluster(clusterName logicalcluster.Name) storagev1beta1listers.VolumeAttachmentLister {
+	return &volumeAttachmentLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // volumeAttachmentLister implements the storagev1beta1listers.VolumeAttachmentLister interface.
 type volumeAttachmentLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all VolumeAttachments in the indexer for a workspace.
 func (s *volumeAttachmentLister) List(selector labels.Selector) (ret []*storagev1beta1.VolumeAttachment, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*storagev1beta1.VolumeAttachment))
 	})
 	return ret, err
@@ -85,7 +85,7 @@ func (s *volumeAttachmentLister) List(selector labels.Selector) (ret []*storagev
 
 // Get retrieves the VolumeAttachment from the indexer for a given workspace and name.
 func (s *volumeAttachmentLister) Get(name string) (*storagev1beta1.VolumeAttachment, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), "", name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), "", name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,12 +50,12 @@ type replicaSetsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *replicaSetsClusterClient) Cluster(cluster logicalcluster.Name) kcpappsv1beta2.ReplicaSetsNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *replicaSetsClusterClient) Cluster(clusterPath logicalcluster.Path) kcpappsv1beta2.ReplicaSetsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &replicaSetsNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &replicaSetsNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of ReplicaSets that match those selectors across all clusters.
@@ -85,21 +85,21 @@ func (c *replicaSetsClusterClient) Watch(ctx context.Context, opts metav1.ListOp
 
 type replicaSetsNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *replicaSetsNamespacer) Namespace(namespace string) appsv1beta2client.ReplicaSetInterface {
-	return &replicaSetsClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &replicaSetsClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type replicaSetsClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *replicaSetsClient) Create(ctx context.Context, replicaSet *appsv1beta2.ReplicaSet, opts metav1.CreateOptions) (*appsv1beta2.ReplicaSet, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(replicaSetsResource, c.Cluster, c.Namespace, replicaSet), &appsv1beta2.ReplicaSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(replicaSetsResource, c.ClusterPath, c.Namespace, replicaSet), &appsv1beta2.ReplicaSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (c *replicaSetsClient) Create(ctx context.Context, replicaSet *appsv1beta2.
 }
 
 func (c *replicaSetsClient) Update(ctx context.Context, replicaSet *appsv1beta2.ReplicaSet, opts metav1.UpdateOptions) (*appsv1beta2.ReplicaSet, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(replicaSetsResource, c.Cluster, c.Namespace, replicaSet), &appsv1beta2.ReplicaSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(replicaSetsResource, c.ClusterPath, c.Namespace, replicaSet), &appsv1beta2.ReplicaSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (c *replicaSetsClient) Update(ctx context.Context, replicaSet *appsv1beta2.
 }
 
 func (c *replicaSetsClient) UpdateStatus(ctx context.Context, replicaSet *appsv1beta2.ReplicaSet, opts metav1.UpdateOptions) (*appsv1beta2.ReplicaSet, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(replicaSetsResource, c.Cluster, "status", c.Namespace, replicaSet), &appsv1beta2.ReplicaSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(replicaSetsResource, c.ClusterPath, "status", c.Namespace, replicaSet), &appsv1beta2.ReplicaSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -123,19 +123,19 @@ func (c *replicaSetsClient) UpdateStatus(ctx context.Context, replicaSet *appsv1
 }
 
 func (c *replicaSetsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(replicaSetsResource, c.Cluster, c.Namespace, name, opts), &appsv1beta2.ReplicaSet{})
+	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(replicaSetsResource, c.ClusterPath, c.Namespace, name, opts), &appsv1beta2.ReplicaSet{})
 	return err
 }
 
 func (c *replicaSetsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewDeleteCollectionAction(replicaSetsResource, c.Cluster, c.Namespace, listOpts)
+	action := kcptesting.NewDeleteCollectionAction(replicaSetsResource, c.ClusterPath, c.Namespace, listOpts)
 
 	_, err := c.Fake.Invokes(action, &appsv1beta2.ReplicaSetList{})
 	return err
 }
 
 func (c *replicaSetsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*appsv1beta2.ReplicaSet, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(replicaSetsResource, c.Cluster, c.Namespace, name), &appsv1beta2.ReplicaSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(replicaSetsResource, c.ClusterPath, c.Namespace, name), &appsv1beta2.ReplicaSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (c *replicaSetsClient) Get(ctx context.Context, name string, options metav1
 
 // List takes label and field selectors, and returns the list of ReplicaSets that match those selectors.
 func (c *replicaSetsClient) List(ctx context.Context, opts metav1.ListOptions) (*appsv1beta2.ReplicaSetList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewListAction(replicaSetsResource, replicaSetsKind, c.Cluster, c.Namespace, opts), &appsv1beta2.ReplicaSetList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewListAction(replicaSetsResource, replicaSetsKind, c.ClusterPath, c.Namespace, opts), &appsv1beta2.ReplicaSetList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -163,11 +163,11 @@ func (c *replicaSetsClient) List(ctx context.Context, opts metav1.ListOptions) (
 }
 
 func (c *replicaSetsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(replicaSetsResource, c.Cluster, c.Namespace, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(replicaSetsResource, c.ClusterPath, c.Namespace, opts))
 }
 
 func (c *replicaSetsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*appsv1beta2.ReplicaSet, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(replicaSetsResource, c.Cluster, c.Namespace, name, pt, data, subresources...), &appsv1beta2.ReplicaSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(replicaSetsResource, c.ClusterPath, c.Namespace, name, pt, data, subresources...), &appsv1beta2.ReplicaSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (c *replicaSetsClient) Apply(ctx context.Context, applyConfiguration *apply
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(replicaSetsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &appsv1beta2.ReplicaSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(replicaSetsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &appsv1beta2.ReplicaSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (c *replicaSetsClient) ApplyStatus(ctx context.Context, applyConfiguration 
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(replicaSetsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data, "status"), &appsv1beta2.ReplicaSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(replicaSetsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data, "status"), &appsv1beta2.ReplicaSet{})
 	if obj == nil {
 		return nil, err
 	}

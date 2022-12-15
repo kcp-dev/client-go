@@ -22,8 +22,8 @@ limitations under the License.
 package v1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type DaemonSetClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*appsv1.DaemonSet, err error)
 	// Cluster returns a lister that can list and get DaemonSets in one workspace.
-	Cluster(cluster logicalcluster.Name) appsv1listers.DaemonSetLister
+	Cluster(clusterName logicalcluster.Name) appsv1listers.DaemonSetLister
 	DaemonSetClusterListerExpansion
 }
 
@@ -66,19 +66,19 @@ func (s *daemonSetClusterLister) List(selector labels.Selector) (ret []*appsv1.D
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get DaemonSets.
-func (s *daemonSetClusterLister) Cluster(cluster logicalcluster.Name) appsv1listers.DaemonSetLister {
-	return &daemonSetLister{indexer: s.indexer, cluster: cluster}
+func (s *daemonSetClusterLister) Cluster(clusterName logicalcluster.Name) appsv1listers.DaemonSetLister {
+	return &daemonSetLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // daemonSetLister implements the appsv1listers.DaemonSetLister interface.
 type daemonSetLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all DaemonSets in the indexer for a workspace.
 func (s *daemonSetLister) List(selector labels.Selector) (ret []*appsv1.DaemonSet, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*appsv1.DaemonSet))
 	})
 	return ret, err
@@ -86,19 +86,19 @@ func (s *daemonSetLister) List(selector labels.Selector) (ret []*appsv1.DaemonSe
 
 // DaemonSets returns an object that can list and get DaemonSets in one namespace.
 func (s *daemonSetLister) DaemonSets(namespace string) appsv1listers.DaemonSetNamespaceLister {
-	return &daemonSetNamespaceLister{indexer: s.indexer, cluster: s.cluster, namespace: namespace}
+	return &daemonSetNamespaceLister{indexer: s.indexer, clusterName: s.clusterName, namespace: namespace}
 }
 
 // daemonSetNamespaceLister implements the appsv1listers.DaemonSetNamespaceLister interface.
 type daemonSetNamespaceLister struct {
-	indexer   cache.Indexer
-	cluster   logicalcluster.Name
-	namespace string
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
+	namespace   string
 }
 
 // List lists all DaemonSets in the indexer for a given workspace and namespace.
 func (s *daemonSetNamespaceLister) List(selector labels.Selector) (ret []*appsv1.DaemonSet, err error) {
-	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.cluster, s.namespace, selector, func(i interface{}) {
+	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.clusterName, s.namespace, selector, func(i interface{}) {
 		ret = append(ret, i.(*appsv1.DaemonSet))
 	})
 	return ret, err
@@ -106,7 +106,7 @@ func (s *daemonSetNamespaceLister) List(selector labels.Selector) (ret []*appsv1
 
 // Get retrieves the DaemonSet from the indexer for a given workspace, namespace and name.
 func (s *daemonSetNamespaceLister) Get(name string) (*appsv1.DaemonSet, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), s.namespace, name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), s.namespace, name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

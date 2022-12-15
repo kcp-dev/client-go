@@ -22,7 +22,7 @@ limitations under the License.
 package v1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	batchv1 "k8s.io/client-go/kubernetes/typed/batch/v1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type BatchV1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *BatchV1ClusterClient) Cluster(cluster logicalcluster.Name) batchv1.BatchV1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *BatchV1ClusterClient) Cluster(clusterPath logicalcluster.Path) batchv1.BatchV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &BatchV1Client{Fake: c.Fake, Cluster: cluster}
+	return &BatchV1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *BatchV1ClusterClient) Jobs() kcpbatchv1.JobClusterInterface {
@@ -56,7 +56,7 @@ var _ batchv1.BatchV1Interface = (*BatchV1Client)(nil)
 
 type BatchV1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *BatchV1Client) RESTClient() rest.Interface {
@@ -65,9 +65,9 @@ func (c *BatchV1Client) RESTClient() rest.Interface {
 }
 
 func (c *BatchV1Client) Jobs(namespace string) batchv1.JobInterface {
-	return &jobsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &jobsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *BatchV1Client) CronJobs(namespace string) batchv1.CronJobInterface {
-	return &cronJobsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &cronJobsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }

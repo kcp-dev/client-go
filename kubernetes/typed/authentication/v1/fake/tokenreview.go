@@ -24,7 +24,7 @@ package v1
 import (
 	"context"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	authenticationv1 "k8s.io/api/authentication/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,21 +42,21 @@ type tokenReviewsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *tokenReviewsClusterClient) Cluster(cluster logicalcluster.Name) authenticationv1client.TokenReviewInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *tokenReviewsClusterClient) Cluster(clusterPath logicalcluster.Path) authenticationv1client.TokenReviewInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &tokenReviewsClient{Fake: c.Fake, Cluster: cluster}
+	return &tokenReviewsClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 type tokenReviewsClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *tokenReviewsClient) Create(ctx context.Context, tokenReview *authenticationv1.TokenReview, opts metav1.CreateOptions) (*authenticationv1.TokenReview, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(tokenReviewsResource, c.Cluster, tokenReview), &authenticationv1.TokenReview{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(tokenReviewsResource, c.ClusterPath, tokenReview), &authenticationv1.TokenReview{})
 	if obj == nil {
 		return nil, err
 	}

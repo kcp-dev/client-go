@@ -24,8 +24,8 @@ package v1beta1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	rbacv1beta1 "k8s.io/api/rbac/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type RoleBindingsClusterGetter interface {
 // RoleBindingClusterInterface can operate on RoleBindings across all clusters,
 // or scope down to one cluster and return a RoleBindingsNamespacer.
 type RoleBindingClusterInterface interface {
-	Cluster(logicalcluster.Name) RoleBindingsNamespacer
+	Cluster(logicalcluster.Path) RoleBindingsNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*rbacv1beta1.RoleBindingList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type roleBindingsClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *roleBindingsClusterInterface) Cluster(name logicalcluster.Name) RoleBindingsNamespacer {
-	if name == logicalcluster.Wildcard {
+func (c *roleBindingsClusterInterface) Cluster(clusterPath logicalcluster.Path) RoleBindingsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &roleBindingsNamespacer{clientCache: c.clientCache, name: name}
+	return &roleBindingsNamespacer{clientCache: c.clientCache, clusterPath: clusterPath}
 }
 
 // List returns the entire collection of all RoleBindings across all clusters.
@@ -77,9 +77,9 @@ type RoleBindingsNamespacer interface {
 
 type roleBindingsNamespacer struct {
 	clientCache kcpclient.Cache[*rbacv1beta1client.RbacV1beta1Client]
-	name        logicalcluster.Name
+	clusterPath logicalcluster.Path
 }
 
 func (n *roleBindingsNamespacer) Namespace(namespace string) rbacv1beta1client.RoleBindingInterface {
-	return n.clientCache.ClusterOrDie(n.name).RoleBindings(namespace)
+	return n.clientCache.ClusterOrDie(n.clusterPath).RoleBindings(namespace)
 }

@@ -22,7 +22,7 @@ limitations under the License.
 package v1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	discoveryv1 "k8s.io/client-go/kubernetes/typed/discovery/v1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type DiscoveryV1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *DiscoveryV1ClusterClient) Cluster(cluster logicalcluster.Name) discoveryv1.DiscoveryV1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *DiscoveryV1ClusterClient) Cluster(clusterPath logicalcluster.Path) discoveryv1.DiscoveryV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &DiscoveryV1Client{Fake: c.Fake, Cluster: cluster}
+	return &DiscoveryV1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *DiscoveryV1ClusterClient) EndpointSlices() kcpdiscoveryv1.EndpointSliceClusterInterface {
@@ -52,7 +52,7 @@ var _ discoveryv1.DiscoveryV1Interface = (*DiscoveryV1Client)(nil)
 
 type DiscoveryV1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *DiscoveryV1Client) RESTClient() rest.Interface {
@@ -61,5 +61,5 @@ func (c *DiscoveryV1Client) RESTClient() rest.Interface {
 }
 
 func (c *DiscoveryV1Client) EndpointSlices(namespace string) discoveryv1.EndpointSliceInterface {
-	return &endpointSlicesClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &endpointSlicesClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }

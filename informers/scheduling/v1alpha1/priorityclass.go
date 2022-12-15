@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	schedulingv1alpha1 "k8s.io/api/scheduling/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *priorityClassClusterInformer) Lister() schedulingv1alpha1listers.Priori
 	return schedulingv1alpha1listers.NewPriorityClassClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *priorityClassClusterInformer) Cluster(cluster logicalcluster.Name) upstreamschedulingv1alpha1informers.PriorityClassInformer {
+func (f *priorityClassClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamschedulingv1alpha1informers.PriorityClassInformer {
 	return &priorityClassInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

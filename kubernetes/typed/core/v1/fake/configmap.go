@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,12 +50,12 @@ type configMapsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *configMapsClusterClient) Cluster(cluster logicalcluster.Name) kcpcorev1.ConfigMapsNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *configMapsClusterClient) Cluster(clusterPath logicalcluster.Path) kcpcorev1.ConfigMapsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &configMapsNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &configMapsNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of ConfigMaps that match those selectors across all clusters.
@@ -85,21 +85,21 @@ func (c *configMapsClusterClient) Watch(ctx context.Context, opts metav1.ListOpt
 
 type configMapsNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *configMapsNamespacer) Namespace(namespace string) corev1client.ConfigMapInterface {
-	return &configMapsClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &configMapsClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type configMapsClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *configMapsClient) Create(ctx context.Context, configMap *corev1.ConfigMap, opts metav1.CreateOptions) (*corev1.ConfigMap, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(configMapsResource, c.Cluster, c.Namespace, configMap), &corev1.ConfigMap{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(configMapsResource, c.ClusterPath, c.Namespace, configMap), &corev1.ConfigMap{})
 	if obj == nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (c *configMapsClient) Create(ctx context.Context, configMap *corev1.ConfigM
 }
 
 func (c *configMapsClient) Update(ctx context.Context, configMap *corev1.ConfigMap, opts metav1.UpdateOptions) (*corev1.ConfigMap, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(configMapsResource, c.Cluster, c.Namespace, configMap), &corev1.ConfigMap{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(configMapsResource, c.ClusterPath, c.Namespace, configMap), &corev1.ConfigMap{})
 	if obj == nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (c *configMapsClient) Update(ctx context.Context, configMap *corev1.ConfigM
 }
 
 func (c *configMapsClient) UpdateStatus(ctx context.Context, configMap *corev1.ConfigMap, opts metav1.UpdateOptions) (*corev1.ConfigMap, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(configMapsResource, c.Cluster, "status", c.Namespace, configMap), &corev1.ConfigMap{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(configMapsResource, c.ClusterPath, "status", c.Namespace, configMap), &corev1.ConfigMap{})
 	if obj == nil {
 		return nil, err
 	}
@@ -123,19 +123,19 @@ func (c *configMapsClient) UpdateStatus(ctx context.Context, configMap *corev1.C
 }
 
 func (c *configMapsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(configMapsResource, c.Cluster, c.Namespace, name, opts), &corev1.ConfigMap{})
+	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(configMapsResource, c.ClusterPath, c.Namespace, name, opts), &corev1.ConfigMap{})
 	return err
 }
 
 func (c *configMapsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewDeleteCollectionAction(configMapsResource, c.Cluster, c.Namespace, listOpts)
+	action := kcptesting.NewDeleteCollectionAction(configMapsResource, c.ClusterPath, c.Namespace, listOpts)
 
 	_, err := c.Fake.Invokes(action, &corev1.ConfigMapList{})
 	return err
 }
 
 func (c *configMapsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*corev1.ConfigMap, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(configMapsResource, c.Cluster, c.Namespace, name), &corev1.ConfigMap{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(configMapsResource, c.ClusterPath, c.Namespace, name), &corev1.ConfigMap{})
 	if obj == nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (c *configMapsClient) Get(ctx context.Context, name string, options metav1.
 
 // List takes label and field selectors, and returns the list of ConfigMaps that match those selectors.
 func (c *configMapsClient) List(ctx context.Context, opts metav1.ListOptions) (*corev1.ConfigMapList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewListAction(configMapsResource, configMapsKind, c.Cluster, c.Namespace, opts), &corev1.ConfigMapList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewListAction(configMapsResource, configMapsKind, c.ClusterPath, c.Namespace, opts), &corev1.ConfigMapList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -163,11 +163,11 @@ func (c *configMapsClient) List(ctx context.Context, opts metav1.ListOptions) (*
 }
 
 func (c *configMapsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(configMapsResource, c.Cluster, c.Namespace, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(configMapsResource, c.ClusterPath, c.Namespace, opts))
 }
 
 func (c *configMapsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*corev1.ConfigMap, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(configMapsResource, c.Cluster, c.Namespace, name, pt, data, subresources...), &corev1.ConfigMap{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(configMapsResource, c.ClusterPath, c.Namespace, name, pt, data, subresources...), &corev1.ConfigMap{})
 	if obj == nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (c *configMapsClient) Apply(ctx context.Context, applyConfiguration *applyc
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(configMapsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &corev1.ConfigMap{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(configMapsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &corev1.ConfigMap{})
 	if obj == nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (c *configMapsClient) ApplyStatus(ctx context.Context, applyConfiguration *
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(configMapsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data, "status"), &corev1.ConfigMap{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(configMapsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data, "status"), &corev1.ConfigMap{})
 	if obj == nil {
 		return nil, err
 	}

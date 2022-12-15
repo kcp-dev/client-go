@@ -24,8 +24,8 @@ package v1alpha1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	flowcontrolv1alpha1 "k8s.io/api/flowcontrol/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type PriorityLevelConfigurationsClusterGetter interface {
 // PriorityLevelConfigurationClusterInterface can operate on PriorityLevelConfigurations across all clusters,
 // or scope down to one cluster and return a flowcontrolv1alpha1client.PriorityLevelConfigurationInterface.
 type PriorityLevelConfigurationClusterInterface interface {
-	Cluster(logicalcluster.Name) flowcontrolv1alpha1client.PriorityLevelConfigurationInterface
+	Cluster(logicalcluster.Path) flowcontrolv1alpha1client.PriorityLevelConfigurationInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*flowcontrolv1alpha1.PriorityLevelConfigurationList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type priorityLevelConfigurationsClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *priorityLevelConfigurationsClusterInterface) Cluster(name logicalcluster.Name) flowcontrolv1alpha1client.PriorityLevelConfigurationInterface {
-	if name == logicalcluster.Wildcard {
+func (c *priorityLevelConfigurationsClusterInterface) Cluster(clusterPath logicalcluster.Path) flowcontrolv1alpha1client.PriorityLevelConfigurationInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return c.clientCache.ClusterOrDie(name).PriorityLevelConfigurations()
+	return c.clientCache.ClusterOrDie(clusterPath).PriorityLevelConfigurations()
 }
 
 // List returns the entire collection of all PriorityLevelConfigurations across all clusters.

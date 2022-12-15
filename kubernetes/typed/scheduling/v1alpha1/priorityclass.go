@@ -24,8 +24,8 @@ package v1alpha1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	schedulingv1alpha1 "k8s.io/api/scheduling/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type PriorityClassesClusterGetter interface {
 // PriorityClassClusterInterface can operate on PriorityClasses across all clusters,
 // or scope down to one cluster and return a schedulingv1alpha1client.PriorityClassInterface.
 type PriorityClassClusterInterface interface {
-	Cluster(logicalcluster.Name) schedulingv1alpha1client.PriorityClassInterface
+	Cluster(logicalcluster.Path) schedulingv1alpha1client.PriorityClassInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*schedulingv1alpha1.PriorityClassList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type priorityClassesClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *priorityClassesClusterInterface) Cluster(name logicalcluster.Name) schedulingv1alpha1client.PriorityClassInterface {
-	if name == logicalcluster.Wildcard {
+func (c *priorityClassesClusterInterface) Cluster(clusterPath logicalcluster.Path) schedulingv1alpha1client.PriorityClassInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return c.clientCache.ClusterOrDie(name).PriorityClasses()
+	return c.clientCache.ClusterOrDie(clusterPath).PriorityClasses()
 }
 
 // List returns the entire collection of all PriorityClasses across all clusters.

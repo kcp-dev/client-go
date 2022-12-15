@@ -17,8 +17,8 @@ limitations under the License.
 package dynamiclister
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -51,6 +51,6 @@ func (s *dynamicClusterListerShim) List(selector labels.Selector) (ret []runtime
 	return ret, err
 }
 
-func (s *dynamicClusterListerShim) ByCluster(cluster logicalcluster.Name) cache.GenericLister {
-	return dynamiclister.NewRuntimeObjectShim(s.lister.Cluster(cluster))
+func (s *dynamicClusterListerShim) ByCluster(clusterName logicalcluster.Name) cache.GenericLister {
+	return dynamiclister.NewRuntimeObjectShim(s.lister.Cluster(clusterName))
 }

@@ -17,12 +17,12 @@ limitations under the License.
 package discovery
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	"k8s.io/client-go/discovery"
 )
 
 type DiscoveryClusterInterface interface {
-	Cluster(logicalcluster.Name) discovery.DiscoveryInterface
+	Cluster(logicalcluster.Path) discovery.DiscoveryInterface
 	discovery.DiscoveryInterface
 }

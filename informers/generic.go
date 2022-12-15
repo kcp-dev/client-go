@@ -24,8 +24,8 @@ package informers
 import (
 	"fmt"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
@@ -95,10 +95,10 @@ func (f *genericClusterInformer) Lister() kcpcache.GenericClusterLister {
 }
 
 // Cluster scopes to a GenericInformer.
-func (f *genericClusterInformer) Cluster(cluster logicalcluster.Name) upstreaminformers.GenericInformer {
+func (f *genericClusterInformer) Cluster(clusterName logicalcluster.Name) upstreaminformers.GenericInformer {
 	return &genericInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().ByCluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().ByCluster(clusterName),
 	}
 }
 

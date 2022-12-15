@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type componentStatusesClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *componentStatusesClusterClient) Cluster(cluster logicalcluster.Name) corev1client.ComponentStatusInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *componentStatusesClusterClient) Cluster(clusterPath logicalcluster.Path) corev1client.ComponentStatusInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &componentStatusesClient{Fake: c.Fake, Cluster: cluster}
+	return &componentStatusesClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of ComponentStatuses that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *componentStatusesClusterClient) Watch(ctx context.Context, opts metav1.
 
 type componentStatusesClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *componentStatusesClient) Create(ctx context.Context, componentStatus *corev1.ComponentStatus, opts metav1.CreateOptions) (*corev1.ComponentStatus, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(componentStatusesResource, c.Cluster, componentStatus), &corev1.ComponentStatus{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(componentStatusesResource, c.ClusterPath, componentStatus), &corev1.ComponentStatus{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *componentStatusesClient) Create(ctx context.Context, componentStatus *c
 }
 
 func (c *componentStatusesClient) Update(ctx context.Context, componentStatus *corev1.ComponentStatus, opts metav1.UpdateOptions) (*corev1.ComponentStatus, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(componentStatusesResource, c.Cluster, componentStatus), &corev1.ComponentStatus{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(componentStatusesResource, c.ClusterPath, componentStatus), &corev1.ComponentStatus{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *componentStatusesClient) Update(ctx context.Context, componentStatus *c
 }
 
 func (c *componentStatusesClient) UpdateStatus(ctx context.Context, componentStatus *corev1.ComponentStatus, opts metav1.UpdateOptions) (*corev1.ComponentStatus, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(componentStatusesResource, c.Cluster, "status", componentStatus), &corev1.ComponentStatus{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(componentStatusesResource, c.ClusterPath, "status", componentStatus), &corev1.ComponentStatus{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *componentStatusesClient) UpdateStatus(ctx context.Context, componentSta
 }
 
 func (c *componentStatusesClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(componentStatusesResource, c.Cluster, name, opts), &corev1.ComponentStatus{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(componentStatusesResource, c.ClusterPath, name, opts), &corev1.ComponentStatus{})
 	return err
 }
 
 func (c *componentStatusesClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(componentStatusesResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(componentStatusesResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &corev1.ComponentStatusList{})
 	return err
 }
 
 func (c *componentStatusesClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*corev1.ComponentStatus, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(componentStatusesResource, c.Cluster, name), &corev1.ComponentStatus{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(componentStatusesResource, c.ClusterPath, name), &corev1.ComponentStatus{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *componentStatusesClient) Get(ctx context.Context, name string, options 
 
 // List takes label and field selectors, and returns the list of ComponentStatuses that match those selectors.
 func (c *componentStatusesClient) List(ctx context.Context, opts metav1.ListOptions) (*corev1.ComponentStatusList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(componentStatusesResource, componentStatusesKind, c.Cluster, opts), &corev1.ComponentStatusList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(componentStatusesResource, componentStatusesKind, c.ClusterPath, opts), &corev1.ComponentStatusList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *componentStatusesClient) List(ctx context.Context, opts metav1.ListOpti
 }
 
 func (c *componentStatusesClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(componentStatusesResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(componentStatusesResource, c.ClusterPath, opts))
 }
 
 func (c *componentStatusesClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*corev1.ComponentStatus, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(componentStatusesResource, c.Cluster, name, pt, data, subresources...), &corev1.ComponentStatus{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(componentStatusesResource, c.ClusterPath, name, pt, data, subresources...), &corev1.ComponentStatus{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *componentStatusesClient) Apply(ctx context.Context, applyConfiguration 
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(componentStatusesResource, c.Cluster, *name, types.ApplyPatchType, data), &corev1.ComponentStatus{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(componentStatusesResource, c.ClusterPath, *name, types.ApplyPatchType, data), &corev1.ComponentStatus{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *componentStatusesClient) ApplyStatus(ctx context.Context, applyConfigur
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(componentStatusesResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &corev1.ComponentStatus{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(componentStatusesResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &corev1.ComponentStatus{})
 	if obj == nil {
 		return nil, err
 	}

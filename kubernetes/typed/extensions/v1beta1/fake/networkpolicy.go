@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,12 +50,12 @@ type networkPoliciesClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *networkPoliciesClusterClient) Cluster(cluster logicalcluster.Name) kcpextensionsv1beta1.NetworkPoliciesNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *networkPoliciesClusterClient) Cluster(clusterPath logicalcluster.Path) kcpextensionsv1beta1.NetworkPoliciesNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &networkPoliciesNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &networkPoliciesNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of NetworkPolicies that match those selectors across all clusters.
@@ -85,21 +85,21 @@ func (c *networkPoliciesClusterClient) Watch(ctx context.Context, opts metav1.Li
 
 type networkPoliciesNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *networkPoliciesNamespacer) Namespace(namespace string) extensionsv1beta1client.NetworkPolicyInterface {
-	return &networkPoliciesClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &networkPoliciesClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type networkPoliciesClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *networkPoliciesClient) Create(ctx context.Context, networkPolicy *extensionsv1beta1.NetworkPolicy, opts metav1.CreateOptions) (*extensionsv1beta1.NetworkPolicy, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(networkPoliciesResource, c.Cluster, c.Namespace, networkPolicy), &extensionsv1beta1.NetworkPolicy{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(networkPoliciesResource, c.ClusterPath, c.Namespace, networkPolicy), &extensionsv1beta1.NetworkPolicy{})
 	if obj == nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (c *networkPoliciesClient) Create(ctx context.Context, networkPolicy *exten
 }
 
 func (c *networkPoliciesClient) Update(ctx context.Context, networkPolicy *extensionsv1beta1.NetworkPolicy, opts metav1.UpdateOptions) (*extensionsv1beta1.NetworkPolicy, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(networkPoliciesResource, c.Cluster, c.Namespace, networkPolicy), &extensionsv1beta1.NetworkPolicy{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(networkPoliciesResource, c.ClusterPath, c.Namespace, networkPolicy), &extensionsv1beta1.NetworkPolicy{})
 	if obj == nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (c *networkPoliciesClient) Update(ctx context.Context, networkPolicy *exten
 }
 
 func (c *networkPoliciesClient) UpdateStatus(ctx context.Context, networkPolicy *extensionsv1beta1.NetworkPolicy, opts metav1.UpdateOptions) (*extensionsv1beta1.NetworkPolicy, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(networkPoliciesResource, c.Cluster, "status", c.Namespace, networkPolicy), &extensionsv1beta1.NetworkPolicy{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(networkPoliciesResource, c.ClusterPath, "status", c.Namespace, networkPolicy), &extensionsv1beta1.NetworkPolicy{})
 	if obj == nil {
 		return nil, err
 	}
@@ -123,19 +123,19 @@ func (c *networkPoliciesClient) UpdateStatus(ctx context.Context, networkPolicy 
 }
 
 func (c *networkPoliciesClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(networkPoliciesResource, c.Cluster, c.Namespace, name, opts), &extensionsv1beta1.NetworkPolicy{})
+	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(networkPoliciesResource, c.ClusterPath, c.Namespace, name, opts), &extensionsv1beta1.NetworkPolicy{})
 	return err
 }
 
 func (c *networkPoliciesClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewDeleteCollectionAction(networkPoliciesResource, c.Cluster, c.Namespace, listOpts)
+	action := kcptesting.NewDeleteCollectionAction(networkPoliciesResource, c.ClusterPath, c.Namespace, listOpts)
 
 	_, err := c.Fake.Invokes(action, &extensionsv1beta1.NetworkPolicyList{})
 	return err
 }
 
 func (c *networkPoliciesClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*extensionsv1beta1.NetworkPolicy, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(networkPoliciesResource, c.Cluster, c.Namespace, name), &extensionsv1beta1.NetworkPolicy{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(networkPoliciesResource, c.ClusterPath, c.Namespace, name), &extensionsv1beta1.NetworkPolicy{})
 	if obj == nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (c *networkPoliciesClient) Get(ctx context.Context, name string, options me
 
 // List takes label and field selectors, and returns the list of NetworkPolicies that match those selectors.
 func (c *networkPoliciesClient) List(ctx context.Context, opts metav1.ListOptions) (*extensionsv1beta1.NetworkPolicyList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewListAction(networkPoliciesResource, networkPoliciesKind, c.Cluster, c.Namespace, opts), &extensionsv1beta1.NetworkPolicyList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewListAction(networkPoliciesResource, networkPoliciesKind, c.ClusterPath, c.Namespace, opts), &extensionsv1beta1.NetworkPolicyList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -163,11 +163,11 @@ func (c *networkPoliciesClient) List(ctx context.Context, opts metav1.ListOption
 }
 
 func (c *networkPoliciesClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(networkPoliciesResource, c.Cluster, c.Namespace, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(networkPoliciesResource, c.ClusterPath, c.Namespace, opts))
 }
 
 func (c *networkPoliciesClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*extensionsv1beta1.NetworkPolicy, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(networkPoliciesResource, c.Cluster, c.Namespace, name, pt, data, subresources...), &extensionsv1beta1.NetworkPolicy{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(networkPoliciesResource, c.ClusterPath, c.Namespace, name, pt, data, subresources...), &extensionsv1beta1.NetworkPolicy{})
 	if obj == nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (c *networkPoliciesClient) Apply(ctx context.Context, applyConfiguration *a
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(networkPoliciesResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &extensionsv1beta1.NetworkPolicy{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(networkPoliciesResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &extensionsv1beta1.NetworkPolicy{})
 	if obj == nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (c *networkPoliciesClient) ApplyStatus(ctx context.Context, applyConfigurat
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(networkPoliciesResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data, "status"), &extensionsv1beta1.NetworkPolicy{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(networkPoliciesResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data, "status"), &extensionsv1beta1.NetworkPolicy{})
 	if obj == nil {
 		return nil, err
 	}

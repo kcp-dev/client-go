@@ -22,8 +22,8 @@ limitations under the License.
 package v1beta1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	rbacv1beta1 "k8s.io/api/rbac/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type RoleClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*rbacv1beta1.Role, err error)
 	// Cluster returns a lister that can list and get Roles in one workspace.
-	Cluster(cluster logicalcluster.Name) rbacv1beta1listers.RoleLister
+	Cluster(clusterName logicalcluster.Name) rbacv1beta1listers.RoleLister
 	RoleClusterListerExpansion
 }
 
@@ -66,19 +66,19 @@ func (s *roleClusterLister) List(selector labels.Selector) (ret []*rbacv1beta1.R
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get Roles.
-func (s *roleClusterLister) Cluster(cluster logicalcluster.Name) rbacv1beta1listers.RoleLister {
-	return &roleLister{indexer: s.indexer, cluster: cluster}
+func (s *roleClusterLister) Cluster(clusterName logicalcluster.Name) rbacv1beta1listers.RoleLister {
+	return &roleLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // roleLister implements the rbacv1beta1listers.RoleLister interface.
 type roleLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all Roles in the indexer for a workspace.
 func (s *roleLister) List(selector labels.Selector) (ret []*rbacv1beta1.Role, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*rbacv1beta1.Role))
 	})
 	return ret, err
@@ -86,19 +86,19 @@ func (s *roleLister) List(selector labels.Selector) (ret []*rbacv1beta1.Role, er
 
 // Roles returns an object that can list and get Roles in one namespace.
 func (s *roleLister) Roles(namespace string) rbacv1beta1listers.RoleNamespaceLister {
-	return &roleNamespaceLister{indexer: s.indexer, cluster: s.cluster, namespace: namespace}
+	return &roleNamespaceLister{indexer: s.indexer, clusterName: s.clusterName, namespace: namespace}
 }
 
 // roleNamespaceLister implements the rbacv1beta1listers.RoleNamespaceLister interface.
 type roleNamespaceLister struct {
-	indexer   cache.Indexer
-	cluster   logicalcluster.Name
-	namespace string
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
+	namespace   string
 }
 
 // List lists all Roles in the indexer for a given workspace and namespace.
 func (s *roleNamespaceLister) List(selector labels.Selector) (ret []*rbacv1beta1.Role, err error) {
-	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.cluster, s.namespace, selector, func(i interface{}) {
+	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.clusterName, s.namespace, selector, func(i interface{}) {
 		ret = append(ret, i.(*rbacv1beta1.Role))
 	})
 	return ret, err
@@ -106,7 +106,7 @@ func (s *roleNamespaceLister) List(selector labels.Selector) (ret []*rbacv1beta1
 
 // Get retrieves the Role from the indexer for a given workspace, namespace and name.
 func (s *roleNamespaceLister) Get(name string) (*rbacv1beta1.Role, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), s.namespace, name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), s.namespace, name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

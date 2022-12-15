@@ -19,7 +19,7 @@ package dynamic
 import (
 	"context"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -29,12 +29,12 @@ import (
 )
 
 type ClusterInterface interface {
-	Cluster(logicalcluster.Name) dynamic.Interface
+	Cluster(logicalcluster.Path) dynamic.Interface
 	Resource(resource schema.GroupVersionResource) ResourceClusterInterface
 }
 
 type ResourceClusterInterface interface {
-	Cluster(logicalcluster.Name) dynamic.NamespaceableResourceInterface
+	Cluster(logicalcluster.Path) dynamic.NamespaceableResourceInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*unstructured.UnstructuredList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }

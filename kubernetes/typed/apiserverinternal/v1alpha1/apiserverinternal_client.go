@@ -24,8 +24,8 @@ package v1alpha1
 import (
 	"net/http"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	internalv1alpha1 "k8s.io/client-go/kubernetes/typed/apiserverinternal/v1alpha1"
 	"k8s.io/client-go/rest"
@@ -37,18 +37,18 @@ type InternalV1alpha1ClusterInterface interface {
 }
 
 type InternalV1alpha1ClusterScoper interface {
-	Cluster(logicalcluster.Name) internalv1alpha1.InternalV1alpha1Interface
+	Cluster(logicalcluster.Path) internalv1alpha1.InternalV1alpha1Interface
 }
 
 type InternalV1alpha1ClusterClient struct {
 	clientCache kcpclient.Cache[*internalv1alpha1.InternalV1alpha1Client]
 }
 
-func (c *InternalV1alpha1ClusterClient) Cluster(name logicalcluster.Name) internalv1alpha1.InternalV1alpha1Interface {
-	if name == logicalcluster.Wildcard {
+func (c *InternalV1alpha1ClusterClient) Cluster(clusterPath logicalcluster.Path) internalv1alpha1.InternalV1alpha1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return c.clientCache.ClusterOrDie(name)
+	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
 func (c *InternalV1alpha1ClusterClient) StorageVersions() StorageVersionClusterInterface {
@@ -72,7 +72,7 @@ func NewForConfigAndClient(c *rest.Config, h *http.Client) (*InternalV1alpha1Clu
 	cache := kcpclient.NewCache(c, h, &kcpclient.Constructor[*internalv1alpha1.InternalV1alpha1Client]{
 		NewForConfigAndClient: internalv1alpha1.NewForConfigAndClient,
 	})
-	if _, err := cache.Cluster(logicalcluster.New("root")); err != nil {
+	if _, err := cache.Cluster(logicalcluster.Name("root").Path()); err != nil {
 		return nil, err
 	}
 	return &InternalV1alpha1ClusterClient{clientCache: cache}, nil

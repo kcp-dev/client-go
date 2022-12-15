@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,12 +50,12 @@ type secretsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *secretsClusterClient) Cluster(cluster logicalcluster.Name) kcpcorev1.SecretsNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *secretsClusterClient) Cluster(clusterPath logicalcluster.Path) kcpcorev1.SecretsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &secretsNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &secretsNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of Secrets that match those selectors across all clusters.
@@ -85,21 +85,21 @@ func (c *secretsClusterClient) Watch(ctx context.Context, opts metav1.ListOption
 
 type secretsNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *secretsNamespacer) Namespace(namespace string) corev1client.SecretInterface {
-	return &secretsClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &secretsClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type secretsClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *secretsClient) Create(ctx context.Context, secret *corev1.Secret, opts metav1.CreateOptions) (*corev1.Secret, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(secretsResource, c.Cluster, c.Namespace, secret), &corev1.Secret{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(secretsResource, c.ClusterPath, c.Namespace, secret), &corev1.Secret{})
 	if obj == nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (c *secretsClient) Create(ctx context.Context, secret *corev1.Secret, opts 
 }
 
 func (c *secretsClient) Update(ctx context.Context, secret *corev1.Secret, opts metav1.UpdateOptions) (*corev1.Secret, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(secretsResource, c.Cluster, c.Namespace, secret), &corev1.Secret{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(secretsResource, c.ClusterPath, c.Namespace, secret), &corev1.Secret{})
 	if obj == nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (c *secretsClient) Update(ctx context.Context, secret *corev1.Secret, opts 
 }
 
 func (c *secretsClient) UpdateStatus(ctx context.Context, secret *corev1.Secret, opts metav1.UpdateOptions) (*corev1.Secret, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(secretsResource, c.Cluster, "status", c.Namespace, secret), &corev1.Secret{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(secretsResource, c.ClusterPath, "status", c.Namespace, secret), &corev1.Secret{})
 	if obj == nil {
 		return nil, err
 	}
@@ -123,19 +123,19 @@ func (c *secretsClient) UpdateStatus(ctx context.Context, secret *corev1.Secret,
 }
 
 func (c *secretsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(secretsResource, c.Cluster, c.Namespace, name, opts), &corev1.Secret{})
+	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(secretsResource, c.ClusterPath, c.Namespace, name, opts), &corev1.Secret{})
 	return err
 }
 
 func (c *secretsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewDeleteCollectionAction(secretsResource, c.Cluster, c.Namespace, listOpts)
+	action := kcptesting.NewDeleteCollectionAction(secretsResource, c.ClusterPath, c.Namespace, listOpts)
 
 	_, err := c.Fake.Invokes(action, &corev1.SecretList{})
 	return err
 }
 
 func (c *secretsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*corev1.Secret, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(secretsResource, c.Cluster, c.Namespace, name), &corev1.Secret{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(secretsResource, c.ClusterPath, c.Namespace, name), &corev1.Secret{})
 	if obj == nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (c *secretsClient) Get(ctx context.Context, name string, options metav1.Get
 
 // List takes label and field selectors, and returns the list of Secrets that match those selectors.
 func (c *secretsClient) List(ctx context.Context, opts metav1.ListOptions) (*corev1.SecretList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewListAction(secretsResource, secretsKind, c.Cluster, c.Namespace, opts), &corev1.SecretList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewListAction(secretsResource, secretsKind, c.ClusterPath, c.Namespace, opts), &corev1.SecretList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -163,11 +163,11 @@ func (c *secretsClient) List(ctx context.Context, opts metav1.ListOptions) (*cor
 }
 
 func (c *secretsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(secretsResource, c.Cluster, c.Namespace, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(secretsResource, c.ClusterPath, c.Namespace, opts))
 }
 
 func (c *secretsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*corev1.Secret, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(secretsResource, c.Cluster, c.Namespace, name, pt, data, subresources...), &corev1.Secret{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(secretsResource, c.ClusterPath, c.Namespace, name, pt, data, subresources...), &corev1.Secret{})
 	if obj == nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (c *secretsClient) Apply(ctx context.Context, applyConfiguration *applyconf
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(secretsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &corev1.Secret{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(secretsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &corev1.Secret{})
 	if obj == nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (c *secretsClient) ApplyStatus(ctx context.Context, applyConfiguration *app
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(secretsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data, "status"), &corev1.Secret{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(secretsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data, "status"), &corev1.Secret{})
 	if obj == nil {
 		return nil, err
 	}

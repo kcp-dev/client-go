@@ -24,8 +24,8 @@ package v1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type NodesClusterGetter interface {
 // NodeClusterInterface can operate on Nodes across all clusters,
 // or scope down to one cluster and return a corev1client.NodeInterface.
 type NodeClusterInterface interface {
-	Cluster(logicalcluster.Name) corev1client.NodeInterface
+	Cluster(logicalcluster.Path) corev1client.NodeInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.NodeList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type nodesClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *nodesClusterInterface) Cluster(name logicalcluster.Name) corev1client.NodeInterface {
-	if name == logicalcluster.Wildcard {
+func (c *nodesClusterInterface) Cluster(clusterPath logicalcluster.Path) corev1client.NodeInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return c.clientCache.ClusterOrDie(name).Nodes()
+	return c.clientCache.ClusterOrDie(clusterPath).Nodes()
 }
 
 // List returns the entire collection of all Nodes across all clusters.

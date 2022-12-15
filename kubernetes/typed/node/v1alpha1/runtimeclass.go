@@ -24,8 +24,8 @@ package v1alpha1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	nodev1alpha1 "k8s.io/api/node/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type RuntimeClassesClusterGetter interface {
 // RuntimeClassClusterInterface can operate on RuntimeClasses across all clusters,
 // or scope down to one cluster and return a nodev1alpha1client.RuntimeClassInterface.
 type RuntimeClassClusterInterface interface {
-	Cluster(logicalcluster.Name) nodev1alpha1client.RuntimeClassInterface
+	Cluster(logicalcluster.Path) nodev1alpha1client.RuntimeClassInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*nodev1alpha1.RuntimeClassList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type runtimeClassesClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *runtimeClassesClusterInterface) Cluster(name logicalcluster.Name) nodev1alpha1client.RuntimeClassInterface {
-	if name == logicalcluster.Wildcard {
+func (c *runtimeClassesClusterInterface) Cluster(clusterPath logicalcluster.Path) nodev1alpha1client.RuntimeClassInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return c.clientCache.ClusterOrDie(name).RuntimeClasses()
+	return c.clientCache.ClusterOrDie(clusterPath).RuntimeClasses()
 }
 
 // List returns the entire collection of all RuntimeClasses across all clusters.

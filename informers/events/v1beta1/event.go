@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	eventsv1beta1 "k8s.io/api/events/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *eventClusterInformer) Lister() eventsv1beta1listers.EventClusterLister 
 	return eventsv1beta1listers.NewEventClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *eventClusterInformer) Cluster(cluster logicalcluster.Name) upstreameventsv1beta1informers.EventInformer {
+func (f *eventClusterInformer) Cluster(clusterName logicalcluster.Name) upstreameventsv1beta1informers.EventInformer {
 	return &eventInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

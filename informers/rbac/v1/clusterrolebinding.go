@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *clusterRoleBindingClusterInformer) Lister() rbacv1listers.ClusterRoleBi
 	return rbacv1listers.NewClusterRoleBindingClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *clusterRoleBindingClusterInformer) Cluster(cluster logicalcluster.Name) upstreamrbacv1informers.ClusterRoleBindingInformer {
+func (f *clusterRoleBindingClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamrbacv1informers.ClusterRoleBindingInformer {
 	return &clusterRoleBindingInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

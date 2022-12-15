@@ -22,7 +22,7 @@ limitations under the License.
 package v1beta2
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	appsv1beta2 "k8s.io/client-go/kubernetes/typed/apps/v1beta2"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type AppsV1beta2ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *AppsV1beta2ClusterClient) Cluster(cluster logicalcluster.Name) appsv1beta2.AppsV1beta2Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *AppsV1beta2ClusterClient) Cluster(clusterPath logicalcluster.Path) appsv1beta2.AppsV1beta2Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &AppsV1beta2Client{Fake: c.Fake, Cluster: cluster}
+	return &AppsV1beta2Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *AppsV1beta2ClusterClient) StatefulSets() kcpappsv1beta2.StatefulSetClusterInterface {
@@ -68,7 +68,7 @@ var _ appsv1beta2.AppsV1beta2Interface = (*AppsV1beta2Client)(nil)
 
 type AppsV1beta2Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *AppsV1beta2Client) RESTClient() rest.Interface {
@@ -77,21 +77,21 @@ func (c *AppsV1beta2Client) RESTClient() rest.Interface {
 }
 
 func (c *AppsV1beta2Client) StatefulSets(namespace string) appsv1beta2.StatefulSetInterface {
-	return &statefulSetsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &statefulSetsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *AppsV1beta2Client) Deployments(namespace string) appsv1beta2.DeploymentInterface {
-	return &deploymentsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &deploymentsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *AppsV1beta2Client) DaemonSets(namespace string) appsv1beta2.DaemonSetInterface {
-	return &daemonSetsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &daemonSetsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *AppsV1beta2Client) ReplicaSets(namespace string) appsv1beta2.ReplicaSetInterface {
-	return &replicaSetsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &replicaSetsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *AppsV1beta2Client) ControllerRevisions(namespace string) appsv1beta2.ControllerRevisionInterface {
-	return &controllerRevisionsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &controllerRevisionsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }

@@ -24,8 +24,8 @@ package v1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type ComponentStatusesClusterGetter interface {
 // ComponentStatusClusterInterface can operate on ComponentStatuses across all clusters,
 // or scope down to one cluster and return a corev1client.ComponentStatusInterface.
 type ComponentStatusClusterInterface interface {
-	Cluster(logicalcluster.Name) corev1client.ComponentStatusInterface
+	Cluster(logicalcluster.Path) corev1client.ComponentStatusInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.ComponentStatusList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type componentStatusesClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *componentStatusesClusterInterface) Cluster(name logicalcluster.Name) corev1client.ComponentStatusInterface {
-	if name == logicalcluster.Wildcard {
+func (c *componentStatusesClusterInterface) Cluster(clusterPath logicalcluster.Path) corev1client.ComponentStatusInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return c.clientCache.ClusterOrDie(name).ComponentStatuses()
+	return c.clientCache.ClusterOrDie(clusterPath).ComponentStatuses()
 }
 
 // List returns the entire collection of all ComponentStatuses across all clusters.

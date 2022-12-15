@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type nodesClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *nodesClusterClient) Cluster(cluster logicalcluster.Name) corev1client.NodeInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *nodesClusterClient) Cluster(clusterPath logicalcluster.Path) corev1client.NodeInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &nodesClient{Fake: c.Fake, Cluster: cluster}
+	return &nodesClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of Nodes that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *nodesClusterClient) Watch(ctx context.Context, opts metav1.ListOptions)
 
 type nodesClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *nodesClient) Create(ctx context.Context, node *corev1.Node, opts metav1.CreateOptions) (*corev1.Node, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(nodesResource, c.Cluster, node), &corev1.Node{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(nodesResource, c.ClusterPath, node), &corev1.Node{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *nodesClient) Create(ctx context.Context, node *corev1.Node, opts metav1
 }
 
 func (c *nodesClient) Update(ctx context.Context, node *corev1.Node, opts metav1.UpdateOptions) (*corev1.Node, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(nodesResource, c.Cluster, node), &corev1.Node{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(nodesResource, c.ClusterPath, node), &corev1.Node{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *nodesClient) Update(ctx context.Context, node *corev1.Node, opts metav1
 }
 
 func (c *nodesClient) UpdateStatus(ctx context.Context, node *corev1.Node, opts metav1.UpdateOptions) (*corev1.Node, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(nodesResource, c.Cluster, "status", node), &corev1.Node{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(nodesResource, c.ClusterPath, "status", node), &corev1.Node{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *nodesClient) UpdateStatus(ctx context.Context, node *corev1.Node, opts 
 }
 
 func (c *nodesClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(nodesResource, c.Cluster, name, opts), &corev1.Node{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(nodesResource, c.ClusterPath, name, opts), &corev1.Node{})
 	return err
 }
 
 func (c *nodesClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(nodesResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(nodesResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &corev1.NodeList{})
 	return err
 }
 
 func (c *nodesClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*corev1.Node, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(nodesResource, c.Cluster, name), &corev1.Node{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(nodesResource, c.ClusterPath, name), &corev1.Node{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *nodesClient) Get(ctx context.Context, name string, options metav1.GetOp
 
 // List takes label and field selectors, and returns the list of Nodes that match those selectors.
 func (c *nodesClient) List(ctx context.Context, opts metav1.ListOptions) (*corev1.NodeList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(nodesResource, nodesKind, c.Cluster, opts), &corev1.NodeList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(nodesResource, nodesKind, c.ClusterPath, opts), &corev1.NodeList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *nodesClient) List(ctx context.Context, opts metav1.ListOptions) (*corev
 }
 
 func (c *nodesClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(nodesResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(nodesResource, c.ClusterPath, opts))
 }
 
 func (c *nodesClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*corev1.Node, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(nodesResource, c.Cluster, name, pt, data, subresources...), &corev1.Node{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(nodesResource, c.ClusterPath, name, pt, data, subresources...), &corev1.Node{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *nodesClient) Apply(ctx context.Context, applyConfiguration *applyconfig
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(nodesResource, c.Cluster, *name, types.ApplyPatchType, data), &corev1.Node{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(nodesResource, c.ClusterPath, *name, types.ApplyPatchType, data), &corev1.Node{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *nodesClient) ApplyStatus(ctx context.Context, applyConfiguration *apply
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(nodesResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &corev1.Node{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(nodesResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &corev1.Node{})
 	if obj == nil {
 		return nil, err
 	}

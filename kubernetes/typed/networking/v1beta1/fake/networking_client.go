@@ -22,7 +22,7 @@ limitations under the License.
 package v1beta1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	networkingv1beta1 "k8s.io/client-go/kubernetes/typed/networking/v1beta1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type NetworkingV1beta1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *NetworkingV1beta1ClusterClient) Cluster(cluster logicalcluster.Name) networkingv1beta1.NetworkingV1beta1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *NetworkingV1beta1ClusterClient) Cluster(clusterPath logicalcluster.Path) networkingv1beta1.NetworkingV1beta1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &NetworkingV1beta1Client{Fake: c.Fake, Cluster: cluster}
+	return &NetworkingV1beta1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *NetworkingV1beta1ClusterClient) Ingresses() kcpnetworkingv1beta1.IngressClusterInterface {
@@ -56,7 +56,7 @@ var _ networkingv1beta1.NetworkingV1beta1Interface = (*NetworkingV1beta1Client)(
 
 type NetworkingV1beta1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *NetworkingV1beta1Client) RESTClient() rest.Interface {
@@ -65,9 +65,9 @@ func (c *NetworkingV1beta1Client) RESTClient() rest.Interface {
 }
 
 func (c *NetworkingV1beta1Client) Ingresses(namespace string) networkingv1beta1.IngressInterface {
-	return &ingressesClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &ingressesClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *NetworkingV1beta1Client) IngressClasses() networkingv1beta1.IngressClassInterface {
-	return &ingressClassesClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &ingressClassesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }

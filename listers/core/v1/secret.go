@@ -22,8 +22,8 @@ limitations under the License.
 package v1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type SecretClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*corev1.Secret, err error)
 	// Cluster returns a lister that can list and get Secrets in one workspace.
-	Cluster(cluster logicalcluster.Name) corev1listers.SecretLister
+	Cluster(clusterName logicalcluster.Name) corev1listers.SecretLister
 	SecretClusterListerExpansion
 }
 
@@ -66,19 +66,19 @@ func (s *secretClusterLister) List(selector labels.Selector) (ret []*corev1.Secr
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get Secrets.
-func (s *secretClusterLister) Cluster(cluster logicalcluster.Name) corev1listers.SecretLister {
-	return &secretLister{indexer: s.indexer, cluster: cluster}
+func (s *secretClusterLister) Cluster(clusterName logicalcluster.Name) corev1listers.SecretLister {
+	return &secretLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // secretLister implements the corev1listers.SecretLister interface.
 type secretLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all Secrets in the indexer for a workspace.
 func (s *secretLister) List(selector labels.Selector) (ret []*corev1.Secret, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*corev1.Secret))
 	})
 	return ret, err
@@ -86,19 +86,19 @@ func (s *secretLister) List(selector labels.Selector) (ret []*corev1.Secret, err
 
 // Secrets returns an object that can list and get Secrets in one namespace.
 func (s *secretLister) Secrets(namespace string) corev1listers.SecretNamespaceLister {
-	return &secretNamespaceLister{indexer: s.indexer, cluster: s.cluster, namespace: namespace}
+	return &secretNamespaceLister{indexer: s.indexer, clusterName: s.clusterName, namespace: namespace}
 }
 
 // secretNamespaceLister implements the corev1listers.SecretNamespaceLister interface.
 type secretNamespaceLister struct {
-	indexer   cache.Indexer
-	cluster   logicalcluster.Name
-	namespace string
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
+	namespace   string
 }
 
 // List lists all Secrets in the indexer for a given workspace and namespace.
 func (s *secretNamespaceLister) List(selector labels.Selector) (ret []*corev1.Secret, err error) {
-	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.cluster, s.namespace, selector, func(i interface{}) {
+	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.clusterName, s.namespace, selector, func(i interface{}) {
 		ret = append(ret, i.(*corev1.Secret))
 	})
 	return ret, err
@@ -106,7 +106,7 @@ func (s *secretNamespaceLister) List(selector labels.Selector) (ret []*corev1.Se
 
 // Get retrieves the Secret from the indexer for a given workspace, namespace and name.
 func (s *secretNamespaceLister) Get(name string) (*corev1.Secret, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), s.namespace, name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), s.namespace, name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

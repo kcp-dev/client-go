@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *persistentVolumeClaimClusterInformer) Lister() corev1listers.Persistent
 	return corev1listers.NewPersistentVolumeClaimClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *persistentVolumeClaimClusterInformer) Cluster(cluster logicalcluster.Name) upstreamcorev1informers.PersistentVolumeClaimInformer {
+func (f *persistentVolumeClaimClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamcorev1informers.PersistentVolumeClaimInformer {
 	return &persistentVolumeClaimInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

@@ -24,8 +24,8 @@ package v1beta2
 import (
 	"net/http"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	appsv1beta2 "k8s.io/client-go/kubernetes/typed/apps/v1beta2"
 	"k8s.io/client-go/rest"
@@ -41,18 +41,18 @@ type AppsV1beta2ClusterInterface interface {
 }
 
 type AppsV1beta2ClusterScoper interface {
-	Cluster(logicalcluster.Name) appsv1beta2.AppsV1beta2Interface
+	Cluster(logicalcluster.Path) appsv1beta2.AppsV1beta2Interface
 }
 
 type AppsV1beta2ClusterClient struct {
 	clientCache kcpclient.Cache[*appsv1beta2.AppsV1beta2Client]
 }
 
-func (c *AppsV1beta2ClusterClient) Cluster(name logicalcluster.Name) appsv1beta2.AppsV1beta2Interface {
-	if name == logicalcluster.Wildcard {
+func (c *AppsV1beta2ClusterClient) Cluster(clusterPath logicalcluster.Path) appsv1beta2.AppsV1beta2Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return c.clientCache.ClusterOrDie(name)
+	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
 func (c *AppsV1beta2ClusterClient) StatefulSets() StatefulSetClusterInterface {
@@ -92,7 +92,7 @@ func NewForConfigAndClient(c *rest.Config, h *http.Client) (*AppsV1beta2ClusterC
 	cache := kcpclient.NewCache(c, h, &kcpclient.Constructor[*appsv1beta2.AppsV1beta2Client]{
 		NewForConfigAndClient: appsv1beta2.NewForConfigAndClient,
 	})
-	if _, err := cache.Cluster(logicalcluster.New("root")); err != nil {
+	if _, err := cache.Cluster(logicalcluster.Name("root").Path()); err != nil {
 		return nil, err
 	}
 	return &AppsV1beta2ClusterClient{clientCache: cache}, nil

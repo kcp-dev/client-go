@@ -22,8 +22,8 @@ limitations under the License.
 package v1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type JobClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*batchv1.Job, err error)
 	// Cluster returns a lister that can list and get Jobs in one workspace.
-	Cluster(cluster logicalcluster.Name) batchv1listers.JobLister
+	Cluster(clusterName logicalcluster.Name) batchv1listers.JobLister
 	JobClusterListerExpansion
 }
 
@@ -66,19 +66,19 @@ func (s *jobClusterLister) List(selector labels.Selector) (ret []*batchv1.Job, e
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get Jobs.
-func (s *jobClusterLister) Cluster(cluster logicalcluster.Name) batchv1listers.JobLister {
-	return &jobLister{indexer: s.indexer, cluster: cluster}
+func (s *jobClusterLister) Cluster(clusterName logicalcluster.Name) batchv1listers.JobLister {
+	return &jobLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // jobLister implements the batchv1listers.JobLister interface.
 type jobLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all Jobs in the indexer for a workspace.
 func (s *jobLister) List(selector labels.Selector) (ret []*batchv1.Job, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*batchv1.Job))
 	})
 	return ret, err
@@ -86,19 +86,19 @@ func (s *jobLister) List(selector labels.Selector) (ret []*batchv1.Job, err erro
 
 // Jobs returns an object that can list and get Jobs in one namespace.
 func (s *jobLister) Jobs(namespace string) batchv1listers.JobNamespaceLister {
-	return &jobNamespaceLister{indexer: s.indexer, cluster: s.cluster, namespace: namespace}
+	return &jobNamespaceLister{indexer: s.indexer, clusterName: s.clusterName, namespace: namespace}
 }
 
 // jobNamespaceLister implements the batchv1listers.JobNamespaceLister interface.
 type jobNamespaceLister struct {
-	indexer   cache.Indexer
-	cluster   logicalcluster.Name
-	namespace string
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
+	namespace   string
 }
 
 // List lists all Jobs in the indexer for a given workspace and namespace.
 func (s *jobNamespaceLister) List(selector labels.Selector) (ret []*batchv1.Job, err error) {
-	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.cluster, s.namespace, selector, func(i interface{}) {
+	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.clusterName, s.namespace, selector, func(i interface{}) {
 		ret = append(ret, i.(*batchv1.Job))
 	})
 	return ret, err
@@ -106,7 +106,7 @@ func (s *jobNamespaceLister) List(selector labels.Selector) (ret []*batchv1.Job,
 
 // Get retrieves the Job from the indexer for a given workspace, namespace and name.
 func (s *jobNamespaceLister) Get(name string) (*batchv1.Job, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), s.namespace, name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), s.namespace, name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

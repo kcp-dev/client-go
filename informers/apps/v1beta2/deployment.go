@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	appsv1beta2 "k8s.io/api/apps/v1beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *deploymentClusterInformer) Lister() appsv1beta2listers.DeploymentCluste
 	return appsv1beta2listers.NewDeploymentClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *deploymentClusterInformer) Cluster(cluster logicalcluster.Name) upstreamappsv1beta2informers.DeploymentInformer {
+func (f *deploymentClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamappsv1beta2informers.DeploymentInformer {
 	return &deploymentInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

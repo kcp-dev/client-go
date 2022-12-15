@@ -24,8 +24,8 @@ package v1beta2
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	flowcontrolv1beta2 "k8s.io/api/flowcontrol/v1beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type FlowSchemasClusterGetter interface {
 // FlowSchemaClusterInterface can operate on FlowSchemas across all clusters,
 // or scope down to one cluster and return a flowcontrolv1beta2client.FlowSchemaInterface.
 type FlowSchemaClusterInterface interface {
-	Cluster(logicalcluster.Name) flowcontrolv1beta2client.FlowSchemaInterface
+	Cluster(logicalcluster.Path) flowcontrolv1beta2client.FlowSchemaInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*flowcontrolv1beta2.FlowSchemaList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type flowSchemasClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *flowSchemasClusterInterface) Cluster(name logicalcluster.Name) flowcontrolv1beta2client.FlowSchemaInterface {
-	if name == logicalcluster.Wildcard {
+func (c *flowSchemasClusterInterface) Cluster(clusterPath logicalcluster.Path) flowcontrolv1beta2client.FlowSchemaInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return c.clientCache.ClusterOrDie(name).FlowSchemas()
+	return c.clientCache.ClusterOrDie(clusterPath).FlowSchemas()
 }
 
 // List returns the entire collection of all FlowSchemas across all clusters.

@@ -22,8 +22,8 @@ limitations under the License.
 package v1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type ValidatingWebhookConfigurationClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*admissionregistrationv1.ValidatingWebhookConfiguration, err error)
 	// Cluster returns a lister that can list and get ValidatingWebhookConfigurations in one workspace.
-	Cluster(cluster logicalcluster.Name) admissionregistrationv1listers.ValidatingWebhookConfigurationLister
+	Cluster(clusterName logicalcluster.Name) admissionregistrationv1listers.ValidatingWebhookConfigurationLister
 	ValidatingWebhookConfigurationClusterListerExpansion
 }
 
@@ -65,19 +65,19 @@ func (s *validatingWebhookConfigurationClusterLister) List(selector labels.Selec
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get ValidatingWebhookConfigurations.
-func (s *validatingWebhookConfigurationClusterLister) Cluster(cluster logicalcluster.Name) admissionregistrationv1listers.ValidatingWebhookConfigurationLister {
-	return &validatingWebhookConfigurationLister{indexer: s.indexer, cluster: cluster}
+func (s *validatingWebhookConfigurationClusterLister) Cluster(clusterName logicalcluster.Name) admissionregistrationv1listers.ValidatingWebhookConfigurationLister {
+	return &validatingWebhookConfigurationLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // validatingWebhookConfigurationLister implements the admissionregistrationv1listers.ValidatingWebhookConfigurationLister interface.
 type validatingWebhookConfigurationLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all ValidatingWebhookConfigurations in the indexer for a workspace.
 func (s *validatingWebhookConfigurationLister) List(selector labels.Selector) (ret []*admissionregistrationv1.ValidatingWebhookConfiguration, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*admissionregistrationv1.ValidatingWebhookConfiguration))
 	})
 	return ret, err
@@ -85,7 +85,7 @@ func (s *validatingWebhookConfigurationLister) List(selector labels.Selector) (r
 
 // Get retrieves the ValidatingWebhookConfiguration from the indexer for a given workspace and name.
 func (s *validatingWebhookConfigurationLister) Get(name string) (*admissionregistrationv1.ValidatingWebhookConfiguration, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), "", name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), "", name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

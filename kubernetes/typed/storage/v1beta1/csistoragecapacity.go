@@ -24,8 +24,8 @@ package v1beta1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	storagev1beta1 "k8s.io/api/storage/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type CSIStorageCapacitiesClusterGetter interface {
 // CSIStorageCapacityClusterInterface can operate on CSIStorageCapacities across all clusters,
 // or scope down to one cluster and return a CSIStorageCapacitiesNamespacer.
 type CSIStorageCapacityClusterInterface interface {
-	Cluster(logicalcluster.Name) CSIStorageCapacitiesNamespacer
+	Cluster(logicalcluster.Path) CSIStorageCapacitiesNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*storagev1beta1.CSIStorageCapacityList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type cSIStorageCapacitiesClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *cSIStorageCapacitiesClusterInterface) Cluster(name logicalcluster.Name) CSIStorageCapacitiesNamespacer {
-	if name == logicalcluster.Wildcard {
+func (c *cSIStorageCapacitiesClusterInterface) Cluster(clusterPath logicalcluster.Path) CSIStorageCapacitiesNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &cSIStorageCapacitiesNamespacer{clientCache: c.clientCache, name: name}
+	return &cSIStorageCapacitiesNamespacer{clientCache: c.clientCache, clusterPath: clusterPath}
 }
 
 // List returns the entire collection of all CSIStorageCapacities across all clusters.
@@ -77,9 +77,9 @@ type CSIStorageCapacitiesNamespacer interface {
 
 type cSIStorageCapacitiesNamespacer struct {
 	clientCache kcpclient.Cache[*storagev1beta1client.StorageV1beta1Client]
-	name        logicalcluster.Name
+	clusterPath logicalcluster.Path
 }
 
 func (n *cSIStorageCapacitiesNamespacer) Namespace(namespace string) storagev1beta1client.CSIStorageCapacityInterface {
-	return n.clientCache.ClusterOrDie(n.name).CSIStorageCapacities(namespace)
+	return n.clientCache.ClusterOrDie(n.clusterPath).CSIStorageCapacities(namespace)
 }

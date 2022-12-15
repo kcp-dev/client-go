@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	appsv1 "k8s.io/api/apps/v1"
 	autoscalingv1 "k8s.io/api/autoscaling/v1"
@@ -52,12 +52,12 @@ type statefulSetsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *statefulSetsClusterClient) Cluster(cluster logicalcluster.Name) kcpappsv1.StatefulSetsNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *statefulSetsClusterClient) Cluster(clusterPath logicalcluster.Path) kcpappsv1.StatefulSetsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &statefulSetsNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &statefulSetsNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of StatefulSets that match those selectors across all clusters.
@@ -87,21 +87,21 @@ func (c *statefulSetsClusterClient) Watch(ctx context.Context, opts metav1.ListO
 
 type statefulSetsNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *statefulSetsNamespacer) Namespace(namespace string) appsv1client.StatefulSetInterface {
-	return &statefulSetsClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &statefulSetsClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type statefulSetsClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *statefulSetsClient) Create(ctx context.Context, statefulSet *appsv1.StatefulSet, opts metav1.CreateOptions) (*appsv1.StatefulSet, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(statefulSetsResource, c.Cluster, c.Namespace, statefulSet), &appsv1.StatefulSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(statefulSetsResource, c.ClusterPath, c.Namespace, statefulSet), &appsv1.StatefulSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -109,7 +109,7 @@ func (c *statefulSetsClient) Create(ctx context.Context, statefulSet *appsv1.Sta
 }
 
 func (c *statefulSetsClient) Update(ctx context.Context, statefulSet *appsv1.StatefulSet, opts metav1.UpdateOptions) (*appsv1.StatefulSet, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(statefulSetsResource, c.Cluster, c.Namespace, statefulSet), &appsv1.StatefulSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(statefulSetsResource, c.ClusterPath, c.Namespace, statefulSet), &appsv1.StatefulSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (c *statefulSetsClient) Update(ctx context.Context, statefulSet *appsv1.Sta
 }
 
 func (c *statefulSetsClient) UpdateStatus(ctx context.Context, statefulSet *appsv1.StatefulSet, opts metav1.UpdateOptions) (*appsv1.StatefulSet, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(statefulSetsResource, c.Cluster, "status", c.Namespace, statefulSet), &appsv1.StatefulSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(statefulSetsResource, c.ClusterPath, "status", c.Namespace, statefulSet), &appsv1.StatefulSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -125,19 +125,19 @@ func (c *statefulSetsClient) UpdateStatus(ctx context.Context, statefulSet *apps
 }
 
 func (c *statefulSetsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(statefulSetsResource, c.Cluster, c.Namespace, name, opts), &appsv1.StatefulSet{})
+	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(statefulSetsResource, c.ClusterPath, c.Namespace, name, opts), &appsv1.StatefulSet{})
 	return err
 }
 
 func (c *statefulSetsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewDeleteCollectionAction(statefulSetsResource, c.Cluster, c.Namespace, listOpts)
+	action := kcptesting.NewDeleteCollectionAction(statefulSetsResource, c.ClusterPath, c.Namespace, listOpts)
 
 	_, err := c.Fake.Invokes(action, &appsv1.StatefulSetList{})
 	return err
 }
 
 func (c *statefulSetsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*appsv1.StatefulSet, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(statefulSetsResource, c.Cluster, c.Namespace, name), &appsv1.StatefulSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(statefulSetsResource, c.ClusterPath, c.Namespace, name), &appsv1.StatefulSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -146,7 +146,7 @@ func (c *statefulSetsClient) Get(ctx context.Context, name string, options metav
 
 // List takes label and field selectors, and returns the list of StatefulSets that match those selectors.
 func (c *statefulSetsClient) List(ctx context.Context, opts metav1.ListOptions) (*appsv1.StatefulSetList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewListAction(statefulSetsResource, statefulSetsKind, c.Cluster, c.Namespace, opts), &appsv1.StatefulSetList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewListAction(statefulSetsResource, statefulSetsKind, c.ClusterPath, c.Namespace, opts), &appsv1.StatefulSetList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -165,11 +165,11 @@ func (c *statefulSetsClient) List(ctx context.Context, opts metav1.ListOptions) 
 }
 
 func (c *statefulSetsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(statefulSetsResource, c.Cluster, c.Namespace, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(statefulSetsResource, c.ClusterPath, c.Namespace, opts))
 }
 
 func (c *statefulSetsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*appsv1.StatefulSet, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(statefulSetsResource, c.Cluster, c.Namespace, name, pt, data, subresources...), &appsv1.StatefulSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(statefulSetsResource, c.ClusterPath, c.Namespace, name, pt, data, subresources...), &appsv1.StatefulSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -188,7 +188,7 @@ func (c *statefulSetsClient) Apply(ctx context.Context, applyConfiguration *appl
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(statefulSetsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &appsv1.StatefulSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(statefulSetsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &appsv1.StatefulSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -207,7 +207,7 @@ func (c *statefulSetsClient) ApplyStatus(ctx context.Context, applyConfiguration
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(statefulSetsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data, "status"), &appsv1.StatefulSet{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(statefulSetsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data, "status"), &appsv1.StatefulSet{})
 	if obj == nil {
 		return nil, err
 	}
@@ -215,7 +215,7 @@ func (c *statefulSetsClient) ApplyStatus(ctx context.Context, applyConfiguration
 }
 
 func (c *statefulSetsClient) GetScale(ctx context.Context, statefulSetName string, options metav1.GetOptions) (*autoscalingv1.Scale, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetSubresourceAction(statefulSetsResource, c.Cluster, "scale", c.Namespace, statefulSetName), &autoscalingv1.Scale{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetSubresourceAction(statefulSetsResource, c.ClusterPath, "scale", c.Namespace, statefulSetName), &autoscalingv1.Scale{})
 	if obj == nil {
 		return nil, err
 	}
@@ -223,7 +223,7 @@ func (c *statefulSetsClient) GetScale(ctx context.Context, statefulSetName strin
 }
 
 func (c *statefulSetsClient) UpdateScale(ctx context.Context, statefulSetName string, scale *autoscalingv1.Scale, opts metav1.UpdateOptions) (*autoscalingv1.Scale, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(statefulSetsResource, c.Cluster, "scale", c.Namespace, scale), &autoscalingv1.Scale{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(statefulSetsResource, c.ClusterPath, "scale", c.Namespace, scale), &autoscalingv1.Scale{})
 	if obj == nil {
 		return nil, err
 	}
@@ -242,7 +242,7 @@ func (c *statefulSetsClient) ApplyScale(ctx context.Context, statefulSetName str
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(statefulSetsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &autoscalingv1.Scale{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(statefulSetsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &autoscalingv1.Scale{})
 	if obj == nil {
 		return nil, err
 	}

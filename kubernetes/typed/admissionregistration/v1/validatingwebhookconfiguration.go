@@ -24,8 +24,8 @@ package v1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	admissionregistrationv1 "k8s.io/api/admissionregistration/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type ValidatingWebhookConfigurationsClusterGetter interface {
 // ValidatingWebhookConfigurationClusterInterface can operate on ValidatingWebhookConfigurations across all clusters,
 // or scope down to one cluster and return a admissionregistrationv1client.ValidatingWebhookConfigurationInterface.
 type ValidatingWebhookConfigurationClusterInterface interface {
-	Cluster(logicalcluster.Name) admissionregistrationv1client.ValidatingWebhookConfigurationInterface
+	Cluster(logicalcluster.Path) admissionregistrationv1client.ValidatingWebhookConfigurationInterface
 	List(ctx context.Context, opts metav1.ListOptions) (*admissionregistrationv1.ValidatingWebhookConfigurationList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type validatingWebhookConfigurationsClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *validatingWebhookConfigurationsClusterInterface) Cluster(name logicalcluster.Name) admissionregistrationv1client.ValidatingWebhookConfigurationInterface {
-	if name == logicalcluster.Wildcard {
+func (c *validatingWebhookConfigurationsClusterInterface) Cluster(clusterPath logicalcluster.Path) admissionregistrationv1client.ValidatingWebhookConfigurationInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return c.clientCache.ClusterOrDie(name).ValidatingWebhookConfigurations()
+	return c.clientCache.ClusterOrDie(clusterPath).ValidatingWebhookConfigurations()
 }
 
 // List returns the entire collection of all ValidatingWebhookConfigurations across all clusters.

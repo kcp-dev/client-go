@@ -24,8 +24,8 @@ package v1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type PodTemplatesClusterGetter interface {
 // PodTemplateClusterInterface can operate on PodTemplates across all clusters,
 // or scope down to one cluster and return a PodTemplatesNamespacer.
 type PodTemplateClusterInterface interface {
-	Cluster(logicalcluster.Name) PodTemplatesNamespacer
+	Cluster(logicalcluster.Path) PodTemplatesNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.PodTemplateList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type podTemplatesClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *podTemplatesClusterInterface) Cluster(name logicalcluster.Name) PodTemplatesNamespacer {
-	if name == logicalcluster.Wildcard {
+func (c *podTemplatesClusterInterface) Cluster(clusterPath logicalcluster.Path) PodTemplatesNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &podTemplatesNamespacer{clientCache: c.clientCache, name: name}
+	return &podTemplatesNamespacer{clientCache: c.clientCache, clusterPath: clusterPath}
 }
 
 // List returns the entire collection of all PodTemplates across all clusters.
@@ -77,9 +77,9 @@ type PodTemplatesNamespacer interface {
 
 type podTemplatesNamespacer struct {
 	clientCache kcpclient.Cache[*corev1client.CoreV1Client]
-	name        logicalcluster.Name
+	clusterPath logicalcluster.Path
 }
 
 func (n *podTemplatesNamespacer) Namespace(namespace string) corev1client.PodTemplateInterface {
-	return n.clientCache.ClusterOrDie(n.name).PodTemplates(namespace)
+	return n.clientCache.ClusterOrDie(n.clusterPath).PodTemplates(namespace)
 }

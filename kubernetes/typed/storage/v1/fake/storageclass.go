@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type storageClassesClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *storageClassesClusterClient) Cluster(cluster logicalcluster.Name) storagev1client.StorageClassInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *storageClassesClusterClient) Cluster(clusterPath logicalcluster.Path) storagev1client.StorageClassInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &storageClassesClient{Fake: c.Fake, Cluster: cluster}
+	return &storageClassesClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of StorageClasses that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *storageClassesClusterClient) Watch(ctx context.Context, opts metav1.Lis
 
 type storageClassesClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *storageClassesClient) Create(ctx context.Context, storageClass *storagev1.StorageClass, opts metav1.CreateOptions) (*storagev1.StorageClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(storageClassesResource, c.Cluster, storageClass), &storagev1.StorageClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(storageClassesResource, c.ClusterPath, storageClass), &storagev1.StorageClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *storageClassesClient) Create(ctx context.Context, storageClass *storage
 }
 
 func (c *storageClassesClient) Update(ctx context.Context, storageClass *storagev1.StorageClass, opts metav1.UpdateOptions) (*storagev1.StorageClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(storageClassesResource, c.Cluster, storageClass), &storagev1.StorageClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(storageClassesResource, c.ClusterPath, storageClass), &storagev1.StorageClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *storageClassesClient) Update(ctx context.Context, storageClass *storage
 }
 
 func (c *storageClassesClient) UpdateStatus(ctx context.Context, storageClass *storagev1.StorageClass, opts metav1.UpdateOptions) (*storagev1.StorageClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(storageClassesResource, c.Cluster, "status", storageClass), &storagev1.StorageClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(storageClassesResource, c.ClusterPath, "status", storageClass), &storagev1.StorageClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *storageClassesClient) UpdateStatus(ctx context.Context, storageClass *s
 }
 
 func (c *storageClassesClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(storageClassesResource, c.Cluster, name, opts), &storagev1.StorageClass{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(storageClassesResource, c.ClusterPath, name, opts), &storagev1.StorageClass{})
 	return err
 }
 
 func (c *storageClassesClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(storageClassesResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(storageClassesResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &storagev1.StorageClassList{})
 	return err
 }
 
 func (c *storageClassesClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*storagev1.StorageClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(storageClassesResource, c.Cluster, name), &storagev1.StorageClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(storageClassesResource, c.ClusterPath, name), &storagev1.StorageClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *storageClassesClient) Get(ctx context.Context, name string, options met
 
 // List takes label and field selectors, and returns the list of StorageClasses that match those selectors.
 func (c *storageClassesClient) List(ctx context.Context, opts metav1.ListOptions) (*storagev1.StorageClassList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(storageClassesResource, storageClassesKind, c.Cluster, opts), &storagev1.StorageClassList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(storageClassesResource, storageClassesKind, c.ClusterPath, opts), &storagev1.StorageClassList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *storageClassesClient) List(ctx context.Context, opts metav1.ListOptions
 }
 
 func (c *storageClassesClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(storageClassesResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(storageClassesResource, c.ClusterPath, opts))
 }
 
 func (c *storageClassesClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*storagev1.StorageClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(storageClassesResource, c.Cluster, name, pt, data, subresources...), &storagev1.StorageClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(storageClassesResource, c.ClusterPath, name, pt, data, subresources...), &storagev1.StorageClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *storageClassesClient) Apply(ctx context.Context, applyConfiguration *ap
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(storageClassesResource, c.Cluster, *name, types.ApplyPatchType, data), &storagev1.StorageClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(storageClassesResource, c.ClusterPath, *name, types.ApplyPatchType, data), &storagev1.StorageClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *storageClassesClient) ApplyStatus(ctx context.Context, applyConfigurati
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(storageClassesResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &storagev1.StorageClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(storageClassesResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &storagev1.StorageClass{})
 	if obj == nil {
 		return nil, err
 	}

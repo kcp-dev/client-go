@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type cSINodesClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *cSINodesClusterClient) Cluster(cluster logicalcluster.Name) storagev1client.CSINodeInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *cSINodesClusterClient) Cluster(clusterPath logicalcluster.Path) storagev1client.CSINodeInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &cSINodesClient{Fake: c.Fake, Cluster: cluster}
+	return &cSINodesClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of CSINodes that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *cSINodesClusterClient) Watch(ctx context.Context, opts metav1.ListOptio
 
 type cSINodesClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *cSINodesClient) Create(ctx context.Context, cSINode *storagev1.CSINode, opts metav1.CreateOptions) (*storagev1.CSINode, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(cSINodesResource, c.Cluster, cSINode), &storagev1.CSINode{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(cSINodesResource, c.ClusterPath, cSINode), &storagev1.CSINode{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *cSINodesClient) Create(ctx context.Context, cSINode *storagev1.CSINode,
 }
 
 func (c *cSINodesClient) Update(ctx context.Context, cSINode *storagev1.CSINode, opts metav1.UpdateOptions) (*storagev1.CSINode, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(cSINodesResource, c.Cluster, cSINode), &storagev1.CSINode{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(cSINodesResource, c.ClusterPath, cSINode), &storagev1.CSINode{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *cSINodesClient) Update(ctx context.Context, cSINode *storagev1.CSINode,
 }
 
 func (c *cSINodesClient) UpdateStatus(ctx context.Context, cSINode *storagev1.CSINode, opts metav1.UpdateOptions) (*storagev1.CSINode, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(cSINodesResource, c.Cluster, "status", cSINode), &storagev1.CSINode{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(cSINodesResource, c.ClusterPath, "status", cSINode), &storagev1.CSINode{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *cSINodesClient) UpdateStatus(ctx context.Context, cSINode *storagev1.CS
 }
 
 func (c *cSINodesClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(cSINodesResource, c.Cluster, name, opts), &storagev1.CSINode{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(cSINodesResource, c.ClusterPath, name, opts), &storagev1.CSINode{})
 	return err
 }
 
 func (c *cSINodesClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(cSINodesResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(cSINodesResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &storagev1.CSINodeList{})
 	return err
 }
 
 func (c *cSINodesClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*storagev1.CSINode, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(cSINodesResource, c.Cluster, name), &storagev1.CSINode{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(cSINodesResource, c.ClusterPath, name), &storagev1.CSINode{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *cSINodesClient) Get(ctx context.Context, name string, options metav1.Ge
 
 // List takes label and field selectors, and returns the list of CSINodes that match those selectors.
 func (c *cSINodesClient) List(ctx context.Context, opts metav1.ListOptions) (*storagev1.CSINodeList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(cSINodesResource, cSINodesKind, c.Cluster, opts), &storagev1.CSINodeList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(cSINodesResource, cSINodesKind, c.ClusterPath, opts), &storagev1.CSINodeList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *cSINodesClient) List(ctx context.Context, opts metav1.ListOptions) (*st
 }
 
 func (c *cSINodesClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(cSINodesResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(cSINodesResource, c.ClusterPath, opts))
 }
 
 func (c *cSINodesClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*storagev1.CSINode, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(cSINodesResource, c.Cluster, name, pt, data, subresources...), &storagev1.CSINode{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(cSINodesResource, c.ClusterPath, name, pt, data, subresources...), &storagev1.CSINode{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *cSINodesClient) Apply(ctx context.Context, applyConfiguration *applycon
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(cSINodesResource, c.Cluster, *name, types.ApplyPatchType, data), &storagev1.CSINode{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(cSINodesResource, c.ClusterPath, *name, types.ApplyPatchType, data), &storagev1.CSINode{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *cSINodesClient) ApplyStatus(ctx context.Context, applyConfiguration *ap
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(cSINodesResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &storagev1.CSINode{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(cSINodesResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &storagev1.CSINode{})
 	if obj == nil {
 		return nil, err
 	}

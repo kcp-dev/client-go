@@ -21,9 +21,9 @@ import (
 	"sync"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	thirdpartyinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	thirdpartyinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -164,10 +164,10 @@ func (d *dynamicClusterInformer) Lister() kcpcache.GenericClusterLister {
 	return kcpdynamiclisters.NewRuntimeObjectShim(kcpdynamiclisters.New(d.informer.GetIndexer(), d.gvr))
 }
 
-func (d *dynamicClusterInformer) Cluster(cluster logicalcluster.Name) upstreaminformers.GenericInformer {
+func (d *dynamicClusterInformer) Cluster(clusterName logicalcluster.Name) upstreaminformers.GenericInformer {
 	return &dynamicInformer{
-		informer: d.Informer().Cluster(cluster),
-		lister:   d.Lister().ByCluster(cluster),
+		informer: d.Informer().Cluster(clusterName),
+		lister:   d.Lister().ByCluster(clusterName),
 	}
 }
 

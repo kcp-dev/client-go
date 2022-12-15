@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,12 +50,12 @@ type servicesClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *servicesClusterClient) Cluster(cluster logicalcluster.Name) kcpcorev1.ServicesNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *servicesClusterClient) Cluster(clusterPath logicalcluster.Path) kcpcorev1.ServicesNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &servicesNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &servicesNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of Services that match those selectors across all clusters.
@@ -85,21 +85,21 @@ func (c *servicesClusterClient) Watch(ctx context.Context, opts metav1.ListOptio
 
 type servicesNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *servicesNamespacer) Namespace(namespace string) corev1client.ServiceInterface {
-	return &servicesClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &servicesClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type servicesClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *servicesClient) Create(ctx context.Context, service *corev1.Service, opts metav1.CreateOptions) (*corev1.Service, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(servicesResource, c.Cluster, c.Namespace, service), &corev1.Service{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(servicesResource, c.ClusterPath, c.Namespace, service), &corev1.Service{})
 	if obj == nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (c *servicesClient) Create(ctx context.Context, service *corev1.Service, op
 }
 
 func (c *servicesClient) Update(ctx context.Context, service *corev1.Service, opts metav1.UpdateOptions) (*corev1.Service, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(servicesResource, c.Cluster, c.Namespace, service), &corev1.Service{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(servicesResource, c.ClusterPath, c.Namespace, service), &corev1.Service{})
 	if obj == nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (c *servicesClient) Update(ctx context.Context, service *corev1.Service, op
 }
 
 func (c *servicesClient) UpdateStatus(ctx context.Context, service *corev1.Service, opts metav1.UpdateOptions) (*corev1.Service, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(servicesResource, c.Cluster, "status", c.Namespace, service), &corev1.Service{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(servicesResource, c.ClusterPath, "status", c.Namespace, service), &corev1.Service{})
 	if obj == nil {
 		return nil, err
 	}
@@ -123,12 +123,12 @@ func (c *servicesClient) UpdateStatus(ctx context.Context, service *corev1.Servi
 }
 
 func (c *servicesClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(servicesResource, c.Cluster, c.Namespace, name, opts), &corev1.Service{})
+	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(servicesResource, c.ClusterPath, c.Namespace, name, opts), &corev1.Service{})
 	return err
 }
 
 func (c *servicesClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*corev1.Service, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(servicesResource, c.Cluster, c.Namespace, name), &corev1.Service{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(servicesResource, c.ClusterPath, c.Namespace, name), &corev1.Service{})
 	if obj == nil {
 		return nil, err
 	}
@@ -137,7 +137,7 @@ func (c *servicesClient) Get(ctx context.Context, name string, options metav1.Ge
 
 // List takes label and field selectors, and returns the list of Services that match those selectors.
 func (c *servicesClient) List(ctx context.Context, opts metav1.ListOptions) (*corev1.ServiceList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewListAction(servicesResource, servicesKind, c.Cluster, c.Namespace, opts), &corev1.ServiceList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewListAction(servicesResource, servicesKind, c.ClusterPath, c.Namespace, opts), &corev1.ServiceList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -156,11 +156,11 @@ func (c *servicesClient) List(ctx context.Context, opts metav1.ListOptions) (*co
 }
 
 func (c *servicesClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(servicesResource, c.Cluster, c.Namespace, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(servicesResource, c.ClusterPath, c.Namespace, opts))
 }
 
 func (c *servicesClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*corev1.Service, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(servicesResource, c.Cluster, c.Namespace, name, pt, data, subresources...), &corev1.Service{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(servicesResource, c.ClusterPath, c.Namespace, name, pt, data, subresources...), &corev1.Service{})
 	if obj == nil {
 		return nil, err
 	}
@@ -179,7 +179,7 @@ func (c *servicesClient) Apply(ctx context.Context, applyConfiguration *applycon
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(servicesResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &corev1.Service{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(servicesResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &corev1.Service{})
 	if obj == nil {
 		return nil, err
 	}
@@ -198,7 +198,7 @@ func (c *servicesClient) ApplyStatus(ctx context.Context, applyConfiguration *ap
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(servicesResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data, "status"), &corev1.Service{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(servicesResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data, "status"), &corev1.Service{})
 	if obj == nil {
 		return nil, err
 	}

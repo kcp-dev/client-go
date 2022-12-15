@@ -22,7 +22,7 @@ limitations under the License.
 package v1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type CoreV1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *CoreV1ClusterClient) Cluster(cluster logicalcluster.Name) corev1.CoreV1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *CoreV1ClusterClient) Cluster(clusterPath logicalcluster.Path) corev1.CoreV1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &CoreV1Client{Fake: c.Fake, Cluster: cluster}
+	return &CoreV1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *CoreV1ClusterClient) PersistentVolumes() kcpcorev1.PersistentVolumeClusterInterface {
@@ -112,7 +112,7 @@ var _ corev1.CoreV1Interface = (*CoreV1Client)(nil)
 
 type CoreV1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *CoreV1Client) RESTClient() rest.Interface {
@@ -121,65 +121,65 @@ func (c *CoreV1Client) RESTClient() rest.Interface {
 }
 
 func (c *CoreV1Client) PersistentVolumes() corev1.PersistentVolumeInterface {
-	return &persistentVolumesClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &persistentVolumesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
 
 func (c *CoreV1Client) PersistentVolumeClaims(namespace string) corev1.PersistentVolumeClaimInterface {
-	return &persistentVolumeClaimsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &persistentVolumeClaimsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *CoreV1Client) Pods(namespace string) corev1.PodInterface {
-	return &podsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &podsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *CoreV1Client) PodTemplates(namespace string) corev1.PodTemplateInterface {
-	return &podTemplatesClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &podTemplatesClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *CoreV1Client) ReplicationControllers(namespace string) corev1.ReplicationControllerInterface {
-	return &replicationControllersClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &replicationControllersClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *CoreV1Client) Services(namespace string) corev1.ServiceInterface {
-	return &servicesClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &servicesClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *CoreV1Client) ServiceAccounts(namespace string) corev1.ServiceAccountInterface {
-	return &serviceAccountsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &serviceAccountsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *CoreV1Client) Endpoints(namespace string) corev1.EndpointsInterface {
-	return &endpointsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &endpointsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *CoreV1Client) Nodes() corev1.NodeInterface {
-	return &nodesClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &nodesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
 
 func (c *CoreV1Client) Namespaces() corev1.NamespaceInterface {
-	return &namespacesClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &namespacesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
 
 func (c *CoreV1Client) Events(namespace string) corev1.EventInterface {
-	return &eventsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &eventsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *CoreV1Client) LimitRanges(namespace string) corev1.LimitRangeInterface {
-	return &limitRangesClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &limitRangesClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *CoreV1Client) ResourceQuotas(namespace string) corev1.ResourceQuotaInterface {
-	return &resourceQuotasClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &resourceQuotasClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *CoreV1Client) Secrets(namespace string) corev1.SecretInterface {
-	return &secretsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &secretsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *CoreV1Client) ConfigMaps(namespace string) corev1.ConfigMapInterface {
-	return &configMapsClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &configMapsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
 
 func (c *CoreV1Client) ComponentStatuses() corev1.ComponentStatusInterface {
-	return &componentStatusesClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &componentStatusesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }

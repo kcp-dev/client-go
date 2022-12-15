@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	nodev1beta1 "k8s.io/api/node/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *runtimeClassClusterInformer) Lister() nodev1beta1listers.RuntimeClassCl
 	return nodev1beta1listers.NewRuntimeClassClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *runtimeClassClusterInformer) Cluster(cluster logicalcluster.Name) upstreamnodev1beta1informers.RuntimeClassInformer {
+func (f *runtimeClassClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamnodev1beta1informers.RuntimeClassInformer {
 	return &runtimeClassInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -46,7 +46,7 @@ type Fake struct {
 	// for every request in the order they are tried.
 	ProxyReactionChain []ProxyReactor
 
-	Resources map[logicalcluster.Name][]*metav1.APIResourceList
+	Resources map[logicalcluster.Path][]*metav1.APIResourceList
 }
 
 // Reactor is an interface to allow the composition of reaction functions.

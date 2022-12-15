@@ -17,7 +17,7 @@ limitations under the License.
 package testing
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
@@ -47,45 +47,45 @@ func (r *ReactorPredicate[R]) React(action Action) (handled bool, ret R, err err
 }
 
 // ClusterScopedReactor wraps any reactor to scope it to the events from a particular cluster.
-func ClusterScopedReactor[R any](cluster logicalcluster.Name, reactor GenericReactor[R]) GenericReactor[R] {
+func ClusterScopedReactor[R any](clusterPath logicalcluster.Path, reactor GenericReactor[R]) GenericReactor[R] {
 	return &ReactorPredicate[R]{
 		predicate: func(action Action) bool {
-			return action.GetCluster() == cluster
+			return action.GetCluster() == clusterPath
 		},
 		delegate: reactor,
 	}
 }
 
 // AddScopedReactor appends a reactor to the end of the chain.
-func (c *Fake) AddScopedReactor(cluster logicalcluster.Name, verb, resource string, reaction ReactionFunc) {
-	c.ReactionChain = append(c.ReactionChain, ClusterScopedReactor[runtime.Object](cluster, &SimpleReactor{verb, resource, reaction}))
+func (c *Fake) AddScopedReactor(clusterPath logicalcluster.Path, verb, resource string, reaction ReactionFunc) {
+	c.ReactionChain = append(c.ReactionChain, ClusterScopedReactor[runtime.Object](clusterPath, &SimpleReactor{verb, resource, reaction}))
 }
 
 // PrependScopedReactor adds a reactor to the beginning of the chain.
-func (c *Fake) PrependScopedReactor(cluster logicalcluster.Name, verb, resource string, reaction ReactionFunc) {
-	c.ReactionChain = append([]Reactor{ClusterScopedReactor[runtime.Object](cluster, &SimpleReactor{verb, resource, reaction})}, c.ReactionChain...)
+func (c *Fake) PrependScopedReactor(clusterPath logicalcluster.Path, verb, resource string, reaction ReactionFunc) {
+	c.ReactionChain = append([]Reactor{ClusterScopedReactor[runtime.Object](clusterPath, &SimpleReactor{verb, resource, reaction})}, c.ReactionChain...)
 }
 
 // AddScopedWatchReactor appends a reactor to the end of the chain.
-func (c *Fake) AddScopedWatchReactor(cluster logicalcluster.Name, resource string, reaction WatchReactionFunc) {
+func (c *Fake) AddScopedWatchReactor(clusterPath logicalcluster.Path, resource string, reaction WatchReactionFunc) {
 	c.Lock()
 	defer c.Unlock()
-	c.WatchReactionChain = append(c.WatchReactionChain, ClusterScopedReactor[watch.Interface](cluster, &SimpleWatchReactor{resource, reaction}))
+	c.WatchReactionChain = append(c.WatchReactionChain, ClusterScopedReactor[watch.Interface](clusterPath, &SimpleWatchReactor{resource, reaction}))
 }
 
 // PrependScopedWatchReactor adds a reactor to the beginning of the chain.
-func (c *Fake) PrependScopedWatchReactor(cluster logicalcluster.Name, resource string, reaction WatchReactionFunc) {
+func (c *Fake) PrependScopedWatchReactor(clusterPath logicalcluster.Path, resource string, reaction WatchReactionFunc) {
 	c.Lock()
 	defer c.Unlock()
-	c.WatchReactionChain = append([]WatchReactor{ClusterScopedReactor[watch.Interface](cluster, &SimpleWatchReactor{resource, reaction})}, c.WatchReactionChain...)
+	c.WatchReactionChain = append([]WatchReactor{ClusterScopedReactor[watch.Interface](clusterPath, &SimpleWatchReactor{resource, reaction})}, c.WatchReactionChain...)
 }
 
 // AddScopedProxyReactor appends a reactor to the end of the chain.
-func (c *Fake) AddScopedProxyReactor(cluster logicalcluster.Name, resource string, reaction ProxyReactionFunc) {
-	c.ProxyReactionChain = append(c.ProxyReactionChain, ClusterScopedReactor[restclient.ResponseWrapper](cluster, &SimpleProxyReactor{resource, reaction}))
+func (c *Fake) AddScopedProxyReactor(clusterPath logicalcluster.Path, resource string, reaction ProxyReactionFunc) {
+	c.ProxyReactionChain = append(c.ProxyReactionChain, ClusterScopedReactor[restclient.ResponseWrapper](clusterPath, &SimpleProxyReactor{resource, reaction}))
 }
 
 // PrependScopedProxyReactor adds a reactor to the beginning of the chain.
-func (c *Fake) PrependScopedProxyReactor(cluster logicalcluster.Name, resource string, reaction ProxyReactionFunc) {
-	c.ProxyReactionChain = append([]ProxyReactor{ClusterScopedReactor[restclient.ResponseWrapper](cluster, &SimpleProxyReactor{resource, reaction})}, c.ProxyReactionChain...)
+func (c *Fake) PrependScopedProxyReactor(clusterPath logicalcluster.Path, resource string, reaction ProxyReactionFunc) {
+	c.ProxyReactionChain = append([]ProxyReactor{ClusterScopedReactor[restclient.ResponseWrapper](clusterPath, &SimpleProxyReactor{resource, reaction})}, c.ProxyReactionChain...)
 }

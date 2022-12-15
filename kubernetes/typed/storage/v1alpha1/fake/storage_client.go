@@ -22,7 +22,7 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	storagev1alpha1 "k8s.io/client-go/kubernetes/typed/storage/v1alpha1"
 	"k8s.io/client-go/rest"
@@ -37,11 +37,11 @@ type StorageV1alpha1ClusterClient struct {
 	*kcptesting.Fake
 }
 
-func (c *StorageV1alpha1ClusterClient) Cluster(cluster logicalcluster.Name) storagev1alpha1.StorageV1alpha1Interface {
-	if cluster == logicalcluster.Wildcard {
+func (c *StorageV1alpha1ClusterClient) Cluster(clusterPath logicalcluster.Path) storagev1alpha1.StorageV1alpha1Interface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
-	return &StorageV1alpha1Client{Fake: c.Fake, Cluster: cluster}
+	return &StorageV1alpha1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 func (c *StorageV1alpha1ClusterClient) VolumeAttachments() kcpstoragev1alpha1.VolumeAttachmentClusterInterface {
@@ -56,7 +56,7 @@ var _ storagev1alpha1.StorageV1alpha1Interface = (*StorageV1alpha1Client)(nil)
 
 type StorageV1alpha1Client struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *StorageV1alpha1Client) RESTClient() rest.Interface {
@@ -65,9 +65,9 @@ func (c *StorageV1alpha1Client) RESTClient() rest.Interface {
 }
 
 func (c *StorageV1alpha1Client) VolumeAttachments() storagev1alpha1.VolumeAttachmentInterface {
-	return &volumeAttachmentsClient{Fake: c.Fake, Cluster: c.Cluster}
+	return &volumeAttachmentsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
 
 func (c *StorageV1alpha1Client) CSIStorageCapacities(namespace string) storagev1alpha1.CSIStorageCapacityInterface {
-	return &cSIStorageCapacitiesClient{Fake: c.Fake, Cluster: c.Cluster, Namespace: namespace}
+	return &cSIStorageCapacitiesClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }

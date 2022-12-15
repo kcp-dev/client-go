@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	flowcontrolv1beta1 "k8s.io/api/flowcontrol/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *priorityLevelConfigurationClusterInformer) Lister() flowcontrolv1beta1l
 	return flowcontrolv1beta1listers.NewPriorityLevelConfigurationClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *priorityLevelConfigurationClusterInformer) Cluster(cluster logicalcluster.Name) upstreamflowcontrolv1beta1informers.PriorityLevelConfigurationInformer {
+func (f *priorityLevelConfigurationClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamflowcontrolv1beta1informers.PriorityLevelConfigurationInformer {
 	return &priorityLevelConfigurationInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

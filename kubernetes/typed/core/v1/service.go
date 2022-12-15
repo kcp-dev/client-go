@@ -24,8 +24,8 @@ package v1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type ServicesClusterGetter interface {
 // ServiceClusterInterface can operate on Services across all clusters,
 // or scope down to one cluster and return a ServicesNamespacer.
 type ServiceClusterInterface interface {
-	Cluster(logicalcluster.Name) ServicesNamespacer
+	Cluster(logicalcluster.Path) ServicesNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*corev1.ServiceList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type servicesClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *servicesClusterInterface) Cluster(name logicalcluster.Name) ServicesNamespacer {
-	if name == logicalcluster.Wildcard {
+func (c *servicesClusterInterface) Cluster(clusterPath logicalcluster.Path) ServicesNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &servicesNamespacer{clientCache: c.clientCache, name: name}
+	return &servicesNamespacer{clientCache: c.clientCache, clusterPath: clusterPath}
 }
 
 // List returns the entire collection of all Services across all clusters.
@@ -77,9 +77,9 @@ type ServicesNamespacer interface {
 
 type servicesNamespacer struct {
 	clientCache kcpclient.Cache[*corev1client.CoreV1Client]
-	name        logicalcluster.Name
+	clusterPath logicalcluster.Path
 }
 
 func (n *servicesNamespacer) Namespace(namespace string) corev1client.ServiceInterface {
-	return n.clientCache.ClusterOrDie(n.name).Services(namespace)
+	return n.clientCache.ClusterOrDie(n.clusterPath).Services(namespace)
 }

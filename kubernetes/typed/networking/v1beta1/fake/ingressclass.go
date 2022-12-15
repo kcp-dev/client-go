@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	networkingv1beta1 "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type ingressClassesClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *ingressClassesClusterClient) Cluster(cluster logicalcluster.Name) networkingv1beta1client.IngressClassInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *ingressClassesClusterClient) Cluster(clusterPath logicalcluster.Path) networkingv1beta1client.IngressClassInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &ingressClassesClient{Fake: c.Fake, Cluster: cluster}
+	return &ingressClassesClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of IngressClasses that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *ingressClassesClusterClient) Watch(ctx context.Context, opts metav1.Lis
 
 type ingressClassesClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *ingressClassesClient) Create(ctx context.Context, ingressClass *networkingv1beta1.IngressClass, opts metav1.CreateOptions) (*networkingv1beta1.IngressClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(ingressClassesResource, c.Cluster, ingressClass), &networkingv1beta1.IngressClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(ingressClassesResource, c.ClusterPath, ingressClass), &networkingv1beta1.IngressClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *ingressClassesClient) Create(ctx context.Context, ingressClass *network
 }
 
 func (c *ingressClassesClient) Update(ctx context.Context, ingressClass *networkingv1beta1.IngressClass, opts metav1.UpdateOptions) (*networkingv1beta1.IngressClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(ingressClassesResource, c.Cluster, ingressClass), &networkingv1beta1.IngressClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(ingressClassesResource, c.ClusterPath, ingressClass), &networkingv1beta1.IngressClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *ingressClassesClient) Update(ctx context.Context, ingressClass *network
 }
 
 func (c *ingressClassesClient) UpdateStatus(ctx context.Context, ingressClass *networkingv1beta1.IngressClass, opts metav1.UpdateOptions) (*networkingv1beta1.IngressClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(ingressClassesResource, c.Cluster, "status", ingressClass), &networkingv1beta1.IngressClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(ingressClassesResource, c.ClusterPath, "status", ingressClass), &networkingv1beta1.IngressClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *ingressClassesClient) UpdateStatus(ctx context.Context, ingressClass *n
 }
 
 func (c *ingressClassesClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(ingressClassesResource, c.Cluster, name, opts), &networkingv1beta1.IngressClass{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(ingressClassesResource, c.ClusterPath, name, opts), &networkingv1beta1.IngressClass{})
 	return err
 }
 
 func (c *ingressClassesClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(ingressClassesResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(ingressClassesResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &networkingv1beta1.IngressClassList{})
 	return err
 }
 
 func (c *ingressClassesClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*networkingv1beta1.IngressClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(ingressClassesResource, c.Cluster, name), &networkingv1beta1.IngressClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(ingressClassesResource, c.ClusterPath, name), &networkingv1beta1.IngressClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *ingressClassesClient) Get(ctx context.Context, name string, options met
 
 // List takes label and field selectors, and returns the list of IngressClasses that match those selectors.
 func (c *ingressClassesClient) List(ctx context.Context, opts metav1.ListOptions) (*networkingv1beta1.IngressClassList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(ingressClassesResource, ingressClassesKind, c.Cluster, opts), &networkingv1beta1.IngressClassList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(ingressClassesResource, ingressClassesKind, c.ClusterPath, opts), &networkingv1beta1.IngressClassList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *ingressClassesClient) List(ctx context.Context, opts metav1.ListOptions
 }
 
 func (c *ingressClassesClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(ingressClassesResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(ingressClassesResource, c.ClusterPath, opts))
 }
 
 func (c *ingressClassesClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*networkingv1beta1.IngressClass, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(ingressClassesResource, c.Cluster, name, pt, data, subresources...), &networkingv1beta1.IngressClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(ingressClassesResource, c.ClusterPath, name, pt, data, subresources...), &networkingv1beta1.IngressClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *ingressClassesClient) Apply(ctx context.Context, applyConfiguration *ap
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(ingressClassesResource, c.Cluster, *name, types.ApplyPatchType, data), &networkingv1beta1.IngressClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(ingressClassesResource, c.ClusterPath, *name, types.ApplyPatchType, data), &networkingv1beta1.IngressClass{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *ingressClassesClient) ApplyStatus(ctx context.Context, applyConfigurati
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(ingressClassesResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &networkingv1beta1.IngressClass{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(ingressClassesResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &networkingv1beta1.IngressClass{})
 	if obj == nil {
 		return nil, err
 	}

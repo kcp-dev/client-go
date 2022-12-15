@@ -27,7 +27,7 @@ import (
 )
 
 func (c *certificateSigningRequestsClient) UpdateApproval(ctx context.Context, certificateSigningRequest *certificates.CertificateSigningRequest, opts metav1.UpdateOptions) (result *certificates.CertificateSigningRequest, err error) {
-	obj, err := c.Fake.Invokes(core.NewRootUpdateSubresourceAction(certificateSigningRequestsResource, c.Cluster, "approval", certificateSigningRequest), &certificates.CertificateSigningRequest{})
+	obj, err := c.Fake.Invokes(core.NewRootUpdateSubresourceAction(certificateSigningRequestsResource, c.ClusterPath, "approval", certificateSigningRequest), &certificates.CertificateSigningRequest{})
 	if obj == nil {
 		return nil, err
 	}

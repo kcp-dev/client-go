@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	internalv1alpha1 "k8s.io/api/apiserverinternal/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -49,12 +49,12 @@ type storageVersionsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *storageVersionsClusterClient) Cluster(cluster logicalcluster.Name) internalv1alpha1client.StorageVersionInterface {
-	if cluster == logicalcluster.Wildcard {
+func (c *storageVersionsClusterClient) Cluster(clusterPath logicalcluster.Path) internalv1alpha1client.StorageVersionInterface {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &storageVersionsClient{Fake: c.Fake, Cluster: cluster}
+	return &storageVersionsClient{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of StorageVersions that match those selectors across all clusters.
@@ -84,11 +84,11 @@ func (c *storageVersionsClusterClient) Watch(ctx context.Context, opts metav1.Li
 
 type storageVersionsClient struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (c *storageVersionsClient) Create(ctx context.Context, storageVersion *internalv1alpha1.StorageVersion, opts metav1.CreateOptions) (*internalv1alpha1.StorageVersion, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(storageVersionsResource, c.Cluster, storageVersion), &internalv1alpha1.StorageVersion{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootCreateAction(storageVersionsResource, c.ClusterPath, storageVersion), &internalv1alpha1.StorageVersion{})
 	if obj == nil {
 		return nil, err
 	}
@@ -96,7 +96,7 @@ func (c *storageVersionsClient) Create(ctx context.Context, storageVersion *inte
 }
 
 func (c *storageVersionsClient) Update(ctx context.Context, storageVersion *internalv1alpha1.StorageVersion, opts metav1.UpdateOptions) (*internalv1alpha1.StorageVersion, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(storageVersionsResource, c.Cluster, storageVersion), &internalv1alpha1.StorageVersion{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateAction(storageVersionsResource, c.ClusterPath, storageVersion), &internalv1alpha1.StorageVersion{})
 	if obj == nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (c *storageVersionsClient) Update(ctx context.Context, storageVersion *inte
 }
 
 func (c *storageVersionsClient) UpdateStatus(ctx context.Context, storageVersion *internalv1alpha1.StorageVersion, opts metav1.UpdateOptions) (*internalv1alpha1.StorageVersion, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(storageVersionsResource, c.Cluster, "status", storageVersion), &internalv1alpha1.StorageVersion{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootUpdateSubresourceAction(storageVersionsResource, c.ClusterPath, "status", storageVersion), &internalv1alpha1.StorageVersion{})
 	if obj == nil {
 		return nil, err
 	}
@@ -112,19 +112,19 @@ func (c *storageVersionsClient) UpdateStatus(ctx context.Context, storageVersion
 }
 
 func (c *storageVersionsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(storageVersionsResource, c.Cluster, name, opts), &internalv1alpha1.StorageVersion{})
+	_, err := c.Fake.Invokes(kcptesting.NewRootDeleteActionWithOptions(storageVersionsResource, c.ClusterPath, name, opts), &internalv1alpha1.StorageVersion{})
 	return err
 }
 
 func (c *storageVersionsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewRootDeleteCollectionAction(storageVersionsResource, c.Cluster, listOpts)
+	action := kcptesting.NewRootDeleteCollectionAction(storageVersionsResource, c.ClusterPath, listOpts)
 
 	_, err := c.Fake.Invokes(action, &internalv1alpha1.StorageVersionList{})
 	return err
 }
 
 func (c *storageVersionsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*internalv1alpha1.StorageVersion, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(storageVersionsResource, c.Cluster, name), &internalv1alpha1.StorageVersion{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootGetAction(storageVersionsResource, c.ClusterPath, name), &internalv1alpha1.StorageVersion{})
 	if obj == nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (c *storageVersionsClient) Get(ctx context.Context, name string, options me
 
 // List takes label and field selectors, and returns the list of StorageVersions that match those selectors.
 func (c *storageVersionsClient) List(ctx context.Context, opts metav1.ListOptions) (*internalv1alpha1.StorageVersionList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(storageVersionsResource, storageVersionsKind, c.Cluster, opts), &internalv1alpha1.StorageVersionList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootListAction(storageVersionsResource, storageVersionsKind, c.ClusterPath, opts), &internalv1alpha1.StorageVersionList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -152,11 +152,11 @@ func (c *storageVersionsClient) List(ctx context.Context, opts metav1.ListOption
 }
 
 func (c *storageVersionsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(storageVersionsResource, c.Cluster, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewRootWatchAction(storageVersionsResource, c.ClusterPath, opts))
 }
 
 func (c *storageVersionsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*internalv1alpha1.StorageVersion, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(storageVersionsResource, c.Cluster, name, pt, data, subresources...), &internalv1alpha1.StorageVersion{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(storageVersionsResource, c.ClusterPath, name, pt, data, subresources...), &internalv1alpha1.StorageVersion{})
 	if obj == nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (c *storageVersionsClient) Apply(ctx context.Context, applyConfiguration *a
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(storageVersionsResource, c.Cluster, *name, types.ApplyPatchType, data), &internalv1alpha1.StorageVersion{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(storageVersionsResource, c.ClusterPath, *name, types.ApplyPatchType, data), &internalv1alpha1.StorageVersion{})
 	if obj == nil {
 		return nil, err
 	}
@@ -194,7 +194,7 @@ func (c *storageVersionsClient) ApplyStatus(ctx context.Context, applyConfigurat
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(storageVersionsResource, c.Cluster, *name, types.ApplyPatchType, data, "status"), &internalv1alpha1.StorageVersion{})
+	obj, err := c.Fake.Invokes(kcptesting.NewRootPatchSubresourceAction(storageVersionsResource, c.ClusterPath, *name, types.ApplyPatchType, data, "status"), &internalv1alpha1.StorageVersion{})
 	if obj == nil {
 		return nil, err
 	}

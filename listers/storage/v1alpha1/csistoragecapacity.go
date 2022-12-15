@@ -22,8 +22,8 @@ limitations under the License.
 package v1alpha1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	storagev1alpha1 "k8s.io/api/storage/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type CSIStorageCapacityClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*storagev1alpha1.CSIStorageCapacity, err error)
 	// Cluster returns a lister that can list and get CSIStorageCapacities in one workspace.
-	Cluster(cluster logicalcluster.Name) storagev1alpha1listers.CSIStorageCapacityLister
+	Cluster(clusterName logicalcluster.Name) storagev1alpha1listers.CSIStorageCapacityLister
 	CSIStorageCapacityClusterListerExpansion
 }
 
@@ -66,19 +66,19 @@ func (s *cSIStorageCapacityClusterLister) List(selector labels.Selector) (ret []
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get CSIStorageCapacities.
-func (s *cSIStorageCapacityClusterLister) Cluster(cluster logicalcluster.Name) storagev1alpha1listers.CSIStorageCapacityLister {
-	return &cSIStorageCapacityLister{indexer: s.indexer, cluster: cluster}
+func (s *cSIStorageCapacityClusterLister) Cluster(clusterName logicalcluster.Name) storagev1alpha1listers.CSIStorageCapacityLister {
+	return &cSIStorageCapacityLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // cSIStorageCapacityLister implements the storagev1alpha1listers.CSIStorageCapacityLister interface.
 type cSIStorageCapacityLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all CSIStorageCapacities in the indexer for a workspace.
 func (s *cSIStorageCapacityLister) List(selector labels.Selector) (ret []*storagev1alpha1.CSIStorageCapacity, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*storagev1alpha1.CSIStorageCapacity))
 	})
 	return ret, err
@@ -86,19 +86,19 @@ func (s *cSIStorageCapacityLister) List(selector labels.Selector) (ret []*storag
 
 // CSIStorageCapacities returns an object that can list and get CSIStorageCapacities in one namespace.
 func (s *cSIStorageCapacityLister) CSIStorageCapacities(namespace string) storagev1alpha1listers.CSIStorageCapacityNamespaceLister {
-	return &cSIStorageCapacityNamespaceLister{indexer: s.indexer, cluster: s.cluster, namespace: namespace}
+	return &cSIStorageCapacityNamespaceLister{indexer: s.indexer, clusterName: s.clusterName, namespace: namespace}
 }
 
 // cSIStorageCapacityNamespaceLister implements the storagev1alpha1listers.CSIStorageCapacityNamespaceLister interface.
 type cSIStorageCapacityNamespaceLister struct {
-	indexer   cache.Indexer
-	cluster   logicalcluster.Name
-	namespace string
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
+	namespace   string
 }
 
 // List lists all CSIStorageCapacities in the indexer for a given workspace and namespace.
 func (s *cSIStorageCapacityNamespaceLister) List(selector labels.Selector) (ret []*storagev1alpha1.CSIStorageCapacity, err error) {
-	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.cluster, s.namespace, selector, func(i interface{}) {
+	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.clusterName, s.namespace, selector, func(i interface{}) {
 		ret = append(ret, i.(*storagev1alpha1.CSIStorageCapacity))
 	})
 	return ret, err
@@ -106,7 +106,7 @@ func (s *cSIStorageCapacityNamespaceLister) List(selector labels.Selector) (ret 
 
 // Get retrieves the CSIStorageCapacity from the indexer for a given workspace, namespace and name.
 func (s *cSIStorageCapacityNamespaceLister) Get(name string) (*storagev1alpha1.CSIStorageCapacity, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), s.namespace, name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), s.namespace, name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err

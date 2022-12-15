@@ -26,7 +26,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/kcp-dev/logicalcluster/v2"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,12 +50,12 @@ type cronJobsClusterClient struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *cronJobsClusterClient) Cluster(cluster logicalcluster.Name) kcpbatchv1.CronJobsNamespacer {
-	if cluster == logicalcluster.Wildcard {
+func (c *cronJobsClusterClient) Cluster(clusterPath logicalcluster.Path) kcpbatchv1.CronJobsNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &cronJobsNamespacer{Fake: c.Fake, Cluster: cluster}
+	return &cronJobsNamespacer{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
 // List takes label and field selectors, and returns the list of CronJobs that match those selectors across all clusters.
@@ -85,21 +85,21 @@ func (c *cronJobsClusterClient) Watch(ctx context.Context, opts metav1.ListOptio
 
 type cronJobsNamespacer struct {
 	*kcptesting.Fake
-	Cluster logicalcluster.Name
+	ClusterPath logicalcluster.Path
 }
 
 func (n *cronJobsNamespacer) Namespace(namespace string) batchv1client.CronJobInterface {
-	return &cronJobsClient{Fake: n.Fake, Cluster: n.Cluster, Namespace: namespace}
+	return &cronJobsClient{Fake: n.Fake, ClusterPath: n.ClusterPath, Namespace: namespace}
 }
 
 type cronJobsClient struct {
 	*kcptesting.Fake
-	Cluster   logicalcluster.Name
-	Namespace string
+	ClusterPath logicalcluster.Path
+	Namespace   string
 }
 
 func (c *cronJobsClient) Create(ctx context.Context, cronJob *batchv1.CronJob, opts metav1.CreateOptions) (*batchv1.CronJob, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(cronJobsResource, c.Cluster, c.Namespace, cronJob), &batchv1.CronJob{})
+	obj, err := c.Fake.Invokes(kcptesting.NewCreateAction(cronJobsResource, c.ClusterPath, c.Namespace, cronJob), &batchv1.CronJob{})
 	if obj == nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func (c *cronJobsClient) Create(ctx context.Context, cronJob *batchv1.CronJob, o
 }
 
 func (c *cronJobsClient) Update(ctx context.Context, cronJob *batchv1.CronJob, opts metav1.UpdateOptions) (*batchv1.CronJob, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(cronJobsResource, c.Cluster, c.Namespace, cronJob), &batchv1.CronJob{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateAction(cronJobsResource, c.ClusterPath, c.Namespace, cronJob), &batchv1.CronJob{})
 	if obj == nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (c *cronJobsClient) Update(ctx context.Context, cronJob *batchv1.CronJob, o
 }
 
 func (c *cronJobsClient) UpdateStatus(ctx context.Context, cronJob *batchv1.CronJob, opts metav1.UpdateOptions) (*batchv1.CronJob, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(cronJobsResource, c.Cluster, "status", c.Namespace, cronJob), &batchv1.CronJob{})
+	obj, err := c.Fake.Invokes(kcptesting.NewUpdateSubresourceAction(cronJobsResource, c.ClusterPath, "status", c.Namespace, cronJob), &batchv1.CronJob{})
 	if obj == nil {
 		return nil, err
 	}
@@ -123,19 +123,19 @@ func (c *cronJobsClient) UpdateStatus(ctx context.Context, cronJob *batchv1.Cron
 }
 
 func (c *cronJobsClient) Delete(ctx context.Context, name string, opts metav1.DeleteOptions) error {
-	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(cronJobsResource, c.Cluster, c.Namespace, name, opts), &batchv1.CronJob{})
+	_, err := c.Fake.Invokes(kcptesting.NewDeleteActionWithOptions(cronJobsResource, c.ClusterPath, c.Namespace, name, opts), &batchv1.CronJob{})
 	return err
 }
 
 func (c *cronJobsClient) DeleteCollection(ctx context.Context, opts metav1.DeleteOptions, listOpts metav1.ListOptions) error {
-	action := kcptesting.NewDeleteCollectionAction(cronJobsResource, c.Cluster, c.Namespace, listOpts)
+	action := kcptesting.NewDeleteCollectionAction(cronJobsResource, c.ClusterPath, c.Namespace, listOpts)
 
 	_, err := c.Fake.Invokes(action, &batchv1.CronJobList{})
 	return err
 }
 
 func (c *cronJobsClient) Get(ctx context.Context, name string, options metav1.GetOptions) (*batchv1.CronJob, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(cronJobsResource, c.Cluster, c.Namespace, name), &batchv1.CronJob{})
+	obj, err := c.Fake.Invokes(kcptesting.NewGetAction(cronJobsResource, c.ClusterPath, c.Namespace, name), &batchv1.CronJob{})
 	if obj == nil {
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (c *cronJobsClient) Get(ctx context.Context, name string, options metav1.Ge
 
 // List takes label and field selectors, and returns the list of CronJobs that match those selectors.
 func (c *cronJobsClient) List(ctx context.Context, opts metav1.ListOptions) (*batchv1.CronJobList, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewListAction(cronJobsResource, cronJobsKind, c.Cluster, c.Namespace, opts), &batchv1.CronJobList{})
+	obj, err := c.Fake.Invokes(kcptesting.NewListAction(cronJobsResource, cronJobsKind, c.ClusterPath, c.Namespace, opts), &batchv1.CronJobList{})
 	if obj == nil {
 		return nil, err
 	}
@@ -163,11 +163,11 @@ func (c *cronJobsClient) List(ctx context.Context, opts metav1.ListOptions) (*ba
 }
 
 func (c *cronJobsClient) Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error) {
-	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(cronJobsResource, c.Cluster, c.Namespace, opts))
+	return c.Fake.InvokesWatch(kcptesting.NewWatchAction(cronJobsResource, c.ClusterPath, c.Namespace, opts))
 }
 
 func (c *cronJobsClient) Patch(ctx context.Context, name string, pt types.PatchType, data []byte, opts metav1.PatchOptions, subresources ...string) (*batchv1.CronJob, error) {
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(cronJobsResource, c.Cluster, c.Namespace, name, pt, data, subresources...), &batchv1.CronJob{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(cronJobsResource, c.ClusterPath, c.Namespace, name, pt, data, subresources...), &batchv1.CronJob{})
 	if obj == nil {
 		return nil, err
 	}
@@ -186,7 +186,7 @@ func (c *cronJobsClient) Apply(ctx context.Context, applyConfiguration *applycon
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(cronJobsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data), &batchv1.CronJob{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(cronJobsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data), &batchv1.CronJob{})
 	if obj == nil {
 		return nil, err
 	}
@@ -205,7 +205,7 @@ func (c *cronJobsClient) ApplyStatus(ctx context.Context, applyConfiguration *ap
 	if name == nil {
 		return nil, fmt.Errorf("applyConfiguration.Name must be provided to Apply")
 	}
-	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(cronJobsResource, c.Cluster, c.Namespace, *name, types.ApplyPatchType, data, "status"), &batchv1.CronJob{})
+	obj, err := c.Fake.Invokes(kcptesting.NewPatchSubresourceAction(cronJobsResource, c.ClusterPath, c.Namespace, *name, types.ApplyPatchType, data, "status"), &batchv1.CronJob{})
 	if obj == nil {
 		return nil, err
 	}

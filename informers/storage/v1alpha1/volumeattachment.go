@@ -25,9 +25,9 @@ import (
 	"context"
 	"time"
 
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	kcpinformers "github.com/kcp-dev/apimachinery/third_party/informers"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	storagev1alpha1 "k8s.io/api/storage/v1alpha1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,10 +103,10 @@ func (f *volumeAttachmentClusterInformer) Lister() storagev1alpha1listers.Volume
 	return storagev1alpha1listers.NewVolumeAttachmentClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *volumeAttachmentClusterInformer) Cluster(cluster logicalcluster.Name) upstreamstoragev1alpha1informers.VolumeAttachmentInformer {
+func (f *volumeAttachmentClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamstoragev1alpha1informers.VolumeAttachmentInformer {
 	return &volumeAttachmentInformer{
-		informer: f.Informer().Cluster(cluster),
-		lister:   f.Lister().Cluster(cluster),
+		informer: f.Informer().Cluster(clusterName),
+		lister:   f.Lister().Cluster(clusterName),
 	}
 }
 

@@ -24,8 +24,8 @@ package v1
 import (
 	"context"
 
-	kcpclient "github.com/kcp-dev/apimachinery/pkg/client"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	discoveryv1 "k8s.io/api/discovery/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -42,7 +42,7 @@ type EndpointSlicesClusterGetter interface {
 // EndpointSliceClusterInterface can operate on EndpointSlices across all clusters,
 // or scope down to one cluster and return a EndpointSlicesNamespacer.
 type EndpointSliceClusterInterface interface {
-	Cluster(logicalcluster.Name) EndpointSlicesNamespacer
+	Cluster(logicalcluster.Path) EndpointSlicesNamespacer
 	List(ctx context.Context, opts metav1.ListOptions) (*discoveryv1.EndpointSliceList, error)
 	Watch(ctx context.Context, opts metav1.ListOptions) (watch.Interface, error)
 }
@@ -52,12 +52,12 @@ type endpointSlicesClusterInterface struct {
 }
 
 // Cluster scopes the client down to a particular cluster.
-func (c *endpointSlicesClusterInterface) Cluster(name logicalcluster.Name) EndpointSlicesNamespacer {
-	if name == logicalcluster.Wildcard {
+func (c *endpointSlicesClusterInterface) Cluster(clusterPath logicalcluster.Path) EndpointSlicesNamespacer {
+	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}
 
-	return &endpointSlicesNamespacer{clientCache: c.clientCache, name: name}
+	return &endpointSlicesNamespacer{clientCache: c.clientCache, clusterPath: clusterPath}
 }
 
 // List returns the entire collection of all EndpointSlices across all clusters.
@@ -77,9 +77,9 @@ type EndpointSlicesNamespacer interface {
 
 type endpointSlicesNamespacer struct {
 	clientCache kcpclient.Cache[*discoveryv1client.DiscoveryV1Client]
-	name        logicalcluster.Name
+	clusterPath logicalcluster.Path
 }
 
 func (n *endpointSlicesNamespacer) Namespace(namespace string) discoveryv1client.EndpointSliceInterface {
-	return n.clientCache.ClusterOrDie(n.name).EndpointSlices(namespace)
+	return n.clientCache.ClusterOrDie(n.clusterPath).EndpointSlices(namespace)
 }

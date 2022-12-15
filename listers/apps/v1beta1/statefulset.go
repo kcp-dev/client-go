@@ -22,8 +22,8 @@ limitations under the License.
 package v1beta1
 
 import (
-	kcpcache "github.com/kcp-dev/apimachinery/pkg/cache"
-	"github.com/kcp-dev/logicalcluster/v2"
+	kcpcache "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	"github.com/kcp-dev/logicalcluster/v3"
 
 	appsv1beta1 "k8s.io/api/apps/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -39,7 +39,7 @@ type StatefulSetClusterLister interface {
 	// Objects returned here must be treated as read-only.
 	List(selector labels.Selector) (ret []*appsv1beta1.StatefulSet, err error)
 	// Cluster returns a lister that can list and get StatefulSets in one workspace.
-	Cluster(cluster logicalcluster.Name) appsv1beta1listers.StatefulSetLister
+	Cluster(clusterName logicalcluster.Name) appsv1beta1listers.StatefulSetLister
 	StatefulSetClusterListerExpansion
 }
 
@@ -66,19 +66,19 @@ func (s *statefulSetClusterLister) List(selector labels.Selector) (ret []*appsv1
 }
 
 // Cluster scopes the lister to one workspace, allowing users to list and get StatefulSets.
-func (s *statefulSetClusterLister) Cluster(cluster logicalcluster.Name) appsv1beta1listers.StatefulSetLister {
-	return &statefulSetLister{indexer: s.indexer, cluster: cluster}
+func (s *statefulSetClusterLister) Cluster(clusterName logicalcluster.Name) appsv1beta1listers.StatefulSetLister {
+	return &statefulSetLister{indexer: s.indexer, clusterName: clusterName}
 }
 
 // statefulSetLister implements the appsv1beta1listers.StatefulSetLister interface.
 type statefulSetLister struct {
-	indexer cache.Indexer
-	cluster logicalcluster.Name
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
 }
 
 // List lists all StatefulSets in the indexer for a workspace.
 func (s *statefulSetLister) List(selector labels.Selector) (ret []*appsv1beta1.StatefulSet, err error) {
-	err = kcpcache.ListAllByCluster(s.indexer, s.cluster, selector, func(i interface{}) {
+	err = kcpcache.ListAllByCluster(s.indexer, s.clusterName, selector, func(i interface{}) {
 		ret = append(ret, i.(*appsv1beta1.StatefulSet))
 	})
 	return ret, err
@@ -86,19 +86,19 @@ func (s *statefulSetLister) List(selector labels.Selector) (ret []*appsv1beta1.S
 
 // StatefulSets returns an object that can list and get StatefulSets in one namespace.
 func (s *statefulSetLister) StatefulSets(namespace string) appsv1beta1listers.StatefulSetNamespaceLister {
-	return &statefulSetNamespaceLister{indexer: s.indexer, cluster: s.cluster, namespace: namespace}
+	return &statefulSetNamespaceLister{indexer: s.indexer, clusterName: s.clusterName, namespace: namespace}
 }
 
 // statefulSetNamespaceLister implements the appsv1beta1listers.StatefulSetNamespaceLister interface.
 type statefulSetNamespaceLister struct {
-	indexer   cache.Indexer
-	cluster   logicalcluster.Name
-	namespace string
+	indexer     cache.Indexer
+	clusterName logicalcluster.Name
+	namespace   string
 }
 
 // List lists all StatefulSets in the indexer for a given workspace and namespace.
 func (s *statefulSetNamespaceLister) List(selector labels.Selector) (ret []*appsv1beta1.StatefulSet, err error) {
-	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.cluster, s.namespace, selector, func(i interface{}) {
+	err = kcpcache.ListAllByClusterAndNamespace(s.indexer, s.clusterName, s.namespace, selector, func(i interface{}) {
 		ret = append(ret, i.(*appsv1beta1.StatefulSet))
 	})
 	return ret, err
@@ -106,7 +106,7 @@ func (s *statefulSetNamespaceLister) List(selector labels.Selector) (ret []*apps
 
 // Get retrieves the StatefulSet from the indexer for a given workspace, namespace and name.
 func (s *statefulSetNamespaceLister) Get(name string) (*appsv1beta1.StatefulSet, error) {
-	key := kcpcache.ToClusterAwareKey(s.cluster.String(), s.namespace, name)
+	key := kcpcache.ToClusterAwareKey(s.clusterName.String(), s.namespace, name)
 	obj, exists, err := s.indexer.GetByKey(key)
 	if err != nil {
 		return nil, err
