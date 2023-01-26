@@ -112,7 +112,7 @@ func (s *persistentVolumeClaimNamespaceLister) Get(name string) (*corev1.Persist
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(corev1.Resource("PersistentVolumeClaim"), name)
+		return nil, errors.NewNotFound(corev1.Resource("persistentvolumeclaims"), name)
 	}
 	return obj.(*corev1.PersistentVolumeClaim), nil
 }

@@ -91,7 +91,7 @@ func (s *persistentVolumeLister) Get(name string) (*corev1.PersistentVolume, err
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(corev1.Resource("PersistentVolume"), name)
+		return nil, errors.NewNotFound(corev1.Resource("persistentvolumes"), name)
 	}
 	return obj.(*corev1.PersistentVolume), nil
 }

@@ -112,7 +112,7 @@ func (s *configMapNamespaceLister) Get(name string) (*corev1.ConfigMap, error) {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(corev1.Resource("ConfigMap"), name)
+		return nil, errors.NewNotFound(corev1.Resource("configmaps"), name)
 	}
 	return obj.(*corev1.ConfigMap), nil
 }

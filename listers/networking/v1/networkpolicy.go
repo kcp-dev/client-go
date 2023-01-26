@@ -112,7 +112,7 @@ func (s *networkPolicyNamespaceLister) Get(name string) (*networkingv1.NetworkPo
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(networkingv1.Resource("NetworkPolicy"), name)
+		return nil, errors.NewNotFound(networkingv1.Resource("networkpolicies"), name)
 	}
 	return obj.(*networkingv1.NetworkPolicy), nil
 }

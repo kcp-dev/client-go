@@ -91,7 +91,7 @@ func (s *validatingWebhookConfigurationLister) Get(name string) (*admissionregis
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(admissionregistrationv1.Resource("ValidatingWebhookConfiguration"), name)
+		return nil, errors.NewNotFound(admissionregistrationv1.Resource("validatingwebhookconfigurations"), name)
 	}
 	return obj.(*admissionregistrationv1.ValidatingWebhookConfiguration), nil
 }

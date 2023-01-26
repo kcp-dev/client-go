@@ -112,7 +112,7 @@ func (s *ingressNamespaceLister) Get(name string) (*networkingv1.Ingress, error)
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(networkingv1.Resource("Ingress"), name)
+		return nil, errors.NewNotFound(networkingv1.Resource("ingresses"), name)
 	}
 	return obj.(*networkingv1.Ingress), nil
 }

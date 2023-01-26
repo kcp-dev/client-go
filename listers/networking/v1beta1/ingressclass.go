@@ -91,7 +91,7 @@ func (s *ingressClassLister) Get(name string) (*networkingv1beta1.IngressClass, 
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(networkingv1beta1.Resource("IngressClass"), name)
+		return nil, errors.NewNotFound(networkingv1beta1.Resource("ingressclasses"), name)
 	}
 	return obj.(*networkingv1beta1.IngressClass), nil
 }

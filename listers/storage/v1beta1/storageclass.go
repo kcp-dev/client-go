@@ -91,7 +91,7 @@ func (s *storageClassLister) Get(name string) (*storagev1beta1.StorageClass, err
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(storagev1beta1.Resource("StorageClass"), name)
+		return nil, errors.NewNotFound(storagev1beta1.Resource("storageclasses"), name)
 	}
 	return obj.(*storagev1beta1.StorageClass), nil
 }

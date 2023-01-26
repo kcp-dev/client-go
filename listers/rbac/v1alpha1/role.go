@@ -112,7 +112,7 @@ func (s *roleNamespaceLister) Get(name string) (*rbacv1alpha1.Role, error) {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(rbacv1alpha1.Resource("Role"), name)
+		return nil, errors.NewNotFound(rbacv1alpha1.Resource("roles"), name)
 	}
 	return obj.(*rbacv1alpha1.Role), nil
 }

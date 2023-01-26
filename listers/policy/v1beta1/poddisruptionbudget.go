@@ -112,7 +112,7 @@ func (s *podDisruptionBudgetNamespaceLister) Get(name string) (*policyv1beta1.Po
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(policyv1beta1.Resource("PodDisruptionBudget"), name)
+		return nil, errors.NewNotFound(policyv1beta1.Resource("poddisruptionbudgets"), name)
 	}
 	return obj.(*policyv1beta1.PodDisruptionBudget), nil
 }

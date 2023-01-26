@@ -91,7 +91,7 @@ func (s *priorityClassLister) Get(name string) (*schedulingv1.PriorityClass, err
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(schedulingv1.Resource("PriorityClass"), name)
+		return nil, errors.NewNotFound(schedulingv1.Resource("priorityclasses"), name)
 	}
 	return obj.(*schedulingv1.PriorityClass), nil
 }

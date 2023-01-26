@@ -112,7 +112,7 @@ func (s *limitRangeNamespaceLister) Get(name string) (*corev1.LimitRange, error)
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(corev1.Resource("LimitRange"), name)
+		return nil, errors.NewNotFound(corev1.Resource("limitranges"), name)
 	}
 	return obj.(*corev1.LimitRange), nil
 }

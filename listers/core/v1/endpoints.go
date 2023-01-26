@@ -112,7 +112,7 @@ func (s *endpointsNamespaceLister) Get(name string) (*corev1.Endpoints, error) {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(corev1.Resource("Endpoints"), name)
+		return nil, errors.NewNotFound(corev1.Resource("endpoints"), name)
 	}
 	return obj.(*corev1.Endpoints), nil
 }

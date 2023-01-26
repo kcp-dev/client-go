@@ -112,7 +112,7 @@ func (s *podTemplateNamespaceLister) Get(name string) (*corev1.PodTemplate, erro
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(corev1.Resource("PodTemplate"), name)
+		return nil, errors.NewNotFound(corev1.Resource("podtemplates"), name)
 	}
 	return obj.(*corev1.PodTemplate), nil
 }

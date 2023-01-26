@@ -91,7 +91,7 @@ func (s *podSecurityPolicyLister) Get(name string) (*extensionsv1beta1.PodSecuri
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(extensionsv1beta1.Resource("PodSecurityPolicy"), name)
+		return nil, errors.NewNotFound(extensionsv1beta1.Resource("podsecuritypolicies"), name)
 	}
 	return obj.(*extensionsv1beta1.PodSecurityPolicy), nil
 }

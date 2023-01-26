@@ -112,7 +112,7 @@ func (s *cronJobNamespaceLister) Get(name string) (*batchv1.CronJob, error) {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(batchv1.Resource("CronJob"), name)
+		return nil, errors.NewNotFound(batchv1.Resource("cronjobs"), name)
 	}
 	return obj.(*batchv1.CronJob), nil
 }

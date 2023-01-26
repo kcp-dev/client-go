@@ -91,7 +91,7 @@ func (s *mutatingWebhookConfigurationLister) Get(name string) (*admissionregistr
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(admissionregistrationv1beta1.Resource("MutatingWebhookConfiguration"), name)
+		return nil, errors.NewNotFound(admissionregistrationv1beta1.Resource("mutatingwebhookconfigurations"), name)
 	}
 	return obj.(*admissionregistrationv1beta1.MutatingWebhookConfiguration), nil
 }

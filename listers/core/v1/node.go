@@ -91,7 +91,7 @@ func (s *nodeLister) Get(name string) (*corev1.Node, error) {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(corev1.Resource("Node"), name)
+		return nil, errors.NewNotFound(corev1.Resource("nodes"), name)
 	}
 	return obj.(*corev1.Node), nil
 }

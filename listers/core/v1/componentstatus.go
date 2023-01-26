@@ -91,7 +91,7 @@ func (s *componentStatusLister) Get(name string) (*corev1.ComponentStatus, error
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(corev1.Resource("ComponentStatus"), name)
+		return nil, errors.NewNotFound(corev1.Resource("componentstatuses"), name)
 	}
 	return obj.(*corev1.ComponentStatus), nil
 }

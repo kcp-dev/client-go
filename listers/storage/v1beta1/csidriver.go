@@ -91,7 +91,7 @@ func (s *cSIDriverLister) Get(name string) (*storagev1beta1.CSIDriver, error) {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(storagev1beta1.Resource("CSIDriver"), name)
+		return nil, errors.NewNotFound(storagev1beta1.Resource("csidrivers"), name)
 	}
 	return obj.(*storagev1beta1.CSIDriver), nil
 }

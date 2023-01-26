@@ -112,7 +112,7 @@ func (s *statefulSetNamespaceLister) Get(name string) (*appsv1beta1.StatefulSet,
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(appsv1beta1.Resource("StatefulSet"), name)
+		return nil, errors.NewNotFound(appsv1beta1.Resource("statefulsets"), name)
 	}
 	return obj.(*appsv1beta1.StatefulSet), nil
 }

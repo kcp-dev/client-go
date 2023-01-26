@@ -91,7 +91,7 @@ func (s *clusterRoleLister) Get(name string) (*rbacv1alpha1.ClusterRole, error) 
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(rbacv1alpha1.Resource("ClusterRole"), name)
+		return nil, errors.NewNotFound(rbacv1alpha1.Resource("clusterroles"), name)
 	}
 	return obj.(*rbacv1alpha1.ClusterRole), nil
 }

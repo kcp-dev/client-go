@@ -112,7 +112,7 @@ func (s *horizontalPodAutoscalerNamespaceLister) Get(name string) (*autoscalingv
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(autoscalingv2.Resource("HorizontalPodAutoscaler"), name)
+		return nil, errors.NewNotFound(autoscalingv2.Resource("horizontalpodautoscalers"), name)
 	}
 	return obj.(*autoscalingv2.HorizontalPodAutoscaler), nil
 }

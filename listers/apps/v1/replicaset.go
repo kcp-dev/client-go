@@ -112,7 +112,7 @@ func (s *replicaSetNamespaceLister) Get(name string) (*appsv1.ReplicaSet, error)
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(appsv1.Resource("ReplicaSet"), name)
+		return nil, errors.NewNotFound(appsv1.Resource("replicasets"), name)
 	}
 	return obj.(*appsv1.ReplicaSet), nil
 }

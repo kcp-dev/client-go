@@ -91,7 +91,7 @@ func (s *runtimeClassLister) Get(name string) (*nodev1.RuntimeClass, error) {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(nodev1.Resource("RuntimeClass"), name)
+		return nil, errors.NewNotFound(nodev1.Resource("runtimeclasses"), name)
 	}
 	return obj.(*nodev1.RuntimeClass), nil
 }

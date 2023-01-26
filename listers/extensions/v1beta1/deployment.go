@@ -112,7 +112,7 @@ func (s *deploymentNamespaceLister) Get(name string) (*extensionsv1beta1.Deploym
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(extensionsv1beta1.Resource("Deployment"), name)
+		return nil, errors.NewNotFound(extensionsv1beta1.Resource("deployments"), name)
 	}
 	return obj.(*extensionsv1beta1.Deployment), nil
 }

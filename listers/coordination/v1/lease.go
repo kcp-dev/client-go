@@ -112,7 +112,7 @@ func (s *leaseNamespaceLister) Get(name string) (*coordinationv1.Lease, error) {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(coordinationv1.Resource("Lease"), name)
+		return nil, errors.NewNotFound(coordinationv1.Resource("leases"), name)
 	}
 	return obj.(*coordinationv1.Lease), nil
 }

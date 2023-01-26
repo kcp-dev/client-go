@@ -112,7 +112,7 @@ func (s *roleBindingNamespaceLister) Get(name string) (*rbacv1beta1.RoleBinding,
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(rbacv1beta1.Resource("RoleBinding"), name)
+		return nil, errors.NewNotFound(rbacv1beta1.Resource("rolebindings"), name)
 	}
 	return obj.(*rbacv1beta1.RoleBinding), nil
 }
