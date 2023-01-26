@@ -112,7 +112,7 @@ func (s *cSIStorageCapacityNamespaceLister) Get(name string) (*storagev1alpha1.C
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(storagev1alpha1.Resource("CSIStorageCapacity"), name)
+		return nil, errors.NewNotFound(storagev1alpha1.Resource("csistoragecapacities"), name)
 	}
 	return obj.(*storagev1alpha1.CSIStorageCapacity), nil
 }

@@ -91,7 +91,7 @@ func (s *volumeAttachmentLister) Get(name string) (*storagev1.VolumeAttachment, 
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(storagev1.Resource("VolumeAttachment"), name)
+		return nil, errors.NewNotFound(storagev1.Resource("volumeattachments"), name)
 	}
 	return obj.(*storagev1.VolumeAttachment), nil
 }

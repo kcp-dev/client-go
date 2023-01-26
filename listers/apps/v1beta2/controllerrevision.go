@@ -112,7 +112,7 @@ func (s *controllerRevisionNamespaceLister) Get(name string) (*appsv1beta2.Contr
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(appsv1beta2.Resource("ControllerRevision"), name)
+		return nil, errors.NewNotFound(appsv1beta2.Resource("controllerrevisions"), name)
 	}
 	return obj.(*appsv1beta2.ControllerRevision), nil
 }

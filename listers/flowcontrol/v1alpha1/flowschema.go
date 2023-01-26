@@ -91,7 +91,7 @@ func (s *flowSchemaLister) Get(name string) (*flowcontrolv1alpha1.FlowSchema, er
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(flowcontrolv1alpha1.Resource("FlowSchema"), name)
+		return nil, errors.NewNotFound(flowcontrolv1alpha1.Resource("flowschemas"), name)
 	}
 	return obj.(*flowcontrolv1alpha1.FlowSchema), nil
 }

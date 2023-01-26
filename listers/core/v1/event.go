@@ -112,7 +112,7 @@ func (s *eventNamespaceLister) Get(name string) (*corev1.Event, error) {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(corev1.Resource("Event"), name)
+		return nil, errors.NewNotFound(corev1.Resource("events"), name)
 	}
 	return obj.(*corev1.Event), nil
 }

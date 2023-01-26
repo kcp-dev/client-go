@@ -91,7 +91,7 @@ func (s *priorityLevelConfigurationLister) Get(name string) (*flowcontrolv1beta1
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(flowcontrolv1beta1.Resource("PriorityLevelConfiguration"), name)
+		return nil, errors.NewNotFound(flowcontrolv1beta1.Resource("prioritylevelconfigurations"), name)
 	}
 	return obj.(*flowcontrolv1beta1.PriorityLevelConfiguration), nil
 }

@@ -91,7 +91,7 @@ func (s *storageVersionLister) Get(name string) (*internalv1alpha1.StorageVersio
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(internalv1alpha1.Resource("StorageVersion"), name)
+		return nil, errors.NewNotFound(internalv1alpha1.Resource("storageversions"), name)
 	}
 	return obj.(*internalv1alpha1.StorageVersion), nil
 }

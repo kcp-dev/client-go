@@ -112,7 +112,7 @@ func (s *jobNamespaceLister) Get(name string) (*batchv1.Job, error) {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(batchv1.Resource("Job"), name)
+		return nil, errors.NewNotFound(batchv1.Resource("jobs"), name)
 	}
 	return obj.(*batchv1.Job), nil
 }

@@ -91,7 +91,7 @@ func (s *namespaceLister) Get(name string) (*corev1.Namespace, error) {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(corev1.Resource("Namespace"), name)
+		return nil, errors.NewNotFound(corev1.Resource("namespaces"), name)
 	}
 	return obj.(*corev1.Namespace), nil
 }

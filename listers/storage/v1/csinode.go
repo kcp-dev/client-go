@@ -91,7 +91,7 @@ func (s *cSINodeLister) Get(name string) (*storagev1.CSINode, error) {
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(storagev1.Resource("CSINode"), name)
+		return nil, errors.NewNotFound(storagev1.Resource("csinodes"), name)
 	}
 	return obj.(*storagev1.CSINode), nil
 }

@@ -112,7 +112,7 @@ func (s *deploymentNamespaceLister) Get(name string) (*appsv1.Deployment, error)
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(appsv1.Resource("Deployment"), name)
+		return nil, errors.NewNotFound(appsv1.Resource("deployments"), name)
 	}
 	return obj.(*appsv1.Deployment), nil
 }

@@ -112,7 +112,7 @@ func (s *resourceQuotaNamespaceLister) Get(name string) (*corev1.ResourceQuota, 
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(corev1.Resource("ResourceQuota"), name)
+		return nil, errors.NewNotFound(corev1.Resource("resourcequotas"), name)
 	}
 	return obj.(*corev1.ResourceQuota), nil
 }

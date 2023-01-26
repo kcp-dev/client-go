@@ -112,7 +112,7 @@ func (s *serviceAccountNamespaceLister) Get(name string) (*corev1.ServiceAccount
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(corev1.Resource("ServiceAccount"), name)
+		return nil, errors.NewNotFound(corev1.Resource("serviceaccounts"), name)
 	}
 	return obj.(*corev1.ServiceAccount), nil
 }

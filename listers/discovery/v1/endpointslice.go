@@ -112,7 +112,7 @@ func (s *endpointSliceNamespaceLister) Get(name string) (*discoveryv1.EndpointSl
 		return nil, err
 	}
 	if !exists {
-		return nil, errors.NewNotFound(discoveryv1.Resource("EndpointSlice"), name)
+		return nil, errors.NewNotFound(discoveryv1.Resource("endpointslices"), name)
 	}
 	return obj.(*discoveryv1.EndpointSlice), nil
 }
