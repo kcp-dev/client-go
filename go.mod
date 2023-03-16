@@ -1,12 +1,12 @@
 module github.com/kcp-dev/client-go
 
-go 1.18
+go 1.19
 
 require (
 	github.com/evanphx/json-patch v4.12.0+incompatible
 	github.com/google/gnostic v0.5.7-v3refs
-	github.com/kcp-dev/apimachinery/v2 v2.0.0-alpha.0
-	github.com/kcp-dev/logicalcluster/v3 v3.0.0
+	github.com/kcp-dev/apimachinery/v2 v2.0.0-alpha.0.0.20230316194741-cdd788144662
+	github.com/kcp-dev/logicalcluster/v3 v3.0.4
 	k8s.io/api v0.26.2
 	k8s.io/apimachinery v0.26.2
 	k8s.io/client-go v0.26.2

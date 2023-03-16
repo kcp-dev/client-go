@@ -134,10 +134,12 @@ github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnr
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
 github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024/go.mod h1:6v2b51hI/fHJwM22ozAgKL4VKDeJcHhJFhtBdhmNjmU=
 github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/XSXhF0NWZEnDohbsk=
-github.com/kcp-dev/apimachinery/v2 v2.0.0-alpha.0 h1:fb+3CdDlxvnK+o1wm3IcDbD+MJndMUa17EUGqYORsvg=
-github.com/kcp-dev/apimachinery/v2 v2.0.0-alpha.0/go.mod h1:dn1hXHMY9E6JbyOGa0qXt1Dq4akd/jHMZOpFhJoX7q4=
-github.com/kcp-dev/logicalcluster/v3 v3.0.0 h1:tH6M2NuA11eLMsxii9IDOGo64X8B+P3e3pC6W2oEsx8=
-github.com/kcp-dev/logicalcluster/v3 v3.0.0/go.mod h1:6rb68Tntup98cRr9+50rvSDxUbfqrC1yQ/T6RiZcSgA=
+github.com/kcp-dev/apimachinery/v2 v2.0.0-alpha.0.0.20230316191847-bf339f5f182b h1:9Cie1jjhL69evhYHjQGkOvXZGS2MmUH42j52cmWblIk=
+github.com/kcp-dev/apimachinery/v2 v2.0.0-alpha.0.0.20230316191847-bf339f5f182b/go.mod h1:fRQhHYtVPX/caTBSDUh7Lx+Zoy9uDkvtz77O8zJTiRw=
+github.com/kcp-dev/apimachinery/v2 v2.0.0-alpha.0.0.20230316194741-cdd788144662 h1:hkO1BsomYCGNJ3W4/7azsQ2CyRORDdDfpMwOBWKIl8k=
+github.com/kcp-dev/apimachinery/v2 v2.0.0-alpha.0.0.20230316194741-cdd788144662/go.mod h1:fRQhHYtVPX/caTBSDUh7Lx+Zoy9uDkvtz77O8zJTiRw=
+github.com/kcp-dev/logicalcluster/v3 v3.0.4 h1:q7KngML/QM7sWl8aVzmfZF0TPMnBwYNxsPKfwUvvBvU=
+github.com/kcp-dev/logicalcluster/v3 v3.0.4/go.mod h1:EWBUBxdr49fUB1cLMO4nOdBWmYifLbP1LfoL20KkXYY=
 github.com/kisielk/errcheck v1.5.0/go.mod h1:pFxgyoBC7bSaBwPgfKdkLd5X25qrDl4LWUI2bnpBCr8=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
