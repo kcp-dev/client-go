@@ -1,6 +1,8 @@
 run:
   timeout: 10m
   allow-parallel-runners: true
+  skip-files:
+  - '.+_expansion\.go'
 
 linters:
   disable-all: true

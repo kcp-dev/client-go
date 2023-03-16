@@ -27,7 +27,7 @@ import (
 )
 
 // NewRuntimeObjectShim returns a new shim for ClusterLister.
-// It wraps Lister so that it implements kcpcache.GenericClusterLister interface
+// It wraps Lister so that it implements kcpcache.GenericClusterLister interface.
 func NewRuntimeObjectShim(lister ClusterLister) kcpcache.GenericClusterLister {
 	return &metadataClusterListerShim{lister: lister}
 }
