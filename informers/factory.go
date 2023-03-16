@@ -52,6 +52,7 @@ import (
 	nodeinformers "github.com/kcp-dev/client-go/informers/node"
 	policyinformers "github.com/kcp-dev/client-go/informers/policy"
 	rbacinformers "github.com/kcp-dev/client-go/informers/rbac"
+	resourceinformers "github.com/kcp-dev/client-go/informers/resource"
 	schedulinginformers "github.com/kcp-dev/client-go/informers/scheduling"
 	storageinformers "github.com/kcp-dev/client-go/informers/storage"
 	clientset "github.com/kcp-dev/client-go/kubernetes"
@@ -214,6 +215,7 @@ type SharedInformerFactory interface {
 	Node() nodeinformers.ClusterInterface
 	Policy() policyinformers.ClusterInterface
 	Rbac() rbacinformers.ClusterInterface
+	Resource() resourceinformers.ClusterInterface
 	Scheduling() schedulinginformers.ClusterInterface
 	Storage() storageinformers.ClusterInterface
 }
@@ -280,6 +282,10 @@ func (f *sharedInformerFactory) Policy() policyinformers.ClusterInterface {
 
 func (f *sharedInformerFactory) Rbac() rbacinformers.ClusterInterface {
 	return rbacinformers.New(f, f.tweakListOptions)
+}
+
+func (f *sharedInformerFactory) Resource() resourceinformers.ClusterInterface {
+	return resourceinformers.New(f, f.tweakListOptions)
 }
 
 func (f *sharedInformerFactory) Scheduling() schedulinginformers.ClusterInterface {
