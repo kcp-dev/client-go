@@ -14,18 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package scale
+package restmapper
 
 import (
 	"github.com/kcp-dev/logicalcluster/v3"
 
-	"k8s.io/client-go/scale"
+	"k8s.io/apimachinery/pkg/api/meta"
 )
 
 type ClusterInterface interface {
-	Cluster(logicalcluster.Path) scale.ScalesGetter
-}
-
-type ClusterScaleKindResolver interface {
-	Cluster(path logicalcluster.Path) scale.ScaleKindResolver
+	Cluster(logicalcluster.Path) meta.RESTMapper
 }
