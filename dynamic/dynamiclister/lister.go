@@ -75,17 +75,15 @@ func (l *dynamicLister) List(selector labels.Selector) (ret []*unstructured.Unst
 		obj := list[i].(*unstructured.Unstructured)
 		if selectAll {
 			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
+		} else if selector.Matches(labels.Set(obj.GetLabels())) {
+			ret = append(ret, obj)
 		}
 	}
 
 	return ret, err
 }
 
-// Get retrieves a resource from the indexer with the given name
+// Get retrieves a resource from the indexer with the given name.
 func (l *dynamicLister) Get(name string) (*unstructured.Unstructured, error) {
 	key := kcpcache.ToClusterAwareKey(l.clusterName.String(), "", name)
 	obj, exists, err := l.indexer.GetByKey(key)
@@ -129,10 +127,8 @@ func (l *dynamicNamespaceLister) List(selector labels.Selector) (ret []*unstruct
 		obj := list[i].(*unstructured.Unstructured)
 		if selectAll {
 			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
+		} else if selector.Matches(labels.Set(obj.GetLabels())) {
+			ret = append(ret, obj)
 		}
 	}
 	return ret, err

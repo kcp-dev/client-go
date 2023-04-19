@@ -25,6 +25,7 @@ import (
 	"github.com/kcp-dev/client-go/informers/flowcontrol/v1alpha1"
 	"github.com/kcp-dev/client-go/informers/flowcontrol/v1beta1"
 	"github.com/kcp-dev/client-go/informers/flowcontrol/v1beta2"
+	"github.com/kcp-dev/client-go/informers/flowcontrol/v1beta3"
 	"github.com/kcp-dev/client-go/informers/internalinterfaces"
 )
 
@@ -35,6 +36,8 @@ type ClusterInterface interface {
 	V1beta1() v1beta1.ClusterInterface
 	// V1beta2 provides access to the shared informers in V1beta2.
 	V1beta2() v1beta2.ClusterInterface
+	// V1beta3 provides access to the shared informers in V1beta3.
+	V1beta3() v1beta3.ClusterInterface
 }
 
 type group struct {
@@ -60,4 +63,9 @@ func (g *group) V1beta1() v1beta1.ClusterInterface {
 // V1beta2 returns a new v1beta2.ClusterInterface.
 func (g *group) V1beta2() v1beta2.ClusterInterface {
 	return v1beta2.New(g.factory, g.tweakListOptions)
+}
+
+// V1beta3 returns a new v1beta3.ClusterInterface.
+func (g *group) V1beta3() v1beta3.ClusterInterface {
+	return v1beta3.New(g.factory, g.tweakListOptions)
 }

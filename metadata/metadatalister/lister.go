@@ -74,17 +74,15 @@ func (l *metadataLister) List(selector labels.Selector) (ret []*metav1.PartialOb
 		obj := list[i].(*metav1.PartialObjectMetadata)
 		if selectAll {
 			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
+		} else if selector.Matches(labels.Set(obj.GetLabels())) {
+			ret = append(ret, obj)
 		}
 	}
 
 	return ret, err
 }
 
-// Get retrieves a resource from the indexer with the given name
+// Get retrieves a resource from the indexer with the given name.
 func (l *metadataLister) Get(name string) (*metav1.PartialObjectMetadata, error) {
 	key := kcpcache.ToClusterAwareKey(l.clusterName.String(), "", name)
 	obj, exists, err := l.indexer.GetByKey(key)
@@ -128,10 +126,8 @@ func (l *metadataNamespaceLister) List(selector labels.Selector) (ret []*metav1.
 		obj := list[i].(*metav1.PartialObjectMetadata)
 		if selectAll {
 			ret = append(ret, obj)
-		} else {
-			if selector.Matches(labels.Set(obj.GetLabels())) {
-				ret = append(ret, obj)
-			}
+		} else if selector.Matches(labels.Set(obj.GetLabels())) {
+			ret = append(ret, obj)
 		}
 	}
 	return ret, err

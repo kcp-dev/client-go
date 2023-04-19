@@ -22,7 +22,7 @@ import (
 	kcpinformers "github.com/kcp-dev/client-go/informers"
 )
 
-// SharedInformerFactory provides access to a shared informer and lister for dynamic client
+// SharedInformerFactory provides access to a shared informer and lister for dynamic client.
 type SharedInformerFactory interface {
 	Start(stopCh <-chan struct{})
 	ForResource(gvr schema.GroupVersionResource) kcpinformers.GenericClusterInformer

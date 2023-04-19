@@ -34,12 +34,14 @@ import (
 	"k8s.io/client-go/util/flowcontrol"
 
 	admissionregistrationv1 "github.com/kcp-dev/client-go/kubernetes/typed/admissionregistration/v1"
+	admissionregistrationv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/admissionregistration/v1alpha1"
 	admissionregistrationv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/admissionregistration/v1beta1"
 	internalv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/apiserverinternal/v1alpha1"
 	appsv1 "github.com/kcp-dev/client-go/kubernetes/typed/apps/v1"
 	appsv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/apps/v1beta1"
 	appsv1beta2 "github.com/kcp-dev/client-go/kubernetes/typed/apps/v1beta2"
 	authenticationv1 "github.com/kcp-dev/client-go/kubernetes/typed/authentication/v1"
+	authenticationv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/authentication/v1alpha1"
 	authenticationv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/authentication/v1beta1"
 	authorizationv1 "github.com/kcp-dev/client-go/kubernetes/typed/authorization/v1"
 	authorizationv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/authorization/v1beta1"
@@ -62,7 +64,9 @@ import (
 	flowcontrolv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1alpha1"
 	flowcontrolv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1beta1"
 	flowcontrolv1beta2 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1beta2"
+	flowcontrolv1beta3 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1beta3"
 	networkingv1 "github.com/kcp-dev/client-go/kubernetes/typed/networking/v1"
+	networkingv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/networking/v1alpha1"
 	networkingv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/networking/v1beta1"
 	nodev1 "github.com/kcp-dev/client-go/kubernetes/typed/node/v1"
 	nodev1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/node/v1alpha1"
@@ -72,6 +76,7 @@ import (
 	rbacv1 "github.com/kcp-dev/client-go/kubernetes/typed/rbac/v1"
 	rbacv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/rbac/v1alpha1"
 	rbacv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/rbac/v1beta1"
+	resourcev1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/resource/v1alpha1"
 	schedulingv1 "github.com/kcp-dev/client-go/kubernetes/typed/scheduling/v1"
 	schedulingv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/scheduling/v1alpha1"
 	schedulingv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/scheduling/v1beta1"
@@ -84,11 +89,13 @@ type ClusterInterface interface {
 	Cluster(logicalcluster.Path) client.Interface
 	Discovery() discovery.DiscoveryInterface
 	AdmissionregistrationV1() admissionregistrationv1.AdmissionregistrationV1ClusterInterface
+	AdmissionregistrationV1alpha1() admissionregistrationv1alpha1.AdmissionregistrationV1alpha1ClusterInterface
 	AdmissionregistrationV1beta1() admissionregistrationv1beta1.AdmissionregistrationV1beta1ClusterInterface
 	AppsV1() appsv1.AppsV1ClusterInterface
 	AppsV1beta1() appsv1beta1.AppsV1beta1ClusterInterface
 	AppsV1beta2() appsv1beta2.AppsV1beta2ClusterInterface
 	AuthenticationV1() authenticationv1.AuthenticationV1ClusterInterface
+	AuthenticationV1alpha1() authenticationv1alpha1.AuthenticationV1alpha1ClusterInterface
 	AuthenticationV1beta1() authenticationv1beta1.AuthenticationV1beta1ClusterInterface
 	AuthorizationV1() authorizationv1.AuthorizationV1ClusterInterface
 	AuthorizationV1beta1() authorizationv1beta1.AuthorizationV1beta1ClusterInterface
@@ -111,8 +118,10 @@ type ClusterInterface interface {
 	FlowcontrolV1alpha1() flowcontrolv1alpha1.FlowcontrolV1alpha1ClusterInterface
 	FlowcontrolV1beta1() flowcontrolv1beta1.FlowcontrolV1beta1ClusterInterface
 	FlowcontrolV1beta2() flowcontrolv1beta2.FlowcontrolV1beta2ClusterInterface
+	FlowcontrolV1beta3() flowcontrolv1beta3.FlowcontrolV1beta3ClusterInterface
 	InternalV1alpha1() internalv1alpha1.InternalV1alpha1ClusterInterface
 	NetworkingV1() networkingv1.NetworkingV1ClusterInterface
+	NetworkingV1alpha1() networkingv1alpha1.NetworkingV1alpha1ClusterInterface
 	NetworkingV1beta1() networkingv1beta1.NetworkingV1beta1ClusterInterface
 	NodeV1() nodev1.NodeV1ClusterInterface
 	NodeV1alpha1() nodev1alpha1.NodeV1alpha1ClusterInterface
@@ -122,6 +131,7 @@ type ClusterInterface interface {
 	RbacV1() rbacv1.RbacV1ClusterInterface
 	RbacV1alpha1() rbacv1alpha1.RbacV1alpha1ClusterInterface
 	RbacV1beta1() rbacv1beta1.RbacV1beta1ClusterInterface
+	ResourceV1alpha1() resourcev1alpha1.ResourceV1alpha1ClusterInterface
 	SchedulingV1() schedulingv1.SchedulingV1ClusterInterface
 	SchedulingV1alpha1() schedulingv1alpha1.SchedulingV1alpha1ClusterInterface
 	SchedulingV1beta1() schedulingv1beta1.SchedulingV1beta1ClusterInterface
@@ -133,52 +143,57 @@ type ClusterInterface interface {
 // ClusterClientset contains the clients for groups.
 type ClusterClientset struct {
 	*discovery.DiscoveryClient
-	clientCache                  kcpclient.Cache[*client.Clientset]
-	admissionregistrationV1      *admissionregistrationv1.AdmissionregistrationV1ClusterClient
-	admissionregistrationV1beta1 *admissionregistrationv1beta1.AdmissionregistrationV1beta1ClusterClient
-	appsV1                       *appsv1.AppsV1ClusterClient
-	appsV1beta1                  *appsv1beta1.AppsV1beta1ClusterClient
-	appsV1beta2                  *appsv1beta2.AppsV1beta2ClusterClient
-	authenticationV1             *authenticationv1.AuthenticationV1ClusterClient
-	authenticationV1beta1        *authenticationv1beta1.AuthenticationV1beta1ClusterClient
-	authorizationV1              *authorizationv1.AuthorizationV1ClusterClient
-	authorizationV1beta1         *authorizationv1beta1.AuthorizationV1beta1ClusterClient
-	autoscalingV1                *autoscalingv1.AutoscalingV1ClusterClient
-	autoscalingV2                *autoscalingv2.AutoscalingV2ClusterClient
-	autoscalingV2beta1           *autoscalingv2beta1.AutoscalingV2beta1ClusterClient
-	autoscalingV2beta2           *autoscalingv2beta2.AutoscalingV2beta2ClusterClient
-	batchV1                      *batchv1.BatchV1ClusterClient
-	batchV1beta1                 *batchv1beta1.BatchV1beta1ClusterClient
-	certificatesV1               *certificatesv1.CertificatesV1ClusterClient
-	certificatesV1beta1          *certificatesv1beta1.CertificatesV1beta1ClusterClient
-	coordinationV1               *coordinationv1.CoordinationV1ClusterClient
-	coordinationV1beta1          *coordinationv1beta1.CoordinationV1beta1ClusterClient
-	coreV1                       *corev1.CoreV1ClusterClient
-	discoveryV1                  *discoveryv1.DiscoveryV1ClusterClient
-	discoveryV1beta1             *discoveryv1beta1.DiscoveryV1beta1ClusterClient
-	eventsV1                     *eventsv1.EventsV1ClusterClient
-	eventsV1beta1                *eventsv1beta1.EventsV1beta1ClusterClient
-	extensionsV1beta1            *extensionsv1beta1.ExtensionsV1beta1ClusterClient
-	flowcontrolV1alpha1          *flowcontrolv1alpha1.FlowcontrolV1alpha1ClusterClient
-	flowcontrolV1beta1           *flowcontrolv1beta1.FlowcontrolV1beta1ClusterClient
-	flowcontrolV1beta2           *flowcontrolv1beta2.FlowcontrolV1beta2ClusterClient
-	internalV1alpha1             *internalv1alpha1.InternalV1alpha1ClusterClient
-	networkingV1                 *networkingv1.NetworkingV1ClusterClient
-	networkingV1beta1            *networkingv1beta1.NetworkingV1beta1ClusterClient
-	nodeV1                       *nodev1.NodeV1ClusterClient
-	nodeV1alpha1                 *nodev1alpha1.NodeV1alpha1ClusterClient
-	nodeV1beta1                  *nodev1beta1.NodeV1beta1ClusterClient
-	policyV1                     *policyv1.PolicyV1ClusterClient
-	policyV1beta1                *policyv1beta1.PolicyV1beta1ClusterClient
-	rbacV1                       *rbacv1.RbacV1ClusterClient
-	rbacV1alpha1                 *rbacv1alpha1.RbacV1alpha1ClusterClient
-	rbacV1beta1                  *rbacv1beta1.RbacV1beta1ClusterClient
-	schedulingV1                 *schedulingv1.SchedulingV1ClusterClient
-	schedulingV1alpha1           *schedulingv1alpha1.SchedulingV1alpha1ClusterClient
-	schedulingV1beta1            *schedulingv1beta1.SchedulingV1beta1ClusterClient
-	storageV1                    *storagev1.StorageV1ClusterClient
-	storageV1alpha1              *storagev1alpha1.StorageV1alpha1ClusterClient
-	storageV1beta1               *storagev1beta1.StorageV1beta1ClusterClient
+	clientCache                   kcpclient.Cache[*client.Clientset]
+	admissionregistrationV1       *admissionregistrationv1.AdmissionregistrationV1ClusterClient
+	admissionregistrationV1alpha1 *admissionregistrationv1alpha1.AdmissionregistrationV1alpha1ClusterClient
+	admissionregistrationV1beta1  *admissionregistrationv1beta1.AdmissionregistrationV1beta1ClusterClient
+	appsV1                        *appsv1.AppsV1ClusterClient
+	appsV1beta1                   *appsv1beta1.AppsV1beta1ClusterClient
+	appsV1beta2                   *appsv1beta2.AppsV1beta2ClusterClient
+	authenticationV1              *authenticationv1.AuthenticationV1ClusterClient
+	authenticationV1alpha1        *authenticationv1alpha1.AuthenticationV1alpha1ClusterClient
+	authenticationV1beta1         *authenticationv1beta1.AuthenticationV1beta1ClusterClient
+	authorizationV1               *authorizationv1.AuthorizationV1ClusterClient
+	authorizationV1beta1          *authorizationv1beta1.AuthorizationV1beta1ClusterClient
+	autoscalingV1                 *autoscalingv1.AutoscalingV1ClusterClient
+	autoscalingV2                 *autoscalingv2.AutoscalingV2ClusterClient
+	autoscalingV2beta1            *autoscalingv2beta1.AutoscalingV2beta1ClusterClient
+	autoscalingV2beta2            *autoscalingv2beta2.AutoscalingV2beta2ClusterClient
+	batchV1                       *batchv1.BatchV1ClusterClient
+	batchV1beta1                  *batchv1beta1.BatchV1beta1ClusterClient
+	certificatesV1                *certificatesv1.CertificatesV1ClusterClient
+	certificatesV1beta1           *certificatesv1beta1.CertificatesV1beta1ClusterClient
+	coordinationV1                *coordinationv1.CoordinationV1ClusterClient
+	coordinationV1beta1           *coordinationv1beta1.CoordinationV1beta1ClusterClient
+	coreV1                        *corev1.CoreV1ClusterClient
+	discoveryV1                   *discoveryv1.DiscoveryV1ClusterClient
+	discoveryV1beta1              *discoveryv1beta1.DiscoveryV1beta1ClusterClient
+	eventsV1                      *eventsv1.EventsV1ClusterClient
+	eventsV1beta1                 *eventsv1beta1.EventsV1beta1ClusterClient
+	extensionsV1beta1             *extensionsv1beta1.ExtensionsV1beta1ClusterClient
+	flowcontrolV1alpha1           *flowcontrolv1alpha1.FlowcontrolV1alpha1ClusterClient
+	flowcontrolV1beta1            *flowcontrolv1beta1.FlowcontrolV1beta1ClusterClient
+	flowcontrolV1beta2            *flowcontrolv1beta2.FlowcontrolV1beta2ClusterClient
+	flowcontrolV1beta3            *flowcontrolv1beta3.FlowcontrolV1beta3ClusterClient
+	internalV1alpha1              *internalv1alpha1.InternalV1alpha1ClusterClient
+	networkingV1                  *networkingv1.NetworkingV1ClusterClient
+	networkingV1alpha1            *networkingv1alpha1.NetworkingV1alpha1ClusterClient
+	networkingV1beta1             *networkingv1beta1.NetworkingV1beta1ClusterClient
+	nodeV1                        *nodev1.NodeV1ClusterClient
+	nodeV1alpha1                  *nodev1alpha1.NodeV1alpha1ClusterClient
+	nodeV1beta1                   *nodev1beta1.NodeV1beta1ClusterClient
+	policyV1                      *policyv1.PolicyV1ClusterClient
+	policyV1beta1                 *policyv1beta1.PolicyV1beta1ClusterClient
+	rbacV1                        *rbacv1.RbacV1ClusterClient
+	rbacV1alpha1                  *rbacv1alpha1.RbacV1alpha1ClusterClient
+	rbacV1beta1                   *rbacv1beta1.RbacV1beta1ClusterClient
+	resourceV1alpha1              *resourcev1alpha1.ResourceV1alpha1ClusterClient
+	schedulingV1                  *schedulingv1.SchedulingV1ClusterClient
+	schedulingV1alpha1            *schedulingv1alpha1.SchedulingV1alpha1ClusterClient
+	schedulingV1beta1             *schedulingv1beta1.SchedulingV1beta1ClusterClient
+	storageV1                     *storagev1.StorageV1ClusterClient
+	storageV1alpha1               *storagev1alpha1.StorageV1alpha1ClusterClient
+	storageV1beta1                *storagev1beta1.StorageV1beta1ClusterClient
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -192,6 +207,11 @@ func (c *ClusterClientset) Discovery() discovery.DiscoveryInterface {
 // AdmissionregistrationV1 retrieves the AdmissionregistrationV1ClusterClient.
 func (c *ClusterClientset) AdmissionregistrationV1() admissionregistrationv1.AdmissionregistrationV1ClusterInterface {
 	return c.admissionregistrationV1
+}
+
+// AdmissionregistrationV1alpha1 retrieves the AdmissionregistrationV1alpha1ClusterClient.
+func (c *ClusterClientset) AdmissionregistrationV1alpha1() admissionregistrationv1alpha1.AdmissionregistrationV1alpha1ClusterInterface {
+	return c.admissionregistrationV1alpha1
 }
 
 // AdmissionregistrationV1beta1 retrieves the AdmissionregistrationV1beta1ClusterClient.
@@ -217,6 +237,11 @@ func (c *ClusterClientset) AppsV1beta2() appsv1beta2.AppsV1beta2ClusterInterface
 // AuthenticationV1 retrieves the AuthenticationV1ClusterClient.
 func (c *ClusterClientset) AuthenticationV1() authenticationv1.AuthenticationV1ClusterInterface {
 	return c.authenticationV1
+}
+
+// AuthenticationV1alpha1 retrieves the AuthenticationV1alpha1ClusterClient.
+func (c *ClusterClientset) AuthenticationV1alpha1() authenticationv1alpha1.AuthenticationV1alpha1ClusterInterface {
+	return c.authenticationV1alpha1
 }
 
 // AuthenticationV1beta1 retrieves the AuthenticationV1beta1ClusterClient.
@@ -329,6 +354,11 @@ func (c *ClusterClientset) FlowcontrolV1beta2() flowcontrolv1beta2.FlowcontrolV1
 	return c.flowcontrolV1beta2
 }
 
+// FlowcontrolV1beta3 retrieves the FlowcontrolV1beta3ClusterClient.
+func (c *ClusterClientset) FlowcontrolV1beta3() flowcontrolv1beta3.FlowcontrolV1beta3ClusterInterface {
+	return c.flowcontrolV1beta3
+}
+
 // InternalV1alpha1 retrieves the InternalV1alpha1ClusterClient.
 func (c *ClusterClientset) InternalV1alpha1() internalv1alpha1.InternalV1alpha1ClusterInterface {
 	return c.internalV1alpha1
@@ -337,6 +367,11 @@ func (c *ClusterClientset) InternalV1alpha1() internalv1alpha1.InternalV1alpha1C
 // NetworkingV1 retrieves the NetworkingV1ClusterClient.
 func (c *ClusterClientset) NetworkingV1() networkingv1.NetworkingV1ClusterInterface {
 	return c.networkingV1
+}
+
+// NetworkingV1alpha1 retrieves the NetworkingV1alpha1ClusterClient.
+func (c *ClusterClientset) NetworkingV1alpha1() networkingv1alpha1.NetworkingV1alpha1ClusterInterface {
+	return c.networkingV1alpha1
 }
 
 // NetworkingV1beta1 retrieves the NetworkingV1beta1ClusterClient.
@@ -382,6 +417,11 @@ func (c *ClusterClientset) RbacV1alpha1() rbacv1alpha1.RbacV1alpha1ClusterInterf
 // RbacV1beta1 retrieves the RbacV1beta1ClusterClient.
 func (c *ClusterClientset) RbacV1beta1() rbacv1beta1.RbacV1beta1ClusterInterface {
 	return c.rbacV1beta1
+}
+
+// ResourceV1alpha1 retrieves the ResourceV1alpha1ClusterClient.
+func (c *ClusterClientset) ResourceV1alpha1() resourcev1alpha1.ResourceV1alpha1ClusterInterface {
+	return c.resourceV1alpha1
 }
 
 // SchedulingV1 retrieves the SchedulingV1ClusterClient.
@@ -470,6 +510,10 @@ func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*ClusterCli
 	if err != nil {
 		return nil, err
 	}
+	cs.admissionregistrationV1alpha1, err = admissionregistrationv1alpha1.NewForConfigAndClient(&configShallowCopy, httpClient)
+	if err != nil {
+		return nil, err
+	}
 	cs.admissionregistrationV1beta1, err = admissionregistrationv1beta1.NewForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {
 		return nil, err
@@ -487,6 +531,10 @@ func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*ClusterCli
 		return nil, err
 	}
 	cs.authenticationV1, err = authenticationv1.NewForConfigAndClient(&configShallowCopy, httpClient)
+	if err != nil {
+		return nil, err
+	}
+	cs.authenticationV1alpha1, err = authenticationv1alpha1.NewForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {
 		return nil, err
 	}
@@ -578,11 +626,19 @@ func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*ClusterCli
 	if err != nil {
 		return nil, err
 	}
+	cs.flowcontrolV1beta3, err = flowcontrolv1beta3.NewForConfigAndClient(&configShallowCopy, httpClient)
+	if err != nil {
+		return nil, err
+	}
 	cs.internalV1alpha1, err = internalv1alpha1.NewForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {
 		return nil, err
 	}
 	cs.networkingV1, err = networkingv1.NewForConfigAndClient(&configShallowCopy, httpClient)
+	if err != nil {
+		return nil, err
+	}
+	cs.networkingV1alpha1, err = networkingv1alpha1.NewForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {
 		return nil, err
 	}
@@ -619,6 +675,10 @@ func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*ClusterCli
 		return nil, err
 	}
 	cs.rbacV1beta1, err = rbacv1beta1.NewForConfigAndClient(&configShallowCopy, httpClient)
+	if err != nil {
+		return nil, err
+	}
+	cs.resourceV1alpha1, err = resourcev1alpha1.NewForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {
 		return nil, err
 	}
