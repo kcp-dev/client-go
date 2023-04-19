@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package v1beta1
+package fake
 
 import (
 	"k8s.io/api/events/v1beta1"

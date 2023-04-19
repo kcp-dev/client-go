@@ -29,12 +29,14 @@ import (
 	client "k8s.io/client-go/kubernetes"
 	clientscheme "k8s.io/client-go/kubernetes/scheme"
 	admissionregistrationv1 "k8s.io/client-go/kubernetes/typed/admissionregistration/v1"
+	admissionregistrationv1alpha1 "k8s.io/client-go/kubernetes/typed/admissionregistration/v1alpha1"
 	admissionregistrationv1beta1 "k8s.io/client-go/kubernetes/typed/admissionregistration/v1beta1"
 	internalv1alpha1 "k8s.io/client-go/kubernetes/typed/apiserverinternal/v1alpha1"
 	appsv1 "k8s.io/client-go/kubernetes/typed/apps/v1"
 	appsv1beta1 "k8s.io/client-go/kubernetes/typed/apps/v1beta1"
 	appsv1beta2 "k8s.io/client-go/kubernetes/typed/apps/v1beta2"
 	authenticationv1 "k8s.io/client-go/kubernetes/typed/authentication/v1"
+	authenticationv1alpha1 "k8s.io/client-go/kubernetes/typed/authentication/v1alpha1"
 	authenticationv1beta1 "k8s.io/client-go/kubernetes/typed/authentication/v1beta1"
 	authorizationv1 "k8s.io/client-go/kubernetes/typed/authorization/v1"
 	authorizationv1beta1 "k8s.io/client-go/kubernetes/typed/authorization/v1beta1"
@@ -57,7 +59,9 @@ import (
 	flowcontrolv1alpha1 "k8s.io/client-go/kubernetes/typed/flowcontrol/v1alpha1"
 	flowcontrolv1beta1 "k8s.io/client-go/kubernetes/typed/flowcontrol/v1beta1"
 	flowcontrolv1beta2 "k8s.io/client-go/kubernetes/typed/flowcontrol/v1beta2"
+	flowcontrolv1beta3 "k8s.io/client-go/kubernetes/typed/flowcontrol/v1beta3"
 	networkingv1 "k8s.io/client-go/kubernetes/typed/networking/v1"
+	networkingv1alpha1 "k8s.io/client-go/kubernetes/typed/networking/v1alpha1"
 	networkingv1beta1 "k8s.io/client-go/kubernetes/typed/networking/v1beta1"
 	nodev1 "k8s.io/client-go/kubernetes/typed/node/v1"
 	nodev1alpha1 "k8s.io/client-go/kubernetes/typed/node/v1alpha1"
@@ -67,6 +71,7 @@ import (
 	rbacv1 "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	rbacv1alpha1 "k8s.io/client-go/kubernetes/typed/rbac/v1alpha1"
 	rbacv1beta1 "k8s.io/client-go/kubernetes/typed/rbac/v1beta1"
+	resourcev1alpha1 "k8s.io/client-go/kubernetes/typed/resource/v1alpha1"
 	schedulingv1 "k8s.io/client-go/kubernetes/typed/scheduling/v1"
 	schedulingv1alpha1 "k8s.io/client-go/kubernetes/typed/scheduling/v1alpha1"
 	schedulingv1beta1 "k8s.io/client-go/kubernetes/typed/scheduling/v1beta1"
@@ -77,6 +82,8 @@ import (
 	kcpclient "github.com/kcp-dev/client-go/kubernetes"
 	kcpadmissionregistrationv1 "github.com/kcp-dev/client-go/kubernetes/typed/admissionregistration/v1"
 	fakeadmissionregistrationv1 "github.com/kcp-dev/client-go/kubernetes/typed/admissionregistration/v1/fake"
+	kcpadmissionregistrationv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/admissionregistration/v1alpha1"
+	fakeadmissionregistrationv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/admissionregistration/v1alpha1/fake"
 	kcpadmissionregistrationv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/admissionregistration/v1beta1"
 	fakeadmissionregistrationv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/admissionregistration/v1beta1/fake"
 	kcpinternalv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/apiserverinternal/v1alpha1"
@@ -89,6 +96,8 @@ import (
 	fakeappsv1beta2 "github.com/kcp-dev/client-go/kubernetes/typed/apps/v1beta2/fake"
 	kcpauthenticationv1 "github.com/kcp-dev/client-go/kubernetes/typed/authentication/v1"
 	fakeauthenticationv1 "github.com/kcp-dev/client-go/kubernetes/typed/authentication/v1/fake"
+	kcpauthenticationv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/authentication/v1alpha1"
+	fakeauthenticationv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/authentication/v1alpha1/fake"
 	kcpauthenticationv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/authentication/v1beta1"
 	fakeauthenticationv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/authentication/v1beta1/fake"
 	kcpauthorizationv1 "github.com/kcp-dev/client-go/kubernetes/typed/authorization/v1"
@@ -133,8 +142,12 @@ import (
 	fakeflowcontrolv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1beta1/fake"
 	kcpflowcontrolv1beta2 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1beta2"
 	fakeflowcontrolv1beta2 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1beta2/fake"
+	kcpflowcontrolv1beta3 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1beta3"
+	fakeflowcontrolv1beta3 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1beta3/fake"
 	kcpnetworkingv1 "github.com/kcp-dev/client-go/kubernetes/typed/networking/v1"
 	fakenetworkingv1 "github.com/kcp-dev/client-go/kubernetes/typed/networking/v1/fake"
+	kcpnetworkingv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/networking/v1alpha1"
+	fakenetworkingv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/networking/v1alpha1/fake"
 	kcpnetworkingv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/networking/v1beta1"
 	fakenetworkingv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/networking/v1beta1/fake"
 	kcpnodev1 "github.com/kcp-dev/client-go/kubernetes/typed/node/v1"
@@ -153,6 +166,8 @@ import (
 	fakerbacv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/rbac/v1alpha1/fake"
 	kcprbacv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/rbac/v1beta1"
 	fakerbacv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/rbac/v1beta1/fake"
+	kcpresourcev1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/resource/v1alpha1"
+	fakeresourcev1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/resource/v1alpha1/fake"
 	kcpschedulingv1 "github.com/kcp-dev/client-go/kubernetes/typed/scheduling/v1"
 	fakeschedulingv1 "github.com/kcp-dev/client-go/kubernetes/typed/scheduling/v1/fake"
 	kcpschedulingv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/scheduling/v1alpha1"
@@ -208,6 +223,11 @@ func (c *ClusterClientset) AdmissionregistrationV1() kcpadmissionregistrationv1.
 	return &fakeadmissionregistrationv1.AdmissionregistrationV1ClusterClient{Fake: c.Fake}
 }
 
+// AdmissionregistrationV1alpha1 retrieves the AdmissionregistrationV1alpha1ClusterClient.
+func (c *ClusterClientset) AdmissionregistrationV1alpha1() kcpadmissionregistrationv1alpha1.AdmissionregistrationV1alpha1ClusterInterface {
+	return &fakeadmissionregistrationv1alpha1.AdmissionregistrationV1alpha1ClusterClient{Fake: c.Fake}
+}
+
 // AdmissionregistrationV1beta1 retrieves the AdmissionregistrationV1beta1ClusterClient.
 func (c *ClusterClientset) AdmissionregistrationV1beta1() kcpadmissionregistrationv1beta1.AdmissionregistrationV1beta1ClusterInterface {
 	return &fakeadmissionregistrationv1beta1.AdmissionregistrationV1beta1ClusterClient{Fake: c.Fake}
@@ -231,6 +251,11 @@ func (c *ClusterClientset) AppsV1beta2() kcpappsv1beta2.AppsV1beta2ClusterInterf
 // AuthenticationV1 retrieves the AuthenticationV1ClusterClient.
 func (c *ClusterClientset) AuthenticationV1() kcpauthenticationv1.AuthenticationV1ClusterInterface {
 	return &fakeauthenticationv1.AuthenticationV1ClusterClient{Fake: c.Fake}
+}
+
+// AuthenticationV1alpha1 retrieves the AuthenticationV1alpha1ClusterClient.
+func (c *ClusterClientset) AuthenticationV1alpha1() kcpauthenticationv1alpha1.AuthenticationV1alpha1ClusterInterface {
+	return &fakeauthenticationv1alpha1.AuthenticationV1alpha1ClusterClient{Fake: c.Fake}
 }
 
 // AuthenticationV1beta1 retrieves the AuthenticationV1beta1ClusterClient.
@@ -343,6 +368,11 @@ func (c *ClusterClientset) FlowcontrolV1beta2() kcpflowcontrolv1beta2.Flowcontro
 	return &fakeflowcontrolv1beta2.FlowcontrolV1beta2ClusterClient{Fake: c.Fake}
 }
 
+// FlowcontrolV1beta3 retrieves the FlowcontrolV1beta3ClusterClient.
+func (c *ClusterClientset) FlowcontrolV1beta3() kcpflowcontrolv1beta3.FlowcontrolV1beta3ClusterInterface {
+	return &fakeflowcontrolv1beta3.FlowcontrolV1beta3ClusterClient{Fake: c.Fake}
+}
+
 // InternalV1alpha1 retrieves the InternalV1alpha1ClusterClient.
 func (c *ClusterClientset) InternalV1alpha1() kcpinternalv1alpha1.InternalV1alpha1ClusterInterface {
 	return &fakeinternalv1alpha1.InternalV1alpha1ClusterClient{Fake: c.Fake}
@@ -351,6 +381,11 @@ func (c *ClusterClientset) InternalV1alpha1() kcpinternalv1alpha1.InternalV1alph
 // NetworkingV1 retrieves the NetworkingV1ClusterClient.
 func (c *ClusterClientset) NetworkingV1() kcpnetworkingv1.NetworkingV1ClusterInterface {
 	return &fakenetworkingv1.NetworkingV1ClusterClient{Fake: c.Fake}
+}
+
+// NetworkingV1alpha1 retrieves the NetworkingV1alpha1ClusterClient.
+func (c *ClusterClientset) NetworkingV1alpha1() kcpnetworkingv1alpha1.NetworkingV1alpha1ClusterInterface {
+	return &fakenetworkingv1alpha1.NetworkingV1alpha1ClusterClient{Fake: c.Fake}
 }
 
 // NetworkingV1beta1 retrieves the NetworkingV1beta1ClusterClient.
@@ -396,6 +431,11 @@ func (c *ClusterClientset) RbacV1alpha1() kcprbacv1alpha1.RbacV1alpha1ClusterInt
 // RbacV1beta1 retrieves the RbacV1beta1ClusterClient.
 func (c *ClusterClientset) RbacV1beta1() kcprbacv1beta1.RbacV1beta1ClusterInterface {
 	return &fakerbacv1beta1.RbacV1beta1ClusterClient{Fake: c.Fake}
+}
+
+// ResourceV1alpha1 retrieves the ResourceV1alpha1ClusterClient.
+func (c *ClusterClientset) ResourceV1alpha1() kcpresourcev1alpha1.ResourceV1alpha1ClusterInterface {
+	return &fakeresourcev1alpha1.ResourceV1alpha1ClusterClient{Fake: c.Fake}
 }
 
 // SchedulingV1 retrieves the SchedulingV1ClusterClient.
@@ -465,6 +505,11 @@ func (c *Clientset) AdmissionregistrationV1() admissionregistrationv1.Admissionr
 	return &fakeadmissionregistrationv1.AdmissionregistrationV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
+// AdmissionregistrationV1alpha1 retrieves the AdmissionregistrationV1alpha1Client.
+func (c *Clientset) AdmissionregistrationV1alpha1() admissionregistrationv1alpha1.AdmissionregistrationV1alpha1Interface {
+	return &fakeadmissionregistrationv1alpha1.AdmissionregistrationV1alpha1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
+}
+
 // AdmissionregistrationV1beta1 retrieves the AdmissionregistrationV1beta1Client.
 func (c *Clientset) AdmissionregistrationV1beta1() admissionregistrationv1beta1.AdmissionregistrationV1beta1Interface {
 	return &fakeadmissionregistrationv1beta1.AdmissionregistrationV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
@@ -488,6 +533,11 @@ func (c *Clientset) AppsV1beta2() appsv1beta2.AppsV1beta2Interface {
 // AuthenticationV1 retrieves the AuthenticationV1Client.
 func (c *Clientset) AuthenticationV1() authenticationv1.AuthenticationV1Interface {
 	return &fakeauthenticationv1.AuthenticationV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
+}
+
+// AuthenticationV1alpha1 retrieves the AuthenticationV1alpha1Client.
+func (c *Clientset) AuthenticationV1alpha1() authenticationv1alpha1.AuthenticationV1alpha1Interface {
+	return &fakeauthenticationv1alpha1.AuthenticationV1alpha1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // AuthenticationV1beta1 retrieves the AuthenticationV1beta1Client.
@@ -600,6 +650,11 @@ func (c *Clientset) FlowcontrolV1beta2() flowcontrolv1beta2.FlowcontrolV1beta2In
 	return &fakeflowcontrolv1beta2.FlowcontrolV1beta2Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
+// FlowcontrolV1beta3 retrieves the FlowcontrolV1beta3Client.
+func (c *Clientset) FlowcontrolV1beta3() flowcontrolv1beta3.FlowcontrolV1beta3Interface {
+	return &fakeflowcontrolv1beta3.FlowcontrolV1beta3Client{Fake: c.Fake, ClusterPath: c.clusterPath}
+}
+
 // InternalV1alpha1 retrieves the InternalV1alpha1Client.
 func (c *Clientset) InternalV1alpha1() internalv1alpha1.InternalV1alpha1Interface {
 	return &fakeinternalv1alpha1.InternalV1alpha1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
@@ -608,6 +663,11 @@ func (c *Clientset) InternalV1alpha1() internalv1alpha1.InternalV1alpha1Interfac
 // NetworkingV1 retrieves the NetworkingV1Client.
 func (c *Clientset) NetworkingV1() networkingv1.NetworkingV1Interface {
 	return &fakenetworkingv1.NetworkingV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
+}
+
+// NetworkingV1alpha1 retrieves the NetworkingV1alpha1Client.
+func (c *Clientset) NetworkingV1alpha1() networkingv1alpha1.NetworkingV1alpha1Interface {
+	return &fakenetworkingv1alpha1.NetworkingV1alpha1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // NetworkingV1beta1 retrieves the NetworkingV1beta1Client.
@@ -653,6 +713,11 @@ func (c *Clientset) RbacV1alpha1() rbacv1alpha1.RbacV1alpha1Interface {
 // RbacV1beta1 retrieves the RbacV1beta1Client.
 func (c *Clientset) RbacV1beta1() rbacv1beta1.RbacV1beta1Interface {
 	return &fakerbacv1beta1.RbacV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
+}
+
+// ResourceV1alpha1 retrieves the ResourceV1alpha1Client.
+func (c *Clientset) ResourceV1alpha1() resourcev1alpha1.ResourceV1alpha1Interface {
+	return &fakeresourcev1alpha1.ResourceV1alpha1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // SchedulingV1 retrieves the SchedulingV1Client.
