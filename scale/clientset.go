@@ -32,6 +32,11 @@ import (
 	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/scale"
 	"k8s.io/client-go/util/flowcontrol"
+
+	"github.com/kcp-dev/client-go/cache"
+	kcpdiscovery "github.com/kcp-dev/client-go/discovery"
+	kcprestclient "github.com/kcp-dev/client-go/rest"
+	kcprestmapper "github.com/kcp-dev/client-go/restmapper"
 )
 
 var (
@@ -43,11 +48,49 @@ type ClusterClientset struct {
 	clientCache kcpclient.Cache[scale.ScalesGetter]
 }
 
-func (c ClusterClientset) Cluster(clusterPath logicalcluster.Path) scale.ScalesGetter {
+func (c *ClusterClientset) Cluster(clusterPath logicalcluster.Path) scale.ScalesGetter {
 	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
 var _ ClusterInterface = (*ClusterClientset)(nil)
+
+type ClusterScaleClient struct {
+	clientCache cache.Cache[scale.ScalesGetter]
+}
+
+var _ ClusterInterface = (*ClusterScaleClient)(nil)
+
+func (c *ClusterScaleClient) Cluster(path logicalcluster.Path) scale.ScalesGetter {
+	return c.clientCache.ClusterOrDie(path)
+}
+
+func New(restClient kcprestclient.ClusterInterface, mapper kcprestmapper.ClusterInterface, resolver dynamic.APIPathResolverFunc, scaleKindResolver scale.ScaleKindResolver) ClusterInterface {
+	return &ClusterScaleClient{
+		clientCache: cache.NewCache(&cache.Constructor[scale.ScalesGetter]{
+			Provider: func(clusterPath logicalcluster.Path) (scale.ScalesGetter, error) {
+				return scale.New(restClient.Cluster(clusterPath), mapper.Cluster(clusterPath), resolver, nil), nil
+			},
+		}),
+	}
+}
+
+type scaleKindResolver struct {
+	clientCache cache.Cache[scale.ScaleKindResolver]
+}
+
+func (c *scaleKindResolver) Cluster(path logicalcluster.Path) scale.ScaleKindResolver {
+	return c.clientCache.ClusterOrDie(path)
+}
+
+func NewDiscoveryScaleKindResolver(d kcpdiscovery.DiscoveryClusterInterface) ClusterScaleKindResolver {
+	return &scaleKindResolver{
+		clientCache: cache.NewCache(&cache.Constructor[scale.ScaleKindResolver]{
+			Provider: func(clusterPath logicalcluster.Path) (scale.ScaleKindResolver, error) {
+				return scale.NewDiscoveryScaleKindResolver(d.Cluster(clusterPath)), nil
+			},
+		}),
+	}
+}
 
 // NewForConfig creates a new ClusterClientset for the given config.
 // If config's RateLimiter is not set and QPS and Burst are acceptable,
