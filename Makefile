@@ -73,3 +73,6 @@ verify-codegen:
 		echo "You need to run 'make codegen' to update generated files and commit them"; \
 		exit 1; \
 	fi
+
+.PHONY: verify
+verify: verify-codegen
