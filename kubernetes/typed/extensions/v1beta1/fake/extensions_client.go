@@ -60,10 +60,6 @@ func (c *ExtensionsV1beta1ClusterClient) ReplicaSets() kcpextensionsv1beta1.Repl
 	return &replicaSetsClusterClient{Fake: c.Fake}
 }
 
-func (c *ExtensionsV1beta1ClusterClient) PodSecurityPolicies() kcpextensionsv1beta1.PodSecurityPolicyClusterInterface {
-	return &podSecurityPoliciesClusterClient{Fake: c.Fake}
-}
-
 func (c *ExtensionsV1beta1ClusterClient) NetworkPolicies() kcpextensionsv1beta1.NetworkPolicyClusterInterface {
 	return &networkPoliciesClusterClient{Fake: c.Fake}
 }
@@ -94,10 +90,6 @@ func (c *ExtensionsV1beta1Client) Ingresses(namespace string) extensionsv1beta1.
 
 func (c *ExtensionsV1beta1Client) ReplicaSets(namespace string) extensionsv1beta1.ReplicaSetInterface {
 	return &replicaSetsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
-}
-
-func (c *ExtensionsV1beta1Client) PodSecurityPolicies() extensionsv1beta1.PodSecurityPolicyInterface {
-	return &podSecurityPoliciesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
 
 func (c *ExtensionsV1beta1Client) NetworkPolicies(namespace string) extensionsv1beta1.NetworkPolicyInterface {

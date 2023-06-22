@@ -28,6 +28,8 @@ import (
 type ClusterInterface interface {
 	// ClusterCIDRs returns a ClusterCIDRClusterInformer
 	ClusterCIDRs() ClusterCIDRClusterInformer
+	// IPAddresses returns a IPAddressClusterInformer
+	IPAddresses() IPAddressClusterInformer
 }
 
 type version struct {
@@ -43,4 +45,9 @@ func New(f internalinterfaces.SharedInformerFactory, tweakListOptions internalin
 // ClusterCIDRs returns a ClusterCIDRClusterInformer
 func (v *version) ClusterCIDRs() ClusterCIDRClusterInformer {
 	return &clusterCIDRClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// IPAddresses returns a IPAddressClusterInformer
+func (v *version) IPAddresses() IPAddressClusterInformer {
+	return &iPAddressClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
