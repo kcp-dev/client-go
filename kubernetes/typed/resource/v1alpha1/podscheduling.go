@@ -27,10 +27,10 @@ import (
 	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
 	"github.com/kcp-dev/logicalcluster/v3"
 
-	resourcev1alpha1 "k8s.io/api/resource/v1alpha1"
+	resourcev1alpha1 "k8s.io/api/resource/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/watch"
-	resourcev1alpha1client "k8s.io/client-go/kubernetes/typed/resource/v1alpha1"
+	resourcev1alpha1client "k8s.io/client-go/kubernetes/typed/resource/v1alpha2"
 )
 
 // PodSchedulingsClusterGetter has a method to return a PodSchedulingClusterInterface.

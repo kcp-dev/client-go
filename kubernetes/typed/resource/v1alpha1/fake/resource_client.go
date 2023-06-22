@@ -24,7 +24,7 @@ package fake
 import (
 	"github.com/kcp-dev/logicalcluster/v3"
 
-	resourcev1alpha1 "k8s.io/client-go/kubernetes/typed/resource/v1alpha1"
+	resourcev1alpha1 "k8s.io/client-go/kubernetes/typed/resource/v1alpha2"
 	"k8s.io/client-go/rest"
 
 	kcpresourcev1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/resource/v1alpha1"

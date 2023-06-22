@@ -29,12 +29,12 @@ import (
 	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
 	"github.com/kcp-dev/logicalcluster/v3"
 
-	resourcev1alpha1 "k8s.io/api/resource/v1alpha1"
+	resourcev1alpha1 "k8s.io/api/resource/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
-	upstreamresourcev1alpha1informers "k8s.io/client-go/informers/resource/v1alpha1"
-	upstreamresourcev1alpha1listers "k8s.io/client-go/listers/resource/v1alpha1"
+	upstreamresourcev1alpha1informers "k8s.io/client-go/informers/resource/v1alpha2"
+	upstreamresourcev1alpha1listers "k8s.io/client-go/listers/resource/v1alpha2"
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/kcp-dev/client-go/informers/internalinterfaces"

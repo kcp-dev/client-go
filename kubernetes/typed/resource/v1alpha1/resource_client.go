@@ -27,7 +27,7 @@ import (
 	kcpclient "github.com/kcp-dev/apimachinery/v2/pkg/client"
 	"github.com/kcp-dev/logicalcluster/v3"
 
-	resourcev1alpha1 "k8s.io/client-go/kubernetes/typed/resource/v1alpha1"
+	resourcev1alpha1 "k8s.io/client-go/kubernetes/typed/resource/v1alpha2"
 	"k8s.io/client-go/rest"
 )
 
