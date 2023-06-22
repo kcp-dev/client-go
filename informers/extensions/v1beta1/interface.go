@@ -34,8 +34,6 @@ type ClusterInterface interface {
 	Ingresses() IngressClusterInformer
 	// ReplicaSets returns a ReplicaSetClusterInformer
 	ReplicaSets() ReplicaSetClusterInformer
-	// PodSecurityPolicies returns a PodSecurityPolicyClusterInformer
-	PodSecurityPolicies() PodSecurityPolicyClusterInformer
 	// NetworkPolicies returns a NetworkPolicyClusterInformer
 	NetworkPolicies() NetworkPolicyClusterInformer
 }
@@ -68,11 +66,6 @@ func (v *version) Ingresses() IngressClusterInformer {
 // ReplicaSets returns a ReplicaSetClusterInformer
 func (v *version) ReplicaSets() ReplicaSetClusterInformer {
 	return &replicaSetClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
-}
-
-// PodSecurityPolicies returns a PodSecurityPolicyClusterInformer
-func (v *version) PodSecurityPolicies() PodSecurityPolicyClusterInformer {
-	return &podSecurityPolicyClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
 // NetworkPolicies returns a NetworkPolicyClusterInformer

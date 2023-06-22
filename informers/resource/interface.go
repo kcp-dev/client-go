@@ -23,12 +23,12 @@ package resource
 
 import (
 	"github.com/kcp-dev/client-go/informers/internalinterfaces"
-	"github.com/kcp-dev/client-go/informers/resource/v1alpha1"
+	"github.com/kcp-dev/client-go/informers/resource/v1alpha2"
 )
 
 type ClusterInterface interface {
-	// V1alpha1 provides access to the shared informers in V1alpha1.
-	V1alpha1() v1alpha1.ClusterInterface
+	// V1alpha2 provides access to the shared informers in V1alpha2.
+	V1alpha2() v1alpha2.ClusterInterface
 }
 
 type group struct {
@@ -41,7 +41,7 @@ func New(f internalinterfaces.SharedInformerFactory, tweakListOptions internalin
 	return &group{factory: f, tweakListOptions: tweakListOptions}
 }
 
-// V1alpha1 returns a new v1alpha1.ClusterInterface.
-func (g *group) V1alpha1() v1alpha1.ClusterInterface {
-	return v1alpha1.New(g.factory, g.tweakListOptions)
+// V1alpha2 returns a new v1alpha2.ClusterInterface.
+func (g *group) V1alpha2() v1alpha2.ClusterInterface {
+	return v1alpha2.New(g.factory, g.tweakListOptions)
 }
