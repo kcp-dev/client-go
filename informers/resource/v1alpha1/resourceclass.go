@@ -29,25 +29,25 @@ import (
 	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
 	"github.com/kcp-dev/logicalcluster/v3"
 
-	resourcev1alpha1 "k8s.io/api/resource/v1alpha1"
+	resourcev1alpha2 "k8s.io/api/resource/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
-	upstreamresourcev1alpha1informers "k8s.io/client-go/informers/resource/v1alpha1"
-	upstreamresourcev1alpha1listers "k8s.io/client-go/listers/resource/v1alpha1"
+	upstreamresourcev1alpha2informers "k8s.io/client-go/informers/resource/v1alpha2"
+	upstreamresourcev1alpha2listers "k8s.io/client-go/listers/resource/v1alpha2"
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/kcp-dev/client-go/informers/internalinterfaces"
 	clientset "github.com/kcp-dev/client-go/kubernetes"
-	resourcev1alpha1listers "github.com/kcp-dev/client-go/listers/resource/v1alpha1"
+	resourcev1alpha2listers "github.com/kcp-dev/client-go/listers/resource/v1alpha2"
 )
 
 // ResourceClassClusterInformer provides access to a shared informer and lister for
 // ResourceClasses.
 type ResourceClassClusterInformer interface {
-	Cluster(logicalcluster.Name) upstreamresourcev1alpha1informers.ResourceClassInformer
+	Cluster(logicalcluster.Name) upstreamresourcev1alpha2informers.ResourceClassInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
-	Lister() resourcev1alpha1listers.ResourceClassClusterLister
+	Lister() resourcev1alpha2listers.ResourceClassClusterLister
 }
 
 type resourceClassClusterInformer struct {
@@ -72,16 +72,16 @@ func NewFilteredResourceClassClusterInformer(client clientset.ClusterInterface, 
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.ResourceV1alpha1().ResourceClasses().List(context.TODO(), options)
+				return client.ResourceV1alpha2().ResourceClasses().List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.ResourceV1alpha1().ResourceClasses().Watch(context.TODO(), options)
+				return client.ResourceV1alpha2().ResourceClasses().Watch(context.TODO(), options)
 			},
 		},
-		&resourcev1alpha1.ResourceClass{},
+		&resourcev1alpha2.ResourceClass{},
 		resyncPeriod,
 		indexers,
 	)
@@ -96,14 +96,14 @@ func (f *resourceClassClusterInformer) defaultInformer(client clientset.ClusterI
 }
 
 func (f *resourceClassClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
-	return f.factory.InformerFor(&resourcev1alpha1.ResourceClass{}, f.defaultInformer)
+	return f.factory.InformerFor(&resourcev1alpha2.ResourceClass{}, f.defaultInformer)
 }
 
-func (f *resourceClassClusterInformer) Lister() resourcev1alpha1listers.ResourceClassClusterLister {
-	return resourcev1alpha1listers.NewResourceClassClusterLister(f.Informer().GetIndexer())
+func (f *resourceClassClusterInformer) Lister() resourcev1alpha2listers.ResourceClassClusterLister {
+	return resourcev1alpha2listers.NewResourceClassClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *resourceClassClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamresourcev1alpha1informers.ResourceClassInformer {
+func (f *resourceClassClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamresourcev1alpha2informers.ResourceClassInformer {
 	return &resourceClassInformer{
 		informer: f.Informer().Cluster(clusterName),
 		lister:   f.Lister().Cluster(clusterName),
@@ -112,13 +112,13 @@ func (f *resourceClassClusterInformer) Cluster(clusterName logicalcluster.Name) 
 
 type resourceClassInformer struct {
 	informer cache.SharedIndexInformer
-	lister   upstreamresourcev1alpha1listers.ResourceClassLister
+	lister   upstreamresourcev1alpha2listers.ResourceClassLister
 }
 
 func (f *resourceClassInformer) Informer() cache.SharedIndexInformer {
 	return f.informer
 }
 
-func (f *resourceClassInformer) Lister() upstreamresourcev1alpha1listers.ResourceClassLister {
+func (f *resourceClassInformer) Lister() upstreamresourcev1alpha2listers.ResourceClassLister {
 	return f.lister
 }

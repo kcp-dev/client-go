@@ -34,6 +34,7 @@ import (
 type AuthenticationV1ClusterInterface interface {
 	AuthenticationV1ClusterScoper
 	TokenReviewsClusterGetter
+	SelfSubjectReviewsClusterGetter
 }
 
 type AuthenticationV1ClusterScoper interface {
@@ -53,6 +54,10 @@ func (c *AuthenticationV1ClusterClient) Cluster(clusterPath logicalcluster.Path)
 
 func (c *AuthenticationV1ClusterClient) TokenReviews() TokenReviewClusterInterface {
 	return &tokenReviewsClusterInterface{clientCache: c.clientCache}
+}
+
+func (c *AuthenticationV1ClusterClient) SelfSubjectReviews() SelfSubjectReviewClusterInterface {
+	return &selfSubjectReviewsClusterInterface{clientCache: c.clientCache}
 }
 
 // NewForConfig creates a new AuthenticationV1ClusterClient for the given config.

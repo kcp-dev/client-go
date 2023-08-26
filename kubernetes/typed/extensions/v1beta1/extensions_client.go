@@ -37,7 +37,6 @@ type ExtensionsV1beta1ClusterInterface interface {
 	DaemonSetsClusterGetter
 	IngressesClusterGetter
 	ReplicaSetsClusterGetter
-	PodSecurityPoliciesClusterGetter
 	NetworkPoliciesClusterGetter
 }
 
@@ -70,10 +69,6 @@ func (c *ExtensionsV1beta1ClusterClient) Ingresses() IngressClusterInterface {
 
 func (c *ExtensionsV1beta1ClusterClient) ReplicaSets() ReplicaSetClusterInterface {
 	return &replicaSetsClusterInterface{clientCache: c.clientCache}
-}
-
-func (c *ExtensionsV1beta1ClusterClient) PodSecurityPolicies() PodSecurityPolicyClusterInterface {
-	return &podSecurityPoliciesClusterInterface{clientCache: c.clientCache}
 }
 
 func (c *ExtensionsV1beta1ClusterClient) NetworkPolicies() NetworkPolicyClusterInterface {

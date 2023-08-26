@@ -29,25 +29,25 @@ import (
 	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
 	"github.com/kcp-dev/logicalcluster/v3"
 
-	resourcev1alpha1 "k8s.io/api/resource/v1alpha1"
+	resourcev1alpha2 "k8s.io/api/resource/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
-	upstreamresourcev1alpha1informers "k8s.io/client-go/informers/resource/v1alpha1"
-	upstreamresourcev1alpha1listers "k8s.io/client-go/listers/resource/v1alpha1"
+	upstreamresourcev1alpha2informers "k8s.io/client-go/informers/resource/v1alpha2"
+	upstreamresourcev1alpha2listers "k8s.io/client-go/listers/resource/v1alpha2"
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/kcp-dev/client-go/informers/internalinterfaces"
 	clientset "github.com/kcp-dev/client-go/kubernetes"
-	resourcev1alpha1listers "github.com/kcp-dev/client-go/listers/resource/v1alpha1"
+	resourcev1alpha2listers "github.com/kcp-dev/client-go/listers/resource/v1alpha2"
 )
 
 // ResourceClaimClusterInformer provides access to a shared informer and lister for
 // ResourceClaims.
 type ResourceClaimClusterInformer interface {
-	Cluster(logicalcluster.Name) upstreamresourcev1alpha1informers.ResourceClaimInformer
+	Cluster(logicalcluster.Name) upstreamresourcev1alpha2informers.ResourceClaimInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
-	Lister() resourcev1alpha1listers.ResourceClaimClusterLister
+	Lister() resourcev1alpha2listers.ResourceClaimClusterLister
 }
 
 type resourceClaimClusterInformer struct {
@@ -72,16 +72,16 @@ func NewFilteredResourceClaimClusterInformer(client clientset.ClusterInterface, 
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.ResourceV1alpha1().ResourceClaims().List(context.TODO(), options)
+				return client.ResourceV1alpha2().ResourceClaims().List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.ResourceV1alpha1().ResourceClaims().Watch(context.TODO(), options)
+				return client.ResourceV1alpha2().ResourceClaims().Watch(context.TODO(), options)
 			},
 		},
-		&resourcev1alpha1.ResourceClaim{},
+		&resourcev1alpha2.ResourceClaim{},
 		resyncPeriod,
 		indexers,
 	)
@@ -96,14 +96,14 @@ func (f *resourceClaimClusterInformer) defaultInformer(client clientset.ClusterI
 }
 
 func (f *resourceClaimClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
-	return f.factory.InformerFor(&resourcev1alpha1.ResourceClaim{}, f.defaultInformer)
+	return f.factory.InformerFor(&resourcev1alpha2.ResourceClaim{}, f.defaultInformer)
 }
 
-func (f *resourceClaimClusterInformer) Lister() resourcev1alpha1listers.ResourceClaimClusterLister {
-	return resourcev1alpha1listers.NewResourceClaimClusterLister(f.Informer().GetIndexer())
+func (f *resourceClaimClusterInformer) Lister() resourcev1alpha2listers.ResourceClaimClusterLister {
+	return resourcev1alpha2listers.NewResourceClaimClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *resourceClaimClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamresourcev1alpha1informers.ResourceClaimInformer {
+func (f *resourceClaimClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamresourcev1alpha2informers.ResourceClaimInformer {
 	return &resourceClaimInformer{
 		informer: f.Informer().Cluster(clusterName),
 		lister:   f.Lister().Cluster(clusterName),
@@ -112,13 +112,13 @@ func (f *resourceClaimClusterInformer) Cluster(clusterName logicalcluster.Name) 
 
 type resourceClaimInformer struct {
 	informer cache.SharedIndexInformer
-	lister   upstreamresourcev1alpha1listers.ResourceClaimLister
+	lister   upstreamresourcev1alpha2listers.ResourceClaimLister
 }
 
 func (f *resourceClaimInformer) Informer() cache.SharedIndexInformer {
 	return f.informer
 }
 
-func (f *resourceClaimInformer) Lister() upstreamresourcev1alpha1listers.ResourceClaimLister {
+func (f *resourceClaimInformer) Lister() upstreamresourcev1alpha2listers.ResourceClaimLister {
 	return f.lister
 }

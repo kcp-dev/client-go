@@ -29,25 +29,25 @@ import (
 	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
 	"github.com/kcp-dev/logicalcluster/v3"
 
-	resourcev1alpha1 "k8s.io/api/resource/v1alpha1"
+	resourcev1alpha2 "k8s.io/api/resource/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
-	upstreamresourcev1alpha1informers "k8s.io/client-go/informers/resource/v1alpha1"
-	upstreamresourcev1alpha1listers "k8s.io/client-go/listers/resource/v1alpha1"
+	upstreamresourcev1alpha2informers "k8s.io/client-go/informers/resource/v1alpha2"
+	upstreamresourcev1alpha2listers "k8s.io/client-go/listers/resource/v1alpha2"
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/kcp-dev/client-go/informers/internalinterfaces"
 	clientset "github.com/kcp-dev/client-go/kubernetes"
-	resourcev1alpha1listers "github.com/kcp-dev/client-go/listers/resource/v1alpha1"
+	resourcev1alpha2listers "github.com/kcp-dev/client-go/listers/resource/v1alpha2"
 )
 
 // ResourceClaimTemplateClusterInformer provides access to a shared informer and lister for
 // ResourceClaimTemplates.
 type ResourceClaimTemplateClusterInformer interface {
-	Cluster(logicalcluster.Name) upstreamresourcev1alpha1informers.ResourceClaimTemplateInformer
+	Cluster(logicalcluster.Name) upstreamresourcev1alpha2informers.ResourceClaimTemplateInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
-	Lister() resourcev1alpha1listers.ResourceClaimTemplateClusterLister
+	Lister() resourcev1alpha2listers.ResourceClaimTemplateClusterLister
 }
 
 type resourceClaimTemplateClusterInformer struct {
@@ -72,16 +72,16 @@ func NewFilteredResourceClaimTemplateClusterInformer(client clientset.ClusterInt
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.ResourceV1alpha1().ResourceClaimTemplates().List(context.TODO(), options)
+				return client.ResourceV1alpha2().ResourceClaimTemplates().List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.ResourceV1alpha1().ResourceClaimTemplates().Watch(context.TODO(), options)
+				return client.ResourceV1alpha2().ResourceClaimTemplates().Watch(context.TODO(), options)
 			},
 		},
-		&resourcev1alpha1.ResourceClaimTemplate{},
+		&resourcev1alpha2.ResourceClaimTemplate{},
 		resyncPeriod,
 		indexers,
 	)
@@ -96,14 +96,14 @@ func (f *resourceClaimTemplateClusterInformer) defaultInformer(client clientset.
 }
 
 func (f *resourceClaimTemplateClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
-	return f.factory.InformerFor(&resourcev1alpha1.ResourceClaimTemplate{}, f.defaultInformer)
+	return f.factory.InformerFor(&resourcev1alpha2.ResourceClaimTemplate{}, f.defaultInformer)
 }
 
-func (f *resourceClaimTemplateClusterInformer) Lister() resourcev1alpha1listers.ResourceClaimTemplateClusterLister {
-	return resourcev1alpha1listers.NewResourceClaimTemplateClusterLister(f.Informer().GetIndexer())
+func (f *resourceClaimTemplateClusterInformer) Lister() resourcev1alpha2listers.ResourceClaimTemplateClusterLister {
+	return resourcev1alpha2listers.NewResourceClaimTemplateClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *resourceClaimTemplateClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamresourcev1alpha1informers.ResourceClaimTemplateInformer {
+func (f *resourceClaimTemplateClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamresourcev1alpha2informers.ResourceClaimTemplateInformer {
 	return &resourceClaimTemplateInformer{
 		informer: f.Informer().Cluster(clusterName),
 		lister:   f.Lister().Cluster(clusterName),
@@ -112,13 +112,13 @@ func (f *resourceClaimTemplateClusterInformer) Cluster(clusterName logicalcluste
 
 type resourceClaimTemplateInformer struct {
 	informer cache.SharedIndexInformer
-	lister   upstreamresourcev1alpha1listers.ResourceClaimTemplateLister
+	lister   upstreamresourcev1alpha2listers.ResourceClaimTemplateLister
 }
 
 func (f *resourceClaimTemplateInformer) Informer() cache.SharedIndexInformer {
 	return f.informer
 }
 
-func (f *resourceClaimTemplateInformer) Lister() upstreamresourcev1alpha1listers.ResourceClaimTemplateLister {
+func (f *resourceClaimTemplateInformer) Lister() upstreamresourcev1alpha2listers.ResourceClaimTemplateLister {
 	return f.lister
 }

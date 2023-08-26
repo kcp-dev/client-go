@@ -44,6 +44,14 @@ func (c *AdmissionregistrationV1beta1ClusterClient) Cluster(clusterPath logicalc
 	return &AdmissionregistrationV1beta1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
+func (c *AdmissionregistrationV1beta1ClusterClient) ValidatingAdmissionPolicies() kcpadmissionregistrationv1beta1.ValidatingAdmissionPolicyClusterInterface {
+	return &validatingAdmissionPoliciesClusterClient{Fake: c.Fake}
+}
+
+func (c *AdmissionregistrationV1beta1ClusterClient) ValidatingAdmissionPolicyBindings() kcpadmissionregistrationv1beta1.ValidatingAdmissionPolicyBindingClusterInterface {
+	return &validatingAdmissionPolicyBindingsClusterClient{Fake: c.Fake}
+}
+
 func (c *AdmissionregistrationV1beta1ClusterClient) ValidatingWebhookConfigurations() kcpadmissionregistrationv1beta1.ValidatingWebhookConfigurationClusterInterface {
 	return &validatingWebhookConfigurationsClusterClient{Fake: c.Fake}
 }
@@ -62,6 +70,14 @@ type AdmissionregistrationV1beta1Client struct {
 func (c *AdmissionregistrationV1beta1Client) RESTClient() rest.Interface {
 	var ret *rest.RESTClient
 	return ret
+}
+
+func (c *AdmissionregistrationV1beta1Client) ValidatingAdmissionPolicies() admissionregistrationv1beta1.ValidatingAdmissionPolicyInterface {
+	return &validatingAdmissionPoliciesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
+}
+
+func (c *AdmissionregistrationV1beta1Client) ValidatingAdmissionPolicyBindings() admissionregistrationv1beta1.ValidatingAdmissionPolicyBindingInterface {
+	return &validatingAdmissionPolicyBindingsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
 
 func (c *AdmissionregistrationV1beta1Client) ValidatingWebhookConfigurations() admissionregistrationv1beta1.ValidatingWebhookConfigurationInterface {
