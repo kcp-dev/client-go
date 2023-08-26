@@ -29,25 +29,25 @@ import (
 	kcpinformers "github.com/kcp-dev/apimachinery/v2/third_party/informers"
 	"github.com/kcp-dev/logicalcluster/v3"
 
-	resourcev1alpha1 "k8s.io/api/resource/v1alpha1"
+	resourcev1alpha2 "k8s.io/api/resource/v1alpha2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
-	upstreamresourcev1alpha1informers "k8s.io/client-go/informers/resource/v1alpha1"
-	upstreamresourcev1alpha1listers "k8s.io/client-go/listers/resource/v1alpha1"
+	upstreamresourcev1alpha2informers "k8s.io/client-go/informers/resource/v1alpha2"
+	upstreamresourcev1alpha2listers "k8s.io/client-go/listers/resource/v1alpha2"
 	"k8s.io/client-go/tools/cache"
 
 	"github.com/kcp-dev/client-go/informers/internalinterfaces"
 	clientset "github.com/kcp-dev/client-go/kubernetes"
-	resourcev1alpha1listers "github.com/kcp-dev/client-go/listers/resource/v1alpha1"
+	resourcev1alpha2listers "github.com/kcp-dev/client-go/listers/resource/v1alpha2"
 )
 
 // PodSchedulingClusterInformer provides access to a shared informer and lister for
 // PodSchedulings.
 type PodSchedulingClusterInformer interface {
-	Cluster(logicalcluster.Name) upstreamresourcev1alpha1informers.PodSchedulingInformer
+	Cluster(logicalcluster.Name) upstreamresourcev1alpha2informers.PodSchedulingContextInformer
 	Informer() kcpcache.ScopeableSharedIndexInformer
-	Lister() resourcev1alpha1listers.PodSchedulingClusterLister
+	Lister() resourcev1alpha2listers.PodSchedulingContextClusterLister
 }
 
 type podSchedulingClusterInformer struct {
@@ -72,16 +72,16 @@ func NewFilteredPodSchedulingClusterInformer(client clientset.ClusterInterface, 
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.ResourceV1alpha1().PodSchedulings().List(context.TODO(), options)
+				return client.ResourceV1alpha2().PodSchedulingContexts().List(context.TODO(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.ResourceV1alpha1().PodSchedulings().Watch(context.TODO(), options)
+				return client.ResourceV1alpha2().PodSchedulingContexts().Watch(context.TODO(), options)
 			},
 		},
-		&resourcev1alpha1.PodScheduling{},
+		&resourcev1alpha2.PodSchedulingContext{},
 		resyncPeriod,
 		indexers,
 	)
@@ -96,14 +96,14 @@ func (f *podSchedulingClusterInformer) defaultInformer(client clientset.ClusterI
 }
 
 func (f *podSchedulingClusterInformer) Informer() kcpcache.ScopeableSharedIndexInformer {
-	return f.factory.InformerFor(&resourcev1alpha1.PodScheduling{}, f.defaultInformer)
+	return f.factory.InformerFor(&resourcev1alpha2.PodSchedulingContext{}, f.defaultInformer)
 }
 
-func (f *podSchedulingClusterInformer) Lister() resourcev1alpha1listers.PodSchedulingClusterLister {
-	return resourcev1alpha1listers.NewPodSchedulingClusterLister(f.Informer().GetIndexer())
+func (f *podSchedulingClusterInformer) Lister() resourcev1alpha2listers.PodSchedulingContextClusterLister {
+	return resourcev1alpha2listers.NewPodSchedulingContextClusterLister(f.Informer().GetIndexer())
 }
 
-func (f *podSchedulingClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamresourcev1alpha1informers.PodSchedulingInformer {
+func (f *podSchedulingClusterInformer) Cluster(clusterName logicalcluster.Name) upstreamresourcev1alpha2informers.PodSchedulingContextInformer {
 	return &podSchedulingInformer{
 		informer: f.Informer().Cluster(clusterName),
 		lister:   f.Lister().Cluster(clusterName),
@@ -112,13 +112,13 @@ func (f *podSchedulingClusterInformer) Cluster(clusterName logicalcluster.Name) 
 
 type podSchedulingInformer struct {
 	informer cache.SharedIndexInformer
-	lister   upstreamresourcev1alpha1listers.PodSchedulingLister
+	lister   upstreamresourcev1alpha2listers.PodSchedulingContextLister
 }
 
 func (f *podSchedulingInformer) Informer() cache.SharedIndexInformer {
 	return f.informer
 }
 
-func (f *podSchedulingInformer) Lister() upstreamresourcev1alpha1listers.PodSchedulingLister {
+func (f *podSchedulingInformer) Lister() upstreamresourcev1alpha2listers.PodSchedulingContextLister {
 	return f.lister
 }

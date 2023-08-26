@@ -26,6 +26,10 @@ import (
 )
 
 type ClusterInterface interface {
+	// ValidatingAdmissionPolicies returns a ValidatingAdmissionPolicyClusterInformer
+	ValidatingAdmissionPolicies() ValidatingAdmissionPolicyClusterInformer
+	// ValidatingAdmissionPolicyBindings returns a ValidatingAdmissionPolicyBindingClusterInformer
+	ValidatingAdmissionPolicyBindings() ValidatingAdmissionPolicyBindingClusterInformer
 	// ValidatingWebhookConfigurations returns a ValidatingWebhookConfigurationClusterInformer
 	ValidatingWebhookConfigurations() ValidatingWebhookConfigurationClusterInformer
 	// MutatingWebhookConfigurations returns a MutatingWebhookConfigurationClusterInformer
@@ -40,6 +44,16 @@ type version struct {
 // New returns a new ClusterInterface.
 func New(f internalinterfaces.SharedInformerFactory, tweakListOptions internalinterfaces.TweakListOptionsFunc) ClusterInterface {
 	return &version{factory: f, tweakListOptions: tweakListOptions}
+}
+
+// ValidatingAdmissionPolicies returns a ValidatingAdmissionPolicyClusterInformer
+func (v *version) ValidatingAdmissionPolicies() ValidatingAdmissionPolicyClusterInformer {
+	return &validatingAdmissionPolicyClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// ValidatingAdmissionPolicyBindings returns a ValidatingAdmissionPolicyBindingClusterInformer
+func (v *version) ValidatingAdmissionPolicyBindings() ValidatingAdmissionPolicyBindingClusterInformer {
+	return &validatingAdmissionPolicyBindingClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
 // ValidatingWebhookConfigurations returns a ValidatingWebhookConfigurationClusterInformer

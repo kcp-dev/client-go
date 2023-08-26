@@ -48,6 +48,10 @@ func (c *AuthenticationV1ClusterClient) TokenReviews() kcpauthenticationv1.Token
 	return &tokenReviewsClusterClient{Fake: c.Fake}
 }
 
+func (c *AuthenticationV1ClusterClient) SelfSubjectReviews() kcpauthenticationv1.SelfSubjectReviewClusterInterface {
+	return &selfSubjectReviewsClusterClient{Fake: c.Fake}
+}
+
 var _ authenticationv1.AuthenticationV1Interface = (*AuthenticationV1Client)(nil)
 
 type AuthenticationV1Client struct {
@@ -62,4 +66,8 @@ func (c *AuthenticationV1Client) RESTClient() rest.Interface {
 
 func (c *AuthenticationV1Client) TokenReviews() authenticationv1.TokenReviewInterface {
 	return &tokenReviewsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
+}
+
+func (c *AuthenticationV1Client) SelfSubjectReviews() authenticationv1.SelfSubjectReviewInterface {
+	return &selfSubjectReviewsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
