@@ -30,3 +30,10 @@ ${CODE_GENERATOR} \
   "informer:clientsetName=kubernetes,externalOnly=true,standalone=true,outputPackagePath=github.com/kcp-dev/client-go,apiPackagePath=k8s.io/api,singleClusterClientPackagePath=k8s.io/client-go/kubernetes, singleClusterListerPackagePath=k8s.io/client-go/listers,singleClusterInformerPackagePath=k8s.io/client-go/informers,headerFile=./hack/boilerplate/boilerplate.go.txt" \
   "paths=$( go list -m -json k8s.io/api | jq --raw-output .Dir )/..." \
   "output:dir=./"
+
+${CODE_GENERATOR} \
+  "client:externalOnly=true,standalone=true,outputPackagePath=github.com/kcp-dev/client-go/apiextensions,name=client,apiPackagePath=k8s.io/apiextensions-apiserver/pkg/apis,singleClusterClientPackagePath=k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset,singleClusterApplyConfigurationsPackagePath=k8s.io/apiextensions-apiserver/pkg/client/applyconfiguration,headerFile=./hack/boilerplate/boilerplate.go.txt" \
+  "lister:apiPackagePath=k8s.io/apiextensions-apiserver/pkg/apis,singleClusterListerPackagePath=k8s.io/apiextensions-apiserver/pkg/client/listers,headerFile=./hack/boilerplate/boilerplate.go.txt" \
+  "informer:clientsetName=client,externalOnly=true,standalone=true,outputPackagePath=github.com/kcp-dev/client-go/apiextensions,apiPackagePath=k8s.io/apiextensions-apiserver/pkg/apis,singleClusterClientPackagePath=k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset, singleClusterListerPackagePath=k8s.io/apiextensions-apiserver/pkg/client/listers,singleClusterInformerPackagePath=k8s.io/apiextensions-apiserver/pkg/client/informers/externalversions,headerFile=./hack/boilerplate/boilerplate.go.txt" \
+  "paths=$( go list -m -json k8s.io/apiextensions-apiserver | jq --raw-output .Dir )/pkg/apis/..." \
+  "output:dir=./apiextensions"
