@@ -1,11 +1,9 @@
 approvers:
-- davidfestal
-- ncdc
-- stevekuznetsov
+- mjudeikis
 - sttts
 options: {}
 reviewers:
-- davidfestal
-- ncdc
-- stevekuznetsov
+- mjudeikis
+- embik
+- xrstf
 - sttts
