@@ -34,6 +34,12 @@ type ClusterInterface interface {
 	ResourceClasses() ResourceClassClusterInformer
 	// ResourceClaimTemplates returns a ResourceClaimTemplateClusterInformer
 	ResourceClaimTemplates() ResourceClaimTemplateClusterInformer
+	// ResourceSlices returns a ResourceSliceClusterInformer
+	ResourceSlices() ResourceSliceClusterInformer
+	// ResourceClaimParameters returns a ResourceClaimParametersClusterInformer
+	ResourceClaimParameters() ResourceClaimParametersClusterInformer
+	// ResourceClassParameters returns a ResourceClassParametersClusterInformer
+	ResourceClassParameters() ResourceClassParametersClusterInformer
 }
 
 type version struct {
@@ -64,4 +70,19 @@ func (v *version) ResourceClasses() ResourceClassClusterInformer {
 // ResourceClaimTemplates returns a ResourceClaimTemplateClusterInformer
 func (v *version) ResourceClaimTemplates() ResourceClaimTemplateClusterInformer {
 	return &resourceClaimTemplateClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// ResourceSlices returns a ResourceSliceClusterInformer
+func (v *version) ResourceSlices() ResourceSliceClusterInformer {
+	return &resourceSliceClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// ResourceClaimParameters returns a ResourceClaimParametersClusterInformer
+func (v *version) ResourceClaimParameters() ResourceClaimParametersClusterInformer {
+	return &resourceClaimParametersClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// ResourceClassParameters returns a ResourceClassParametersClusterInformer
+func (v *version) ResourceClassParameters() ResourceClassParametersClusterInformer {
+	return &resourceClassParametersClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

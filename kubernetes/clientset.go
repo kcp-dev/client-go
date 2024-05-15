@@ -62,7 +62,7 @@ import (
 	eventsv1 "github.com/kcp-dev/client-go/kubernetes/typed/events/v1"
 	eventsv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/events/v1beta1"
 	extensionsv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/extensions/v1beta1"
-	flowcontrolv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1alpha1"
+	flowcontrolv1 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1"
 	flowcontrolv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1beta1"
 	flowcontrolv1beta2 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1beta2"
 	flowcontrolv1beta3 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1beta3"
@@ -84,6 +84,7 @@ import (
 	storagev1 "github.com/kcp-dev/client-go/kubernetes/typed/storage/v1"
 	storagev1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/storage/v1alpha1"
 	storagev1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/storage/v1beta1"
+	storagemigrationv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/storagemigration/v1alpha1"
 )
 
 type ClusterInterface interface {
@@ -117,7 +118,7 @@ type ClusterInterface interface {
 	EventsV1() eventsv1.EventsV1ClusterInterface
 	EventsV1beta1() eventsv1beta1.EventsV1beta1ClusterInterface
 	ExtensionsV1beta1() extensionsv1beta1.ExtensionsV1beta1ClusterInterface
-	FlowcontrolV1alpha1() flowcontrolv1alpha1.FlowcontrolV1alpha1ClusterInterface
+	FlowcontrolV1() flowcontrolv1.FlowcontrolV1ClusterInterface
 	FlowcontrolV1beta1() flowcontrolv1beta1.FlowcontrolV1beta1ClusterInterface
 	FlowcontrolV1beta2() flowcontrolv1beta2.FlowcontrolV1beta2ClusterInterface
 	FlowcontrolV1beta3() flowcontrolv1beta3.FlowcontrolV1beta3ClusterInterface
@@ -137,6 +138,7 @@ type ClusterInterface interface {
 	SchedulingV1() schedulingv1.SchedulingV1ClusterInterface
 	SchedulingV1alpha1() schedulingv1alpha1.SchedulingV1alpha1ClusterInterface
 	SchedulingV1beta1() schedulingv1beta1.SchedulingV1beta1ClusterInterface
+	StoragemigrationV1alpha1() storagemigrationv1alpha1.StoragemigrationV1alpha1ClusterInterface
 	StorageV1() storagev1.StorageV1ClusterInterface
 	StorageV1alpha1() storagev1alpha1.StorageV1alpha1ClusterInterface
 	StorageV1beta1() storagev1beta1.StorageV1beta1ClusterInterface
@@ -174,7 +176,7 @@ type ClusterClientset struct {
 	eventsV1                      *eventsv1.EventsV1ClusterClient
 	eventsV1beta1                 *eventsv1beta1.EventsV1beta1ClusterClient
 	extensionsV1beta1             *extensionsv1beta1.ExtensionsV1beta1ClusterClient
-	flowcontrolV1alpha1           *flowcontrolv1alpha1.FlowcontrolV1alpha1ClusterClient
+	flowcontrolV1                 *flowcontrolv1.FlowcontrolV1ClusterClient
 	flowcontrolV1beta1            *flowcontrolv1beta1.FlowcontrolV1beta1ClusterClient
 	flowcontrolV1beta2            *flowcontrolv1beta2.FlowcontrolV1beta2ClusterClient
 	flowcontrolV1beta3            *flowcontrolv1beta3.FlowcontrolV1beta3ClusterClient
@@ -194,6 +196,7 @@ type ClusterClientset struct {
 	schedulingV1                  *schedulingv1.SchedulingV1ClusterClient
 	schedulingV1alpha1            *schedulingv1alpha1.SchedulingV1alpha1ClusterClient
 	schedulingV1beta1             *schedulingv1beta1.SchedulingV1beta1ClusterClient
+	storagemigrationV1alpha1      *storagemigrationv1alpha1.StoragemigrationV1alpha1ClusterClient
 	storageV1                     *storagev1.StorageV1ClusterClient
 	storageV1alpha1               *storagev1alpha1.StorageV1alpha1ClusterClient
 	storageV1beta1                *storagev1beta1.StorageV1beta1ClusterClient
@@ -347,9 +350,9 @@ func (c *ClusterClientset) ExtensionsV1beta1() extensionsv1beta1.ExtensionsV1bet
 	return c.extensionsV1beta1
 }
 
-// FlowcontrolV1alpha1 retrieves the FlowcontrolV1alpha1ClusterClient.
-func (c *ClusterClientset) FlowcontrolV1alpha1() flowcontrolv1alpha1.FlowcontrolV1alpha1ClusterInterface {
-	return c.flowcontrolV1alpha1
+// FlowcontrolV1 retrieves the FlowcontrolV1ClusterClient.
+func (c *ClusterClientset) FlowcontrolV1() flowcontrolv1.FlowcontrolV1ClusterInterface {
+	return c.flowcontrolV1
 }
 
 // FlowcontrolV1beta1 retrieves the FlowcontrolV1beta1ClusterClient.
@@ -445,6 +448,11 @@ func (c *ClusterClientset) SchedulingV1alpha1() schedulingv1alpha1.SchedulingV1a
 // SchedulingV1beta1 retrieves the SchedulingV1beta1ClusterClient.
 func (c *ClusterClientset) SchedulingV1beta1() schedulingv1beta1.SchedulingV1beta1ClusterInterface {
 	return c.schedulingV1beta1
+}
+
+// StoragemigrationV1alpha1 retrieves the StoragemigrationV1alpha1ClusterClient.
+func (c *ClusterClientset) StoragemigrationV1alpha1() storagemigrationv1alpha1.StoragemigrationV1alpha1ClusterInterface {
+	return c.storagemigrationV1alpha1
 }
 
 // StorageV1 retrieves the StorageV1ClusterClient.
@@ -626,7 +634,7 @@ func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*ClusterCli
 	if err != nil {
 		return nil, err
 	}
-	cs.flowcontrolV1alpha1, err = flowcontrolv1alpha1.NewForConfigAndClient(&configShallowCopy, httpClient)
+	cs.flowcontrolV1, err = flowcontrolv1.NewForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {
 		return nil, err
 	}
@@ -703,6 +711,10 @@ func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*ClusterCli
 		return nil, err
 	}
 	cs.schedulingV1beta1, err = schedulingv1beta1.NewForConfigAndClient(&configShallowCopy, httpClient)
+	if err != nil {
+		return nil, err
+	}
+	cs.storagemigrationV1alpha1, err = storagemigrationv1alpha1.NewForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {
 		return nil, err
 	}

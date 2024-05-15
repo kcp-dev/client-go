@@ -35,7 +35,6 @@ type PolicyV1beta1ClusterInterface interface {
 	PolicyV1beta1ClusterScoper
 	PodDisruptionBudgetsClusterGetter
 	EvictionsClusterGetter
-	PodSecurityPoliciesClusterGetter
 }
 
 type PolicyV1beta1ClusterScoper interface {
@@ -59,10 +58,6 @@ func (c *PolicyV1beta1ClusterClient) PodDisruptionBudgets() PodDisruptionBudgetC
 
 func (c *PolicyV1beta1ClusterClient) Evictions() EvictionClusterInterface {
 	return &evictionsClusterInterface{clientCache: c.clientCache}
-}
-
-func (c *PolicyV1beta1ClusterClient) PodSecurityPolicies() PodSecurityPolicyClusterInterface {
-	return &podSecurityPoliciesClusterInterface{clientCache: c.clientCache}
 }
 
 // NewForConfig creates a new PolicyV1beta1ClusterClient for the given config.

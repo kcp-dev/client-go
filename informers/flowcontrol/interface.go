@@ -22,7 +22,7 @@ limitations under the License.
 package flowcontrol
 
 import (
-	"github.com/kcp-dev/client-go/informers/flowcontrol/v1alpha1"
+	"github.com/kcp-dev/client-go/informers/flowcontrol/v1"
 	"github.com/kcp-dev/client-go/informers/flowcontrol/v1beta1"
 	"github.com/kcp-dev/client-go/informers/flowcontrol/v1beta2"
 	"github.com/kcp-dev/client-go/informers/flowcontrol/v1beta3"
@@ -30,8 +30,8 @@ import (
 )
 
 type ClusterInterface interface {
-	// V1alpha1 provides access to the shared informers in V1alpha1.
-	V1alpha1() v1alpha1.ClusterInterface
+	// V1 provides access to the shared informers in V1.
+	V1() v1.ClusterInterface
 	// V1beta1 provides access to the shared informers in V1beta1.
 	V1beta1() v1beta1.ClusterInterface
 	// V1beta2 provides access to the shared informers in V1beta2.
@@ -50,9 +50,9 @@ func New(f internalinterfaces.SharedInformerFactory, tweakListOptions internalin
 	return &group{factory: f, tweakListOptions: tweakListOptions}
 }
 
-// V1alpha1 returns a new v1alpha1.ClusterInterface.
-func (g *group) V1alpha1() v1alpha1.ClusterInterface {
-	return v1alpha1.New(g.factory, g.tweakListOptions)
+// V1 returns a new v1.ClusterInterface.
+func (g *group) V1() v1.ClusterInterface {
+	return v1.New(g.factory, g.tweakListOptions)
 }
 
 // V1beta1 returns a new v1beta1.ClusterInterface.

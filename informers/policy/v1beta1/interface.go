@@ -28,8 +28,6 @@ import (
 type ClusterInterface interface {
 	// PodDisruptionBudgets returns a PodDisruptionBudgetClusterInformer
 	PodDisruptionBudgets() PodDisruptionBudgetClusterInformer
-	// PodSecurityPolicies returns a PodSecurityPolicyClusterInformer
-	PodSecurityPolicies() PodSecurityPolicyClusterInformer
 }
 
 type version struct {
@@ -45,9 +43,4 @@ func New(f internalinterfaces.SharedInformerFactory, tweakListOptions internalin
 // PodDisruptionBudgets returns a PodDisruptionBudgetClusterInformer
 func (v *version) PodDisruptionBudgets() PodDisruptionBudgetClusterInformer {
 	return &podDisruptionBudgetClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
-}
-
-// PodSecurityPolicies returns a PodSecurityPolicyClusterInformer
-func (v *version) PodSecurityPolicies() PodSecurityPolicyClusterInformer {
-	return &podSecurityPolicyClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

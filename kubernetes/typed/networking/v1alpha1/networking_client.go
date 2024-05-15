@@ -33,8 +33,8 @@ import (
 
 type NetworkingV1alpha1ClusterInterface interface {
 	NetworkingV1alpha1ClusterScoper
-	ClusterCIDRsClusterGetter
 	IPAddressesClusterGetter
+	ServiceCIDRsClusterGetter
 }
 
 type NetworkingV1alpha1ClusterScoper interface {
@@ -52,12 +52,12 @@ func (c *NetworkingV1alpha1ClusterClient) Cluster(clusterPath logicalcluster.Pat
 	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
-func (c *NetworkingV1alpha1ClusterClient) ClusterCIDRs() ClusterCIDRClusterInterface {
-	return &clusterCIDRsClusterInterface{clientCache: c.clientCache}
-}
-
 func (c *NetworkingV1alpha1ClusterClient) IPAddresses() IPAddressClusterInterface {
 	return &iPAddressesClusterInterface{clientCache: c.clientCache}
+}
+
+func (c *NetworkingV1alpha1ClusterClient) ServiceCIDRs() ServiceCIDRClusterInterface {
+	return &serviceCIDRsClusterInterface{clientCache: c.clientCache}
 }
 
 // NewForConfig creates a new NetworkingV1alpha1ClusterClient for the given config.

@@ -1,8 +1,6 @@
 run:
   timeout: 10m
   allow-parallel-runners: true
-  skip-files:
-  - '.+_expansion\.go'
 
 linters:
   disable-all: true
@@ -12,7 +10,6 @@ linters:
   - bidichk
   - bodyclose
   - containedctx
-  - depguard
   - dupword
   - durationcheck
   - errcheck
@@ -126,6 +123,8 @@ linters-settings:
 issues:
   max-same-issues: 0
   max-issues-per-linter: 0
+  exclude-files:
+  - '.+_expansion\.go'
   exclude-rules:
   - linters:
     - unparam
@@ -137,3 +136,4 @@ issues:
   - linters:
     - gosec
     path: test/e2e/*
+

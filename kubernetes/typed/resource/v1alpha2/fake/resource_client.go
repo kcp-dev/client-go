@@ -60,6 +60,18 @@ func (c *ResourceV1alpha2ClusterClient) ResourceClaimTemplates() kcpresourcev1al
 	return &resourceClaimTemplatesClusterClient{Fake: c.Fake}
 }
 
+func (c *ResourceV1alpha2ClusterClient) ResourceSlices() kcpresourcev1alpha2.ResourceSliceClusterInterface {
+	return &resourceSlicesClusterClient{Fake: c.Fake}
+}
+
+func (c *ResourceV1alpha2ClusterClient) ResourceClaimParameters() kcpresourcev1alpha2.ResourceClaimParametersClusterInterface {
+	return &resourceClaimParametersClusterClient{Fake: c.Fake}
+}
+
+func (c *ResourceV1alpha2ClusterClient) ResourceClassParameters() kcpresourcev1alpha2.ResourceClassParametersClusterInterface {
+	return &resourceClassParametersClusterClient{Fake: c.Fake}
+}
+
 var _ resourcev1alpha2.ResourceV1alpha2Interface = (*ResourceV1alpha2Client)(nil)
 
 type ResourceV1alpha2Client struct {
@@ -86,4 +98,16 @@ func (c *ResourceV1alpha2Client) ResourceClasses() resourcev1alpha2.ResourceClas
 
 func (c *ResourceV1alpha2Client) ResourceClaimTemplates(namespace string) resourcev1alpha2.ResourceClaimTemplateInterface {
 	return &resourceClaimTemplatesClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
+}
+
+func (c *ResourceV1alpha2Client) ResourceSlices() resourcev1alpha2.ResourceSliceInterface {
+	return &resourceSlicesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
+}
+
+func (c *ResourceV1alpha2Client) ResourceClaimParameters(namespace string) resourcev1alpha2.ResourceClaimParametersInterface {
+	return &resourceClaimParametersClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
+}
+
+func (c *ResourceV1alpha2Client) ResourceClassParameters(namespace string) resourcev1alpha2.ResourceClassParametersInterface {
+	return &resourceClassParametersClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
 }
