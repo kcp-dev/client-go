@@ -52,10 +52,6 @@ func (c *PolicyV1beta1ClusterClient) Evictions() kcppolicyv1beta1.EvictionCluste
 	return &evictionsClusterClient{Fake: c.Fake}
 }
 
-func (c *PolicyV1beta1ClusterClient) PodSecurityPolicies() kcppolicyv1beta1.PodSecurityPolicyClusterInterface {
-	return &podSecurityPoliciesClusterClient{Fake: c.Fake}
-}
-
 var _ policyv1beta1.PolicyV1beta1Interface = (*PolicyV1beta1Client)(nil)
 
 type PolicyV1beta1Client struct {
@@ -74,8 +70,4 @@ func (c *PolicyV1beta1Client) PodDisruptionBudgets(namespace string) policyv1bet
 
 func (c *PolicyV1beta1Client) Evictions(namespace string) policyv1beta1.EvictionInterface {
 	return &evictionsClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
-}
-
-func (c *PolicyV1beta1Client) PodSecurityPolicies() policyv1beta1.PodSecurityPolicyInterface {
-	return &podSecurityPoliciesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }

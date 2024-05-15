@@ -37,6 +37,9 @@ type ResourceV1alpha2ClusterInterface interface {
 	PodSchedulingContextsClusterGetter
 	ResourceClassesClusterGetter
 	ResourceClaimTemplatesClusterGetter
+	ResourceSlicesClusterGetter
+	ResourceClaimParametersClusterGetter
+	ResourceClassParametersClusterGetter
 }
 
 type ResourceV1alpha2ClusterScoper interface {
@@ -68,6 +71,18 @@ func (c *ResourceV1alpha2ClusterClient) ResourceClasses() ResourceClassClusterIn
 
 func (c *ResourceV1alpha2ClusterClient) ResourceClaimTemplates() ResourceClaimTemplateClusterInterface {
 	return &resourceClaimTemplatesClusterInterface{clientCache: c.clientCache}
+}
+
+func (c *ResourceV1alpha2ClusterClient) ResourceSlices() ResourceSliceClusterInterface {
+	return &resourceSlicesClusterInterface{clientCache: c.clientCache}
+}
+
+func (c *ResourceV1alpha2ClusterClient) ResourceClaimParameters() ResourceClaimParametersClusterInterface {
+	return &resourceClaimParametersClusterInterface{clientCache: c.clientCache}
+}
+
+func (c *ResourceV1alpha2ClusterClient) ResourceClassParameters() ResourceClassParametersClusterInterface {
+	return &resourceClassParametersClusterInterface{clientCache: c.clientCache}
 }
 
 // NewForConfig creates a new ResourceV1alpha2ClusterClient for the given config.

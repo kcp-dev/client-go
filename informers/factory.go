@@ -55,6 +55,7 @@ import (
 	resourceinformers "github.com/kcp-dev/client-go/informers/resource"
 	schedulinginformers "github.com/kcp-dev/client-go/informers/scheduling"
 	storageinformers "github.com/kcp-dev/client-go/informers/storage"
+	storagemigrationinformers "github.com/kcp-dev/client-go/informers/storagemigration"
 	clientset "github.com/kcp-dev/client-go/kubernetes"
 )
 
@@ -64,6 +65,7 @@ type SharedInformerOption func(*SharedInformerOptions) *SharedInformerOptions
 type SharedInformerOptions struct {
 	customResync     map[reflect.Type]time.Duration
 	tweakListOptions internalinterfaces.TweakListOptionsFunc
+	transform        cache.TransformFunc
 }
 
 type sharedInformerFactory struct {
@@ -72,6 +74,7 @@ type sharedInformerFactory struct {
 	lock             sync.Mutex
 	defaultResync    time.Duration
 	customResync     map[reflect.Type]time.Duration
+	transform        cache.TransformFunc
 
 	informers map[reflect.Type]kcpcache.ScopeableSharedIndexInformer
 	// startedInformers is used for tracking which informers have been started.
@@ -98,6 +101,14 @@ func WithCustomResyncConfig(resyncConfig map[metav1.Object]time.Duration) Shared
 func WithTweakListOptions(tweakListOptions internalinterfaces.TweakListOptionsFunc) SharedInformerOption {
 	return func(opts *SharedInformerOptions) *SharedInformerOptions {
 		opts.tweakListOptions = tweakListOptions
+		return opts
+	}
+}
+
+// WithTransform sets a transform on all informers.
+func WithTransform(transform cache.TransformFunc) SharedInformerOption {
+	return func(opts *SharedInformerOptions) *SharedInformerOptions {
+		opts.transform = transform
 		return opts
 	}
 }
@@ -129,6 +140,7 @@ func NewSharedInformerFactoryWithOptions(client clientset.ClusterInterface, defa
 	// Forward options to the factory
 	factory.customResync = opts.customResync
 	factory.tweakListOptions = opts.tweakListOptions
+	factory.transform = opts.transform
 
 	return factory
 }
@@ -294,6 +306,7 @@ type SharedInformerFactory interface {
 	Resource() resourceinformers.ClusterInterface
 	Scheduling() schedulinginformers.ClusterInterface
 	Storage() storageinformers.ClusterInterface
+	Storagemigration() storagemigrationinformers.ClusterInterface
 }
 
 func (f *sharedInformerFactory) Admissionregistration() admissionregistrationinformers.ClusterInterface {
@@ -370,6 +383,10 @@ func (f *sharedInformerFactory) Scheduling() schedulinginformers.ClusterInterfac
 
 func (f *sharedInformerFactory) Storage() storageinformers.ClusterInterface {
 	return storageinformers.New(f, f.tweakListOptions)
+}
+
+func (f *sharedInformerFactory) Storagemigration() storagemigrationinformers.ClusterInterface {
+	return storagemigrationinformers.New(f, f.tweakListOptions)
 }
 
 func (f *sharedInformerFactory) Cluster(clusterName logicalcluster.Name) ScopedDynamicSharedInformerFactory {

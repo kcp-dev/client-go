@@ -57,7 +57,7 @@ import (
 	eventsv1 "k8s.io/client-go/kubernetes/typed/events/v1"
 	eventsv1beta1 "k8s.io/client-go/kubernetes/typed/events/v1beta1"
 	extensionsv1beta1 "k8s.io/client-go/kubernetes/typed/extensions/v1beta1"
-	flowcontrolv1alpha1 "k8s.io/client-go/kubernetes/typed/flowcontrol/v1alpha1"
+	flowcontrolv1 "k8s.io/client-go/kubernetes/typed/flowcontrol/v1"
 	flowcontrolv1beta1 "k8s.io/client-go/kubernetes/typed/flowcontrol/v1beta1"
 	flowcontrolv1beta2 "k8s.io/client-go/kubernetes/typed/flowcontrol/v1beta2"
 	flowcontrolv1beta3 "k8s.io/client-go/kubernetes/typed/flowcontrol/v1beta3"
@@ -79,6 +79,7 @@ import (
 	storagev1 "k8s.io/client-go/kubernetes/typed/storage/v1"
 	storagev1alpha1 "k8s.io/client-go/kubernetes/typed/storage/v1alpha1"
 	storagev1beta1 "k8s.io/client-go/kubernetes/typed/storage/v1beta1"
+	storagemigrationv1alpha1 "k8s.io/client-go/kubernetes/typed/storagemigration/v1alpha1"
 
 	kcpclient "github.com/kcp-dev/client-go/kubernetes"
 	kcpadmissionregistrationv1 "github.com/kcp-dev/client-go/kubernetes/typed/admissionregistration/v1"
@@ -139,8 +140,8 @@ import (
 	fakeeventsv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/events/v1beta1/fake"
 	kcpextensionsv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/extensions/v1beta1"
 	fakeextensionsv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/extensions/v1beta1/fake"
-	kcpflowcontrolv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1alpha1"
-	fakeflowcontrolv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1alpha1/fake"
+	kcpflowcontrolv1 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1"
+	fakeflowcontrolv1 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1/fake"
 	kcpflowcontrolv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1beta1"
 	fakeflowcontrolv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1beta1/fake"
 	kcpflowcontrolv1beta2 "github.com/kcp-dev/client-go/kubernetes/typed/flowcontrol/v1beta2"
@@ -183,6 +184,8 @@ import (
 	fakestoragev1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/storage/v1alpha1/fake"
 	kcpstoragev1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/storage/v1beta1"
 	fakestoragev1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/storage/v1beta1/fake"
+	kcpstoragemigrationv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/storagemigration/v1alpha1"
+	fakestoragemigrationv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/storagemigration/v1alpha1/fake"
 	kcpfakediscovery "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/discovery/fake"
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
@@ -361,9 +364,9 @@ func (c *ClusterClientset) ExtensionsV1beta1() kcpextensionsv1beta1.ExtensionsV1
 	return &fakeextensionsv1beta1.ExtensionsV1beta1ClusterClient{Fake: c.Fake}
 }
 
-// FlowcontrolV1alpha1 retrieves the FlowcontrolV1alpha1ClusterClient.
-func (c *ClusterClientset) FlowcontrolV1alpha1() kcpflowcontrolv1alpha1.FlowcontrolV1alpha1ClusterInterface {
-	return &fakeflowcontrolv1alpha1.FlowcontrolV1alpha1ClusterClient{Fake: c.Fake}
+// FlowcontrolV1 retrieves the FlowcontrolV1ClusterClient.
+func (c *ClusterClientset) FlowcontrolV1() kcpflowcontrolv1.FlowcontrolV1ClusterInterface {
+	return &fakeflowcontrolv1.FlowcontrolV1ClusterClient{Fake: c.Fake}
 }
 
 // FlowcontrolV1beta1 retrieves the FlowcontrolV1beta1ClusterClient.
@@ -459,6 +462,11 @@ func (c *ClusterClientset) SchedulingV1alpha1() kcpschedulingv1alpha1.Scheduling
 // SchedulingV1beta1 retrieves the SchedulingV1beta1ClusterClient.
 func (c *ClusterClientset) SchedulingV1beta1() kcpschedulingv1beta1.SchedulingV1beta1ClusterInterface {
 	return &fakeschedulingv1beta1.SchedulingV1beta1ClusterClient{Fake: c.Fake}
+}
+
+// StoragemigrationV1alpha1 retrieves the StoragemigrationV1alpha1ClusterClient.
+func (c *ClusterClientset) StoragemigrationV1alpha1() kcpstoragemigrationv1alpha1.StoragemigrationV1alpha1ClusterInterface {
+	return &fakestoragemigrationv1alpha1.StoragemigrationV1alpha1ClusterClient{Fake: c.Fake}
 }
 
 // StorageV1 retrieves the StorageV1ClusterClient.
@@ -648,9 +656,9 @@ func (c *Clientset) ExtensionsV1beta1() extensionsv1beta1.ExtensionsV1beta1Inter
 	return &fakeextensionsv1beta1.ExtensionsV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
-// FlowcontrolV1alpha1 retrieves the FlowcontrolV1alpha1Client.
-func (c *Clientset) FlowcontrolV1alpha1() flowcontrolv1alpha1.FlowcontrolV1alpha1Interface {
-	return &fakeflowcontrolv1alpha1.FlowcontrolV1alpha1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
+// FlowcontrolV1 retrieves the FlowcontrolV1Client.
+func (c *Clientset) FlowcontrolV1() flowcontrolv1.FlowcontrolV1Interface {
+	return &fakeflowcontrolv1.FlowcontrolV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // FlowcontrolV1beta1 retrieves the FlowcontrolV1beta1Client.
@@ -746,6 +754,11 @@ func (c *Clientset) SchedulingV1alpha1() schedulingv1alpha1.SchedulingV1alpha1In
 // SchedulingV1beta1 retrieves the SchedulingV1beta1Client.
 func (c *Clientset) SchedulingV1beta1() schedulingv1beta1.SchedulingV1beta1Interface {
 	return &fakeschedulingv1beta1.SchedulingV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
+}
+
+// StoragemigrationV1alpha1 retrieves the StoragemigrationV1alpha1Client.
+func (c *Clientset) StoragemigrationV1alpha1() storagemigrationv1alpha1.StoragemigrationV1alpha1Interface {
+	return &fakestoragemigrationv1alpha1.StoragemigrationV1alpha1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // StorageV1 retrieves the StorageV1Client.

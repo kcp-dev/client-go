@@ -26,10 +26,10 @@ import (
 )
 
 type ClusterInterface interface {
-	// ClusterCIDRs returns a ClusterCIDRClusterInformer
-	ClusterCIDRs() ClusterCIDRClusterInformer
 	// IPAddresses returns a IPAddressClusterInformer
 	IPAddresses() IPAddressClusterInformer
+	// ServiceCIDRs returns a ServiceCIDRClusterInformer
+	ServiceCIDRs() ServiceCIDRClusterInformer
 }
 
 type version struct {
@@ -42,12 +42,12 @@ func New(f internalinterfaces.SharedInformerFactory, tweakListOptions internalin
 	return &version{factory: f, tweakListOptions: tweakListOptions}
 }
 
-// ClusterCIDRs returns a ClusterCIDRClusterInformer
-func (v *version) ClusterCIDRs() ClusterCIDRClusterInformer {
-	return &clusterCIDRClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
-}
-
 // IPAddresses returns a IPAddressClusterInformer
 func (v *version) IPAddresses() IPAddressClusterInformer {
 	return &iPAddressClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// ServiceCIDRs returns a ServiceCIDRClusterInformer
+func (v *version) ServiceCIDRs() ServiceCIDRClusterInformer {
+	return &serviceCIDRClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

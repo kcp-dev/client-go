@@ -52,6 +52,10 @@ func (c *StorageV1alpha1ClusterClient) CSIStorageCapacities() kcpstoragev1alpha1
 	return &cSIStorageCapacitiesClusterClient{Fake: c.Fake}
 }
 
+func (c *StorageV1alpha1ClusterClient) VolumeAttributesClasses() kcpstoragev1alpha1.VolumeAttributesClassClusterInterface {
+	return &volumeAttributesClassesClusterClient{Fake: c.Fake}
+}
+
 var _ storagev1alpha1.StorageV1alpha1Interface = (*StorageV1alpha1Client)(nil)
 
 type StorageV1alpha1Client struct {
@@ -70,4 +74,8 @@ func (c *StorageV1alpha1Client) VolumeAttachments() storagev1alpha1.VolumeAttach
 
 func (c *StorageV1alpha1Client) CSIStorageCapacities(namespace string) storagev1alpha1.CSIStorageCapacityInterface {
 	return &cSIStorageCapacitiesClient{Fake: c.Fake, ClusterPath: c.ClusterPath, Namespace: namespace}
+}
+
+func (c *StorageV1alpha1Client) VolumeAttributesClasses() storagev1alpha1.VolumeAttributesClassInterface {
+	return &volumeAttributesClassesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }

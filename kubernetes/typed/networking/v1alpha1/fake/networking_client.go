@@ -44,12 +44,12 @@ func (c *NetworkingV1alpha1ClusterClient) Cluster(clusterPath logicalcluster.Pat
 	return &NetworkingV1alpha1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
-func (c *NetworkingV1alpha1ClusterClient) ClusterCIDRs() kcpnetworkingv1alpha1.ClusterCIDRClusterInterface {
-	return &clusterCIDRsClusterClient{Fake: c.Fake}
-}
-
 func (c *NetworkingV1alpha1ClusterClient) IPAddresses() kcpnetworkingv1alpha1.IPAddressClusterInterface {
 	return &iPAddressesClusterClient{Fake: c.Fake}
+}
+
+func (c *NetworkingV1alpha1ClusterClient) ServiceCIDRs() kcpnetworkingv1alpha1.ServiceCIDRClusterInterface {
+	return &serviceCIDRsClusterClient{Fake: c.Fake}
 }
 
 var _ networkingv1alpha1.NetworkingV1alpha1Interface = (*NetworkingV1alpha1Client)(nil)
@@ -64,10 +64,10 @@ func (c *NetworkingV1alpha1Client) RESTClient() rest.Interface {
 	return ret
 }
 
-func (c *NetworkingV1alpha1Client) ClusterCIDRs() networkingv1alpha1.ClusterCIDRInterface {
-	return &clusterCIDRsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
-}
-
 func (c *NetworkingV1alpha1Client) IPAddresses() networkingv1alpha1.IPAddressInterface {
 	return &iPAddressesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
+}
+
+func (c *NetworkingV1alpha1Client) ServiceCIDRs() networkingv1alpha1.ServiceCIDRInterface {
+	return &serviceCIDRsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }
