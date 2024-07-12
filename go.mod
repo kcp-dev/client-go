@@ -5,7 +5,7 @@ go 1.22.0
 require (
 	github.com/evanphx/json-patch v5.6.0+incompatible
 	github.com/google/gnostic-models v0.6.8
-	github.com/kcp-dev/apimachinery/v2 v2.0.0-alpha.0.0.20230826151957-7189d0d1fe31
+	github.com/kcp-dev/apimachinery/v2 v2.0.0
 	github.com/kcp-dev/logicalcluster/v3 v3.0.4
 	k8s.io/api v0.30.0
 	k8s.io/apiextensions-apiserver v0.30.0
