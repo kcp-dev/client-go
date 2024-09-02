@@ -32,24 +32,17 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/util/flowcontrol"
-
-	apiextensionsv1 "github.com/kcp-dev/client-go/apiextensions/client/typed/apiextensions/v1"
-	apiextensionsv1beta1 "github.com/kcp-dev/client-go/apiextensions/client/typed/apiextensions/v1beta1"
 )
 
 type ClusterInterface interface {
 	Cluster(logicalcluster.Path) client.Interface
 	Discovery() discovery.DiscoveryInterface
-	ApiextensionsV1() apiextensionsv1.ApiextensionsV1ClusterInterface
-	ApiextensionsV1beta1() apiextensionsv1beta1.ApiextensionsV1beta1ClusterInterface
 }
 
 // ClusterClientset contains the clients for groups.
 type ClusterClientset struct {
 	*discovery.DiscoveryClient
-	clientCache          kcpclient.Cache[*client.Clientset]
-	apiextensionsV1      *apiextensionsv1.ApiextensionsV1ClusterClient
-	apiextensionsV1beta1 *apiextensionsv1beta1.ApiextensionsV1beta1ClusterClient
+	clientCache kcpclient.Cache[*client.Clientset]
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -58,16 +51,6 @@ func (c *ClusterClientset) Discovery() discovery.DiscoveryInterface {
 		return nil
 	}
 	return c.DiscoveryClient
-}
-
-// ApiextensionsV1 retrieves the ApiextensionsV1ClusterClient.
-func (c *ClusterClientset) ApiextensionsV1() apiextensionsv1.ApiextensionsV1ClusterInterface {
-	return c.apiextensionsV1
-}
-
-// ApiextensionsV1beta1 retrieves the ApiextensionsV1beta1ClusterClient.
-func (c *ClusterClientset) ApiextensionsV1beta1() apiextensionsv1beta1.ApiextensionsV1beta1ClusterInterface {
-	return c.apiextensionsV1beta1
 }
 
 // Cluster scopes this clientset to one cluster.
@@ -122,14 +105,6 @@ func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*ClusterCli
 	var cs ClusterClientset
 	cs.clientCache = cache
 	var err error
-	cs.apiextensionsV1, err = apiextensionsv1.NewForConfigAndClient(&configShallowCopy, httpClient)
-	if err != nil {
-		return nil, err
-	}
-	cs.apiextensionsV1beta1, err = apiextensionsv1beta1.NewForConfigAndClient(&configShallowCopy, httpClient)
-	if err != nil {
-		return nil, err
-	}
 
 	cs.DiscoveryClient, err = discovery.NewDiscoveryClientForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {

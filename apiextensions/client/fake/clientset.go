@@ -26,16 +26,10 @@ import (
 
 	client "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset"
 	clientscheme "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/scheme"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1"
-	apiextensionsv1beta1 "k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset/typed/apiextensions/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/discovery"
 
 	kcpclient "github.com/kcp-dev/client-go/apiextensions/client"
-	kcpapiextensionsv1 "github.com/kcp-dev/client-go/apiextensions/client/typed/apiextensions/v1"
-	fakeapiextensionsv1 "github.com/kcp-dev/client-go/apiextensions/client/typed/apiextensions/v1/fake"
-	kcpapiextensionsv1beta1 "github.com/kcp-dev/client-go/apiextensions/client/typed/apiextensions/v1beta1"
-	fakeapiextensionsv1beta1 "github.com/kcp-dev/client-go/apiextensions/client/typed/apiextensions/v1beta1/fake"
 	kcpfakediscovery "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/discovery/fake"
 	kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
@@ -74,16 +68,6 @@ func (c *ClusterClientset) Tracker() kcptesting.ObjectTracker {
 	return c.tracker
 }
 
-// ApiextensionsV1 retrieves the ApiextensionsV1ClusterClient.
-func (c *ClusterClientset) ApiextensionsV1() kcpapiextensionsv1.ApiextensionsV1ClusterInterface {
-	return &fakeapiextensionsv1.ApiextensionsV1ClusterClient{Fake: c.Fake}
-}
-
-// ApiextensionsV1beta1 retrieves the ApiextensionsV1beta1ClusterClient.
-func (c *ClusterClientset) ApiextensionsV1beta1() kcpapiextensionsv1beta1.ApiextensionsV1beta1ClusterInterface {
-	return &fakeapiextensionsv1beta1.ApiextensionsV1beta1ClusterClient{Fake: c.Fake}
-}
-
 // Cluster scopes this clientset to one cluster.
 func (c *ClusterClientset) Cluster(clusterPath logicalcluster.Path) client.Interface {
 	if clusterPath == logicalcluster.Wildcard {
@@ -114,14 +98,4 @@ func (c *Clientset) Discovery() discovery.DiscoveryInterface {
 
 func (c *Clientset) Tracker() kcptesting.ScopedObjectTracker {
 	return c.tracker
-}
-
-// ApiextensionsV1 retrieves the ApiextensionsV1Client.
-func (c *Clientset) ApiextensionsV1() apiextensionsv1.ApiextensionsV1Interface {
-	return &fakeapiextensionsv1.ApiextensionsV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
-}
-
-// ApiextensionsV1beta1 retrieves the ApiextensionsV1beta1Client.
-func (c *Clientset) ApiextensionsV1beta1() apiextensionsv1beta1.ApiextensionsV1beta1Interface {
-	return &fakeapiextensionsv1beta1.ApiextensionsV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }

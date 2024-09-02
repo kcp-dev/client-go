@@ -36,6 +36,8 @@ type ClusterInterface interface {
 	CSINodes() CSINodeClusterInformer
 	// CSIStorageCapacities returns a CSIStorageCapacityClusterInformer
 	CSIStorageCapacities() CSIStorageCapacityClusterInformer
+	// VolumeAttributesClasses returns a VolumeAttributesClassClusterInformer
+	VolumeAttributesClasses() VolumeAttributesClassClusterInformer
 }
 
 type version struct {
@@ -71,4 +73,9 @@ func (v *version) CSINodes() CSINodeClusterInformer {
 // CSIStorageCapacities returns a CSIStorageCapacityClusterInformer
 func (v *version) CSIStorageCapacities() CSIStorageCapacityClusterInformer {
 	return &cSIStorageCapacityClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// VolumeAttributesClasses returns a VolumeAttributesClassClusterInformer
+func (v *version) VolumeAttributesClasses() VolumeAttributesClassClusterInformer {
+	return &volumeAttributesClassClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

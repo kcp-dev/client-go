@@ -52,6 +52,14 @@ func (c *NetworkingV1beta1ClusterClient) IngressClasses() kcpnetworkingv1beta1.I
 	return &ingressClassesClusterClient{Fake: c.Fake}
 }
 
+func (c *NetworkingV1beta1ClusterClient) IPAddresses() kcpnetworkingv1beta1.IPAddressClusterInterface {
+	return &iPAddressesClusterClient{Fake: c.Fake}
+}
+
+func (c *NetworkingV1beta1ClusterClient) ServiceCIDRs() kcpnetworkingv1beta1.ServiceCIDRClusterInterface {
+	return &serviceCIDRsClusterClient{Fake: c.Fake}
+}
+
 var _ networkingv1beta1.NetworkingV1beta1Interface = (*NetworkingV1beta1Client)(nil)
 
 type NetworkingV1beta1Client struct {
@@ -70,4 +78,12 @@ func (c *NetworkingV1beta1Client) Ingresses(namespace string) networkingv1beta1.
 
 func (c *NetworkingV1beta1Client) IngressClasses() networkingv1beta1.IngressClassInterface {
 	return &ingressClassesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
+}
+
+func (c *NetworkingV1beta1Client) IPAddresses() networkingv1beta1.IPAddressInterface {
+	return &iPAddressesClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
+}
+
+func (c *NetworkingV1beta1Client) ServiceCIDRs() networkingv1beta1.ServiceCIDRInterface {
+	return &serviceCIDRsClient{Fake: c.Fake, ClusterPath: c.ClusterPath}
 }

@@ -35,6 +35,8 @@ type NetworkingV1beta1ClusterInterface interface {
 	NetworkingV1beta1ClusterScoper
 	IngressesClusterGetter
 	IngressClassesClusterGetter
+	IPAddressesClusterGetter
+	ServiceCIDRsClusterGetter
 }
 
 type NetworkingV1beta1ClusterScoper interface {
@@ -58,6 +60,14 @@ func (c *NetworkingV1beta1ClusterClient) Ingresses() IngressClusterInterface {
 
 func (c *NetworkingV1beta1ClusterClient) IngressClasses() IngressClassClusterInterface {
 	return &ingressClassesClusterInterface{clientCache: c.clientCache}
+}
+
+func (c *NetworkingV1beta1ClusterClient) IPAddresses() IPAddressClusterInterface {
+	return &iPAddressesClusterInterface{clientCache: c.clientCache}
+}
+
+func (c *NetworkingV1beta1ClusterClient) ServiceCIDRs() ServiceCIDRClusterInterface {
+	return &serviceCIDRsClusterInterface{clientCache: c.clientCache}
 }
 
 // NewForConfig creates a new NetworkingV1beta1ClusterClient for the given config.
