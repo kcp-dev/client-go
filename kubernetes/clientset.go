@@ -55,6 +55,7 @@ import (
 	certificatesv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/certificates/v1alpha1"
 	certificatesv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/certificates/v1beta1"
 	coordinationv1 "github.com/kcp-dev/client-go/kubernetes/typed/coordination/v1"
+	coordinationv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/coordination/v1alpha1"
 	coordinationv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/coordination/v1beta1"
 	corev1 "github.com/kcp-dev/client-go/kubernetes/typed/core/v1"
 	discoveryv1 "github.com/kcp-dev/client-go/kubernetes/typed/discovery/v1"
@@ -77,7 +78,7 @@ import (
 	rbacv1 "github.com/kcp-dev/client-go/kubernetes/typed/rbac/v1"
 	rbacv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/rbac/v1alpha1"
 	rbacv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/rbac/v1beta1"
-	resourcev1alpha2 "github.com/kcp-dev/client-go/kubernetes/typed/resource/v1alpha2"
+	resourcev1alpha3 "github.com/kcp-dev/client-go/kubernetes/typed/resource/v1alpha3"
 	schedulingv1 "github.com/kcp-dev/client-go/kubernetes/typed/scheduling/v1"
 	schedulingv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/scheduling/v1alpha1"
 	schedulingv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/scheduling/v1beta1"
@@ -111,6 +112,7 @@ type ClusterInterface interface {
 	CertificatesV1alpha1() certificatesv1alpha1.CertificatesV1alpha1ClusterInterface
 	CertificatesV1beta1() certificatesv1beta1.CertificatesV1beta1ClusterInterface
 	CoordinationV1() coordinationv1.CoordinationV1ClusterInterface
+	CoordinationV1alpha1() coordinationv1alpha1.CoordinationV1alpha1ClusterInterface
 	CoordinationV1beta1() coordinationv1beta1.CoordinationV1beta1ClusterInterface
 	CoreV1() corev1.CoreV1ClusterInterface
 	DiscoveryV1() discoveryv1.DiscoveryV1ClusterInterface
@@ -134,7 +136,7 @@ type ClusterInterface interface {
 	RbacV1() rbacv1.RbacV1ClusterInterface
 	RbacV1alpha1() rbacv1alpha1.RbacV1alpha1ClusterInterface
 	RbacV1beta1() rbacv1beta1.RbacV1beta1ClusterInterface
-	ResourceV1alpha2() resourcev1alpha2.ResourceV1alpha2ClusterInterface
+	ResourceV1alpha3() resourcev1alpha3.ResourceV1alpha3ClusterInterface
 	SchedulingV1() schedulingv1.SchedulingV1ClusterInterface
 	SchedulingV1alpha1() schedulingv1alpha1.SchedulingV1alpha1ClusterInterface
 	SchedulingV1beta1() schedulingv1beta1.SchedulingV1beta1ClusterInterface
@@ -169,6 +171,7 @@ type ClusterClientset struct {
 	certificatesV1alpha1          *certificatesv1alpha1.CertificatesV1alpha1ClusterClient
 	certificatesV1beta1           *certificatesv1beta1.CertificatesV1beta1ClusterClient
 	coordinationV1                *coordinationv1.CoordinationV1ClusterClient
+	coordinationV1alpha1          *coordinationv1alpha1.CoordinationV1alpha1ClusterClient
 	coordinationV1beta1           *coordinationv1beta1.CoordinationV1beta1ClusterClient
 	coreV1                        *corev1.CoreV1ClusterClient
 	discoveryV1                   *discoveryv1.DiscoveryV1ClusterClient
@@ -192,7 +195,7 @@ type ClusterClientset struct {
 	rbacV1                        *rbacv1.RbacV1ClusterClient
 	rbacV1alpha1                  *rbacv1alpha1.RbacV1alpha1ClusterClient
 	rbacV1beta1                   *rbacv1beta1.RbacV1beta1ClusterClient
-	resourceV1alpha2              *resourcev1alpha2.ResourceV1alpha2ClusterClient
+	resourceV1alpha3              *resourcev1alpha3.ResourceV1alpha3ClusterClient
 	schedulingV1                  *schedulingv1.SchedulingV1ClusterClient
 	schedulingV1alpha1            *schedulingv1alpha1.SchedulingV1alpha1ClusterClient
 	schedulingV1beta1             *schedulingv1beta1.SchedulingV1beta1ClusterClient
@@ -315,6 +318,11 @@ func (c *ClusterClientset) CoordinationV1() coordinationv1.CoordinationV1Cluster
 	return c.coordinationV1
 }
 
+// CoordinationV1alpha1 retrieves the CoordinationV1alpha1ClusterClient.
+func (c *ClusterClientset) CoordinationV1alpha1() coordinationv1alpha1.CoordinationV1alpha1ClusterInterface {
+	return c.coordinationV1alpha1
+}
+
 // CoordinationV1beta1 retrieves the CoordinationV1beta1ClusterClient.
 func (c *ClusterClientset) CoordinationV1beta1() coordinationv1beta1.CoordinationV1beta1ClusterInterface {
 	return c.coordinationV1beta1
@@ -430,9 +438,9 @@ func (c *ClusterClientset) RbacV1beta1() rbacv1beta1.RbacV1beta1ClusterInterface
 	return c.rbacV1beta1
 }
 
-// ResourceV1alpha2 retrieves the ResourceV1alpha2ClusterClient.
-func (c *ClusterClientset) ResourceV1alpha2() resourcev1alpha2.ResourceV1alpha2ClusterInterface {
-	return c.resourceV1alpha2
+// ResourceV1alpha3 retrieves the ResourceV1alpha3ClusterClient.
+func (c *ClusterClientset) ResourceV1alpha3() resourcev1alpha3.ResourceV1alpha3ClusterInterface {
+	return c.resourceV1alpha3
 }
 
 // SchedulingV1 retrieves the SchedulingV1ClusterClient.
@@ -606,6 +614,10 @@ func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*ClusterCli
 	if err != nil {
 		return nil, err
 	}
+	cs.coordinationV1alpha1, err = coordinationv1alpha1.NewForConfigAndClient(&configShallowCopy, httpClient)
+	if err != nil {
+		return nil, err
+	}
 	cs.coordinationV1beta1, err = coordinationv1beta1.NewForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {
 		return nil, err
@@ -698,7 +710,7 @@ func NewForConfigAndClient(c *rest.Config, httpClient *http.Client) (*ClusterCli
 	if err != nil {
 		return nil, err
 	}
-	cs.resourceV1alpha2, err = resourcev1alpha2.NewForConfigAndClient(&configShallowCopy, httpClient)
+	cs.resourceV1alpha3, err = resourcev1alpha3.NewForConfigAndClient(&configShallowCopy, httpClient)
 	if err != nil {
 		return nil, err
 	}

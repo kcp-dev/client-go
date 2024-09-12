@@ -30,6 +30,10 @@ type ClusterInterface interface {
 	Ingresses() IngressClusterInformer
 	// IngressClasses returns a IngressClassClusterInformer
 	IngressClasses() IngressClassClusterInformer
+	// IPAddresses returns a IPAddressClusterInformer
+	IPAddresses() IPAddressClusterInformer
+	// ServiceCIDRs returns a ServiceCIDRClusterInformer
+	ServiceCIDRs() ServiceCIDRClusterInformer
 }
 
 type version struct {
@@ -50,4 +54,14 @@ func (v *version) Ingresses() IngressClusterInformer {
 // IngressClasses returns a IngressClassClusterInformer
 func (v *version) IngressClasses() IngressClassClusterInformer {
 	return &ingressClassClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// IPAddresses returns a IPAddressClusterInformer
+func (v *version) IPAddresses() IPAddressClusterInformer {
+	return &iPAddressClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// ServiceCIDRs returns a ServiceCIDRClusterInformer
+func (v *version) ServiceCIDRs() ServiceCIDRClusterInformer {
+	return &serviceCIDRClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

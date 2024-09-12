@@ -38,6 +38,7 @@ type StorageV1beta1ClusterInterface interface {
 	CSIDriversClusterGetter
 	CSINodesClusterGetter
 	CSIStorageCapacitiesClusterGetter
+	VolumeAttributesClassesClusterGetter
 }
 
 type StorageV1beta1ClusterScoper interface {
@@ -73,6 +74,10 @@ func (c *StorageV1beta1ClusterClient) CSINodes() CSINodeClusterInterface {
 
 func (c *StorageV1beta1ClusterClient) CSIStorageCapacities() CSIStorageCapacityClusterInterface {
 	return &cSIStorageCapacitiesClusterInterface{clientCache: c.clientCache}
+}
+
+func (c *StorageV1beta1ClusterClient) VolumeAttributesClasses() VolumeAttributesClassClusterInterface {
+	return &volumeAttributesClassesClusterInterface{clientCache: c.clientCache}
 }
 
 // NewForConfig creates a new StorageV1beta1ClusterClient for the given config.

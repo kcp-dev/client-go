@@ -50,6 +50,7 @@ import (
 	certificatesv1alpha1 "k8s.io/client-go/kubernetes/typed/certificates/v1alpha1"
 	certificatesv1beta1 "k8s.io/client-go/kubernetes/typed/certificates/v1beta1"
 	coordinationv1 "k8s.io/client-go/kubernetes/typed/coordination/v1"
+	coordinationv1alpha1 "k8s.io/client-go/kubernetes/typed/coordination/v1alpha1"
 	coordinationv1beta1 "k8s.io/client-go/kubernetes/typed/coordination/v1beta1"
 	corev1 "k8s.io/client-go/kubernetes/typed/core/v1"
 	discoveryv1 "k8s.io/client-go/kubernetes/typed/discovery/v1"
@@ -72,7 +73,7 @@ import (
 	rbacv1 "k8s.io/client-go/kubernetes/typed/rbac/v1"
 	rbacv1alpha1 "k8s.io/client-go/kubernetes/typed/rbac/v1alpha1"
 	rbacv1beta1 "k8s.io/client-go/kubernetes/typed/rbac/v1beta1"
-	resourcev1alpha2 "k8s.io/client-go/kubernetes/typed/resource/v1alpha2"
+	resourcev1alpha3 "k8s.io/client-go/kubernetes/typed/resource/v1alpha3"
 	schedulingv1 "k8s.io/client-go/kubernetes/typed/scheduling/v1"
 	schedulingv1alpha1 "k8s.io/client-go/kubernetes/typed/scheduling/v1alpha1"
 	schedulingv1beta1 "k8s.io/client-go/kubernetes/typed/scheduling/v1beta1"
@@ -126,6 +127,8 @@ import (
 	fakecertificatesv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/certificates/v1beta1/fake"
 	kcpcoordinationv1 "github.com/kcp-dev/client-go/kubernetes/typed/coordination/v1"
 	fakecoordinationv1 "github.com/kcp-dev/client-go/kubernetes/typed/coordination/v1/fake"
+	kcpcoordinationv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/coordination/v1alpha1"
+	fakecoordinationv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/coordination/v1alpha1/fake"
 	kcpcoordinationv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/coordination/v1beta1"
 	fakecoordinationv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/coordination/v1beta1/fake"
 	kcpcorev1 "github.com/kcp-dev/client-go/kubernetes/typed/core/v1"
@@ -170,8 +173,8 @@ import (
 	fakerbacv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/rbac/v1alpha1/fake"
 	kcprbacv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/rbac/v1beta1"
 	fakerbacv1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/rbac/v1beta1/fake"
-	kcpresourcev1alpha2 "github.com/kcp-dev/client-go/kubernetes/typed/resource/v1alpha2"
-	fakeresourcev1alpha2 "github.com/kcp-dev/client-go/kubernetes/typed/resource/v1alpha2/fake"
+	kcpresourcev1alpha3 "github.com/kcp-dev/client-go/kubernetes/typed/resource/v1alpha3"
+	fakeresourcev1alpha3 "github.com/kcp-dev/client-go/kubernetes/typed/resource/v1alpha3/fake"
 	kcpschedulingv1 "github.com/kcp-dev/client-go/kubernetes/typed/scheduling/v1"
 	fakeschedulingv1 "github.com/kcp-dev/client-go/kubernetes/typed/scheduling/v1/fake"
 	kcpschedulingv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/scheduling/v1alpha1"
@@ -329,6 +332,11 @@ func (c *ClusterClientset) CoordinationV1() kcpcoordinationv1.CoordinationV1Clus
 	return &fakecoordinationv1.CoordinationV1ClusterClient{Fake: c.Fake}
 }
 
+// CoordinationV1alpha1 retrieves the CoordinationV1alpha1ClusterClient.
+func (c *ClusterClientset) CoordinationV1alpha1() kcpcoordinationv1alpha1.CoordinationV1alpha1ClusterInterface {
+	return &fakecoordinationv1alpha1.CoordinationV1alpha1ClusterClient{Fake: c.Fake}
+}
+
 // CoordinationV1beta1 retrieves the CoordinationV1beta1ClusterClient.
 func (c *ClusterClientset) CoordinationV1beta1() kcpcoordinationv1beta1.CoordinationV1beta1ClusterInterface {
 	return &fakecoordinationv1beta1.CoordinationV1beta1ClusterClient{Fake: c.Fake}
@@ -444,9 +452,9 @@ func (c *ClusterClientset) RbacV1beta1() kcprbacv1beta1.RbacV1beta1ClusterInterf
 	return &fakerbacv1beta1.RbacV1beta1ClusterClient{Fake: c.Fake}
 }
 
-// ResourceV1alpha2 retrieves the ResourceV1alpha2ClusterClient.
-func (c *ClusterClientset) ResourceV1alpha2() kcpresourcev1alpha2.ResourceV1alpha2ClusterInterface {
-	return &fakeresourcev1alpha2.ResourceV1alpha2ClusterClient{Fake: c.Fake}
+// ResourceV1alpha3 retrieves the ResourceV1alpha3ClusterClient.
+func (c *ClusterClientset) ResourceV1alpha3() kcpresourcev1alpha3.ResourceV1alpha3ClusterInterface {
+	return &fakeresourcev1alpha3.ResourceV1alpha3ClusterClient{Fake: c.Fake}
 }
 
 // SchedulingV1 retrieves the SchedulingV1ClusterClient.
@@ -621,6 +629,11 @@ func (c *Clientset) CoordinationV1() coordinationv1.CoordinationV1Interface {
 	return &fakecoordinationv1.CoordinationV1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
+// CoordinationV1alpha1 retrieves the CoordinationV1alpha1Client.
+func (c *Clientset) CoordinationV1alpha1() coordinationv1alpha1.CoordinationV1alpha1Interface {
+	return &fakecoordinationv1alpha1.CoordinationV1alpha1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
+}
+
 // CoordinationV1beta1 retrieves the CoordinationV1beta1Client.
 func (c *Clientset) CoordinationV1beta1() coordinationv1beta1.CoordinationV1beta1Interface {
 	return &fakecoordinationv1beta1.CoordinationV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
@@ -736,9 +749,9 @@ func (c *Clientset) RbacV1beta1() rbacv1beta1.RbacV1beta1Interface {
 	return &fakerbacv1beta1.RbacV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
-// ResourceV1alpha2 retrieves the ResourceV1alpha2Client.
-func (c *Clientset) ResourceV1alpha2() resourcev1alpha2.ResourceV1alpha2Interface {
-	return &fakeresourcev1alpha2.ResourceV1alpha2Client{Fake: c.Fake, ClusterPath: c.clusterPath}
+// ResourceV1alpha3 retrieves the ResourceV1alpha3Client.
+func (c *Clientset) ResourceV1alpha3() resourcev1alpha3.ResourceV1alpha3Interface {
+	return &fakeresourcev1alpha3.ResourceV1alpha3Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // SchedulingV1 retrieves the SchedulingV1Client.
