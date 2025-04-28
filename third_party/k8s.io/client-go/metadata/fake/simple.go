@@ -98,6 +98,10 @@ func (c *FakeMetadataClusterClientset) Tracker() kcptesting.ObjectTracker {
 }
 
 func (c *FakeMetadataClusterClientset) Cluster(clusterPath logicalcluster.Path) metadata.Interface {
+	return c.ClusterWithContext(context.Background(), clusterPath)
+}
+
+func (c *FakeMetadataClusterClientset) ClusterWithContext(ctx context.Context, clusterPath logicalcluster.Path) metadata.Interface {
 	if clusterPath == logicalcluster.Wildcard {
 		panic("A specific cluster must be provided when scoping, not the wildcard.")
 	}

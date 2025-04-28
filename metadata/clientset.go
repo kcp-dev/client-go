@@ -43,6 +43,13 @@ func (c *ClusterClientset) Cluster(clusterPath logicalcluster.Path) metadata.Int
 	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
+// ClusterWithContext is only implemented to satisfy the
+// ClusterInterface and silently ignores the context, the client is not
+// actually context aware.
+func (c *ClusterClientset) ClusterWithContext(ctx context.Context, clusterPath logicalcluster.Path) metadata.Interface {
+	return c.clientCache.ClusterOrDie(clusterPath)
+}
+
 func (c *ClusterClientset) Resource(resource schema.GroupVersionResource) ResourceClusterInterface {
 	return &ClusterResourceClient{clientCache: c.clientCache, resource: resource}
 }

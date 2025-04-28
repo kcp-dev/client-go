@@ -29,6 +29,7 @@ import (
 
 type ClusterInterface interface {
 	Cluster(logicalcluster.Path) metadata.Interface
+	ClusterWithContext(context.Context, logicalcluster.Path) metadata.Interface
 	Resource(resource schema.GroupVersionResource) ResourceClusterInterface
 }
 
