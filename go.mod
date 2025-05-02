@@ -14,6 +14,10 @@ require (
 	k8s.io/klog/v2 v2.130.1
 )
 
+replace github.com/kcp-dev/apimachinery/v2 => github.com/ntnn/kcp-apimachinery/v2 v2.0.1-0.20250428144613-bc81e2899ce5
+
+replace github.com/kcp-dev/code-generator/v2 => github.com/ntnn/kcp-code-generator/v2 v2.3.1-0.20250502174131-b2154dca874d
+
 require (
 	cel.dev/expr v0.19.1 // indirect
 	github.com/antlr4-go/antlr/v4 v4.13.1 // indirect

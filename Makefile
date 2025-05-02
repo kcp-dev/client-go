@@ -25,7 +25,7 @@ TMPDIR := $(shell mktemp -d)
 
 CODE_GENERATOR_VER := v2.4.0
 CODE_GENERATOR_BIN := code-generator
-CODE_GENERATOR := $(TOOLS_DIR)/$(CODE_GENERATOR_BIN)-$(CODE_GENERATOR_VER)
+CODE_GENERATOR := go run github.com/ntnn/kcp-code-generator/v2@v2.3.1-0.20250502174131-b2154dca874d
 export CODE_GENERATOR # so hack scripts can use it
 
 $(CODE_GENERATOR):
