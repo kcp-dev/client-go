@@ -32,46 +32,28 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
-// All NewRoot... functions return non-namespaced actions, and are equivalent to
-// calling the corresponding New... function with an empty namespace.
-// This is assumed by the fake client generator.
-
 func NewRootGetAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, name string) GetActionImpl {
-	return NewRootGetActionWithOptions(resource, clusterPath, name, metav1.GetOptions{})
-}
-
-func NewRootGetActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, name string, opts metav1.GetOptions) GetActionImpl {
 	action := GetActionImpl{}
 	action.Verb = "get"
 	action.Resource = resource
 	action.Name = name
 	action.ClusterPath = clusterPath
-	action.GetOptions = opts
 
 	return action
 }
 
 func NewGetAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, namespace, name string) GetActionImpl {
-	return NewGetActionWithOptions(resource, clusterPath, namespace, name, metav1.GetOptions{})
-}
-
-func NewGetActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, namespace, name string, opts metav1.GetOptions) GetActionImpl {
 	action := GetActionImpl{}
 	action.Verb = "get"
 	action.Resource = resource
 	action.Namespace = namespace
 	action.Name = name
 	action.ClusterPath = clusterPath
-	action.GetOptions = opts
 
 	return action
 }
 
 func NewGetSubresourceAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, namespace, subresource, name string) GetActionImpl {
-	return NewGetSubresourceActionWithOptions(resource, clusterPath, namespace, subresource, name, metav1.GetOptions{})
-}
-
-func NewGetSubresourceActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, namespace, subresource, name string, opts metav1.GetOptions) GetActionImpl {
 	action := GetActionImpl{}
 	action.Verb = "get"
 	action.Resource = resource
@@ -79,23 +61,17 @@ func NewGetSubresourceActionWithOptions(resource schema.GroupVersionResource, cl
 	action.Namespace = namespace
 	action.Name = name
 	action.ClusterPath = clusterPath
-	action.GetOptions = opts
 
 	return action
 }
 
 func NewRootGetSubresourceAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, subresource, name string) GetActionImpl {
-	return NewRootGetSubresourceActionWithOptions(resource, clusterPath, subresource, name, metav1.GetOptions{})
-}
-
-func NewRootGetSubresourceActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, subresource, name string, opts metav1.GetOptions) GetActionImpl {
 	action := GetActionImpl{}
 	action.Verb = "get"
 	action.Resource = resource
 	action.Subresource = subresource
 	action.Name = name
 	action.ClusterPath = clusterPath
-	action.GetOptions = opts
 
 	return action
 }
@@ -108,22 +84,6 @@ func NewRootListAction(resource schema.GroupVersionResource, kind schema.GroupVe
 	action.Kind = kind
 	labelSelector, fieldSelector, _ := ExtractFromListOptions(opts)
 	action.ListRestrictions = ListRestrictions{labelSelector, fieldSelector}
-	action.ListOptions = metav1.ListOptions{LabelSelector: labelSelector.String(), FieldSelector: fieldSelector.String()}
-
-	return action
-}
-
-func NewRootListActionWithOptions(resource schema.GroupVersionResource, kind schema.GroupVersionKind, clusterPath logicalcluster.Path, opts metav1.ListOptions) ListActionImpl {
-	action := ListActionImpl{}
-	action.Verb = "list"
-	action.Resource = resource
-	action.ClusterPath = clusterPath
-	action.Kind = kind
-	action.ListOptions = opts
-
-	labelSelector, fieldSelector, _ := ExtractFromListOptions(opts)
-	action.ListRestrictions = ListRestrictions{labelSelector, fieldSelector}
-	action.ListOptions = metav1.ListOptions{LabelSelector: labelSelector.String(), FieldSelector: fieldSelector.String()}
 
 	return action
 }
@@ -137,62 +97,32 @@ func NewListAction(resource schema.GroupVersionResource, kind schema.GroupVersio
 	action.Namespace = namespace
 	labelSelector, fieldSelector, _ := ExtractFromListOptions(opts)
 	action.ListRestrictions = ListRestrictions{labelSelector, fieldSelector}
-	action.ListOptions = metav1.ListOptions{LabelSelector: labelSelector.String(), FieldSelector: fieldSelector.String()}
-
-	return action
-}
-
-func NewListActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, kind schema.GroupVersionKind, namespace string, opts metav1.ListOptions) ListActionImpl {
-	action := ListActionImpl{}
-	action.Verb = "list"
-	action.Resource = resource
-	action.ClusterPath = clusterPath
-	action.Kind = kind
-	action.Namespace = namespace
-	action.ListOptions = opts
-
-	labelSelector, fieldSelector, _ := ExtractFromListOptions(opts)
-	action.ListRestrictions = ListRestrictions{labelSelector, fieldSelector}
 
 	return action
 }
 
 func NewRootCreateAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, object runtime.Object) CreateActionImpl {
-	return NewRootCreateActionWithOptions(resource, clusterPath, object, metav1.CreateOptions{})
-}
-
-func NewRootCreateActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, object runtime.Object, opts metav1.CreateOptions) CreateActionImpl {
 	action := CreateActionImpl{}
 	action.Verb = "create"
 	action.Resource = resource
 	action.ClusterPath = clusterPath
 	action.Object = object
-	action.CreateOptions = opts
 
 	return action
 }
 
 func NewCreateAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, namespace string, object runtime.Object) CreateActionImpl {
-	return NewCreateActionWithOptions(resource, clusterPath, namespace, object, metav1.CreateOptions{})
-}
-
-func NewCreateActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, namespace string, object runtime.Object, opts metav1.CreateOptions) CreateActionImpl {
 	action := CreateActionImpl{}
 	action.Verb = "create"
 	action.Resource = resource
 	action.ClusterPath = clusterPath
 	action.Namespace = namespace
 	action.Object = object
-	action.CreateOptions = opts
 
 	return action
 }
 
 func NewRootCreateSubresourceAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, name, subresource string, object runtime.Object) CreateActionImpl {
-	return NewRootCreateSubresourceActionWithOptions(resource, clusterPath, name, subresource, object, metav1.CreateOptions{})
-}
-
-func NewRootCreateSubresourceActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, name, subresource string, object runtime.Object, opts metav1.CreateOptions) CreateActionImpl {
 	action := CreateActionImpl{}
 	action.Verb = "create"
 	action.Resource = resource
@@ -200,16 +130,11 @@ func NewRootCreateSubresourceActionWithOptions(resource schema.GroupVersionResou
 	action.Name = name
 	action.ClusterPath = clusterPath
 	action.Object = object
-	action.CreateOptions = opts
 
 	return action
 }
 
 func NewCreateSubresourceAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, name, subresource, namespace string, object runtime.Object) CreateActionImpl {
-	return NewCreateSubresourceActionWithOptions(resource, clusterPath, name, subresource, namespace, object, metav1.CreateOptions{})
-}
-
-func NewCreateSubresourceActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, name, subresource, namespace string, object runtime.Object, opts metav1.CreateOptions) CreateActionImpl {
 	action := CreateActionImpl{}
 	action.Verb = "create"
 	action.Resource = resource
@@ -218,47 +143,32 @@ func NewCreateSubresourceActionWithOptions(resource schema.GroupVersionResource,
 	action.Name = name
 	action.ClusterPath = clusterPath
 	action.Object = object
-	action.CreateOptions = opts
 
 	return action
 }
 
 func NewRootUpdateAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, object runtime.Object) UpdateActionImpl {
-	return NewRootUpdateActionWithOptions(resource, clusterPath, object, metav1.UpdateOptions{})
-}
-
-func NewRootUpdateActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, object runtime.Object, opts metav1.UpdateOptions) UpdateActionImpl {
 	action := UpdateActionImpl{}
 	action.Verb = "update"
 	action.Resource = resource
 	action.ClusterPath = clusterPath
 	action.Object = object
-	action.UpdateOptions = opts
 
 	return action
 }
 
 func NewUpdateAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, namespace string, object runtime.Object) UpdateActionImpl {
-	return NewUpdateActionWithOptions(resource, clusterPath, namespace, object, metav1.UpdateOptions{})
-}
-
-func NewUpdateActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, namespace string, object runtime.Object, opts metav1.UpdateOptions) UpdateActionImpl {
 	action := UpdateActionImpl{}
 	action.Verb = "update"
 	action.Resource = resource
 	action.ClusterPath = clusterPath
 	action.Namespace = namespace
 	action.Object = object
-	action.UpdateOptions = opts
 
 	return action
 }
 
 func NewRootPatchAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, name string, pt types.PatchType, patch []byte) PatchActionImpl {
-	return NewRootPatchActionWithOptions(resource, clusterPath, name, pt, patch, metav1.PatchOptions{})
-}
-
-func NewRootPatchActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, name string, pt types.PatchType, patch []byte, opts metav1.PatchOptions) PatchActionImpl {
 	action := PatchActionImpl{}
 	action.Verb = "patch"
 	action.Resource = resource
@@ -266,16 +176,11 @@ func NewRootPatchActionWithOptions(resource schema.GroupVersionResource, cluster
 	action.ClusterPath = clusterPath
 	action.PatchType = pt
 	action.Patch = patch
-	action.PatchOptions = opts
 
 	return action
 }
 
 func NewPatchAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, namespace string, name string, pt types.PatchType, patch []byte) PatchActionImpl {
-	return NewPatchActionWithOptions(resource, clusterPath, namespace, name, pt, patch, metav1.PatchOptions{})
-}
-
-func NewPatchActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, namespace string, name string, pt types.PatchType, patch []byte, opts metav1.PatchOptions) PatchActionImpl {
 	action := PatchActionImpl{}
 	action.Verb = "patch"
 	action.Resource = resource
@@ -284,16 +189,11 @@ func NewPatchActionWithOptions(resource schema.GroupVersionResource, clusterPath
 	action.ClusterPath = clusterPath
 	action.PatchType = pt
 	action.Patch = patch
-	action.PatchOptions = opts
 
 	return action
 }
 
 func NewRootPatchSubresourceAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, name string, pt types.PatchType, patch []byte, subresources ...string) PatchActionImpl {
-	return NewRootPatchSubresourceActionWithOptions(resource, clusterPath, name, pt, patch, metav1.PatchOptions{}, subresources...)
-}
-
-func NewRootPatchSubresourceActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, name string, pt types.PatchType, patch []byte, opts metav1.PatchOptions, subresources ...string) PatchActionImpl {
 	action := PatchActionImpl{}
 	action.Verb = "patch"
 	action.Resource = resource
@@ -302,16 +202,11 @@ func NewRootPatchSubresourceActionWithOptions(resource schema.GroupVersionResour
 	action.ClusterPath = clusterPath
 	action.PatchType = pt
 	action.Patch = patch
-	action.PatchOptions = opts
 
 	return action
 }
 
 func NewPatchSubresourceAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, namespace, name string, pt types.PatchType, patch []byte, subresources ...string) PatchActionImpl {
-	return NewPatchSubresourceActionWithOptions(resource, clusterPath, namespace, name, pt, patch, metav1.PatchOptions{}, subresources...)
-}
-
-func NewPatchSubresourceActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, namespace, name string, pt types.PatchType, patch []byte, opts metav1.PatchOptions, subresources ...string) PatchActionImpl {
 	action := PatchActionImpl{}
 	action.Verb = "patch"
 	action.Resource = resource
@@ -321,32 +216,21 @@ func NewPatchSubresourceActionWithOptions(resource schema.GroupVersionResource, 
 	action.ClusterPath = clusterPath
 	action.PatchType = pt
 	action.Patch = patch
-	action.PatchOptions = opts
 
 	return action
 }
 
 func NewRootUpdateSubresourceAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, subresource string, object runtime.Object) UpdateActionImpl {
-	return NewRootUpdateSubresourceActionWithOptions(resource, clusterPath, subresource, object, metav1.UpdateOptions{})
-}
-
-func NewRootUpdateSubresourceActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, subresource string, object runtime.Object, opts metav1.UpdateOptions) UpdateActionImpl {
 	action := UpdateActionImpl{}
 	action.Verb = "update"
 	action.Resource = resource
 	action.ClusterPath = clusterPath
 	action.Subresource = subresource
 	action.Object = object
-	action.UpdateOptions = opts
 
 	return action
 }
-
 func NewUpdateSubresourceAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, subresource string, namespace string, object runtime.Object) UpdateActionImpl {
-	return NewUpdateSubresourceActionWithOptions(resource, clusterPath, subresource, namespace, object, metav1.UpdateOptions{})
-}
-
-func NewUpdateSubresourceActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, subresource string, namespace string, object runtime.Object, opts metav1.UpdateOptions) UpdateActionImpl {
 	action := UpdateActionImpl{}
 	action.Verb = "update"
 	action.Resource = resource
@@ -354,7 +238,6 @@ func NewUpdateSubresourceActionWithOptions(resource schema.GroupVersionResource,
 	action.Subresource = subresource
 	action.Namespace = namespace
 	action.Object = object
-	action.UpdateOptions = opts
 
 	return action
 }
@@ -375,17 +258,12 @@ func NewRootDeleteActionWithOptions(resource schema.GroupVersionResource, cluste
 }
 
 func NewRootDeleteSubresourceAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, subresource string, name string) DeleteActionImpl {
-	return NewRootDeleteSubresourceActionWithOptions(resource, clusterPath, subresource, name, metav1.DeleteOptions{})
-}
-
-func NewRootDeleteSubresourceActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, subresource string, name string, opts metav1.DeleteOptions) DeleteActionImpl {
 	action := DeleteActionImpl{}
 	action.Verb = "delete"
 	action.Resource = resource
 	action.Subresource = subresource
 	action.Name = name
 	action.ClusterPath = clusterPath
-	action.DeleteOptions = opts
 
 	return action
 }
@@ -407,10 +285,6 @@ func NewDeleteActionWithOptions(resource schema.GroupVersionResource, clusterPat
 }
 
 func NewDeleteSubresourceAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, subresource, namespace, name string) DeleteActionImpl {
-	return NewDeleteSubresourceActionWithOptions(resource, clusterPath, subresource, namespace, name, metav1.DeleteOptions{})
-}
-
-func NewDeleteSubresourceActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, subresource, namespace, name string, opts metav1.DeleteOptions) DeleteActionImpl {
 	action := DeleteActionImpl{}
 	action.Verb = "delete"
 	action.Resource = resource
@@ -418,62 +292,38 @@ func NewDeleteSubresourceActionWithOptions(resource schema.GroupVersionResource,
 	action.Namespace = namespace
 	action.Name = name
 	action.ClusterPath = clusterPath
-	action.DeleteOptions = opts
 
 	return action
 }
 
 func NewRootDeleteCollectionAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, opts interface{}) DeleteCollectionActionImpl {
-	listOpts, _ := opts.(metav1.ListOptions)
-	return NewRootDeleteCollectionActionWithOptions(resource, clusterPath, metav1.DeleteOptions{}, listOpts)
-}
-
-func NewRootDeleteCollectionActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, deleteOpts metav1.DeleteOptions, listOpts metav1.ListOptions) DeleteCollectionActionImpl {
 	action := DeleteCollectionActionImpl{}
 	action.Verb = "delete-collection"
 	action.Resource = resource
 	action.ClusterPath = clusterPath
-	action.DeleteOptions = deleteOpts
-	action.ListOptions = listOpts
-
-	labelSelector, fieldSelector, _ := ExtractFromListOptions(listOpts)
+	labelSelector, fieldSelector, _ := ExtractFromListOptions(opts)
 	action.ListRestrictions = ListRestrictions{labelSelector, fieldSelector}
 
 	return action
 }
 
 func NewDeleteCollectionAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, namespace string, opts interface{}) DeleteCollectionActionImpl {
-	listOpts, _ := opts.(metav1.ListOptions)
-	return NewDeleteCollectionActionWithOptions(resource, clusterPath, namespace, metav1.DeleteOptions{}, listOpts)
-}
-
-func NewDeleteCollectionActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, namespace string, deleteOpts metav1.DeleteOptions, listOpts metav1.ListOptions) DeleteCollectionActionImpl {
 	action := DeleteCollectionActionImpl{}
 	action.Verb = "delete-collection"
 	action.Resource = resource
 	action.ClusterPath = clusterPath
 	action.Namespace = namespace
-	action.DeleteOptions = deleteOpts
-	action.ListOptions = listOpts
-
-	labelSelector, fieldSelector, _ := ExtractFromListOptions(listOpts)
+	labelSelector, fieldSelector, _ := ExtractFromListOptions(opts)
 	action.ListRestrictions = ListRestrictions{labelSelector, fieldSelector}
 
 	return action
 }
 
 func NewRootWatchAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, opts interface{}) WatchActionImpl {
-	listOpts, _ := opts.(metav1.ListOptions)
-	return NewRootWatchActionWithOptions(resource, clusterPath, listOpts)
-}
-
-func NewRootWatchActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, opts metav1.ListOptions) WatchActionImpl {
 	action := WatchActionImpl{}
 	action.Verb = "watch"
 	action.Resource = resource
 	action.ClusterPath = clusterPath
-	action.ListOptions = opts
-
 	labelSelector, fieldSelector, resourceVersion := ExtractFromListOptions(opts)
 	action.WatchRestrictions = WatchRestrictions{labelSelector, fieldSelector, resourceVersion}
 
@@ -506,18 +356,11 @@ func ExtractFromListOptions(opts interface{}) (labelSelector labels.Selector, fi
 }
 
 func NewWatchAction(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, namespace string, opts interface{}) WatchActionImpl {
-	listOpts, _ := opts.(metav1.ListOptions)
-	return NewWatchActionWithOptions(resource, clusterPath, namespace, listOpts)
-}
-
-func NewWatchActionWithOptions(resource schema.GroupVersionResource, clusterPath logicalcluster.Path, namespace string, opts metav1.ListOptions) WatchActionImpl {
 	action := WatchActionImpl{}
 	action.Verb = "watch"
 	action.Resource = resource
 	action.ClusterPath = clusterPath
 	action.Namespace = namespace
-	action.ListOptions = opts
-
 	labelSelector, fieldSelector, resourceVersion := ExtractFromListOptions(opts)
 	action.WatchRestrictions = WatchRestrictions{labelSelector, fieldSelector, resourceVersion}
 
@@ -680,23 +523,17 @@ func (a GenericActionImpl) DeepCopy() Action {
 
 type GetActionImpl struct {
 	ActionImpl
-	Name       string
-	GetOptions metav1.GetOptions
+	Name string
 }
 
 func (a GetActionImpl) GetName() string {
 	return a.Name
 }
 
-func (a GetActionImpl) GetGetOptions() metav1.GetOptions {
-	return a.GetOptions
-}
-
 func (a GetActionImpl) DeepCopy() Action {
 	return GetActionImpl{
 		ActionImpl: a.ActionImpl.DeepCopy().(ActionImpl),
 		Name:       a.Name,
-		GetOptions: *a.GetOptions.DeepCopy(),
 	}
 }
 
@@ -705,15 +542,10 @@ type ListActionImpl struct {
 	Kind             schema.GroupVersionKind
 	Name             string
 	ListRestrictions ListRestrictions
-	ListOptions      metav1.ListOptions
 }
 
 func (a ListActionImpl) GetKind() schema.GroupVersionKind {
 	return a.Kind
-}
-
-func (a ListActionImpl) GetListOptions() metav1.ListOptions {
-	return a.ListOptions
 }
 
 func (a ListActionImpl) GetListRestrictions() ListRestrictions {
@@ -729,70 +561,52 @@ func (a ListActionImpl) DeepCopy() Action {
 			Labels: a.ListRestrictions.Labels.DeepCopySelector(),
 			Fields: a.ListRestrictions.Fields.DeepCopySelector(),
 		},
-		ListOptions: *a.ListOptions.DeepCopy(),
 	}
 }
 
 type CreateActionImpl struct {
 	ActionImpl
-	Name          string
-	Object        runtime.Object
-	CreateOptions metav1.CreateOptions
+	Name   string
+	Object runtime.Object
 }
 
 func (a CreateActionImpl) GetObject() runtime.Object {
 	return a.Object
 }
 
-func (a CreateActionImpl) GetCreateOptions() metav1.CreateOptions {
-	return a.CreateOptions
-}
-
 func (a CreateActionImpl) DeepCopy() Action {
 	return CreateActionImpl{
-		ActionImpl:    a.ActionImpl.DeepCopy().(ActionImpl),
-		Name:          a.Name,
-		Object:        a.Object.DeepCopyObject(),
-		CreateOptions: *a.CreateOptions.DeepCopy(),
+		ActionImpl: a.ActionImpl.DeepCopy().(ActionImpl),
+		Name:       a.Name,
+		Object:     a.Object.DeepCopyObject(),
 	}
 }
 
 type UpdateActionImpl struct {
 	ActionImpl
-	Object        runtime.Object
-	UpdateOptions metav1.UpdateOptions
+	Object runtime.Object
 }
 
 func (a UpdateActionImpl) GetObject() runtime.Object {
 	return a.Object
 }
 
-func (a UpdateActionImpl) GetUpdateOptions() metav1.UpdateOptions {
-	return a.UpdateOptions
-}
-
 func (a UpdateActionImpl) DeepCopy() Action {
 	return UpdateActionImpl{
-		ActionImpl:    a.ActionImpl.DeepCopy().(ActionImpl),
-		Object:        a.Object.DeepCopyObject(),
-		UpdateOptions: *a.UpdateOptions.DeepCopy(),
+		ActionImpl: a.ActionImpl.DeepCopy().(ActionImpl),
+		Object:     a.Object.DeepCopyObject(),
 	}
 }
 
 type PatchActionImpl struct {
 	ActionImpl
-	Name         string
-	PatchType    types.PatchType
-	Patch        []byte
-	PatchOptions metav1.PatchOptions
+	Name      string
+	PatchType types.PatchType
+	Patch     []byte
 }
 
 func (a PatchActionImpl) GetName() string {
 	return a.Name
-}
-
-func (a PatchActionImpl) GetPatchOptions() metav1.PatchOptions {
-	return a.PatchOptions
 }
 
 func (a PatchActionImpl) GetPatch() []byte {
@@ -807,11 +621,10 @@ func (a PatchActionImpl) DeepCopy() Action {
 	patch := make([]byte, len(a.Patch))
 	copy(patch, a.Patch)
 	return PatchActionImpl{
-		ActionImpl:   a.ActionImpl.DeepCopy().(ActionImpl),
-		Name:         a.Name,
-		PatchType:    a.PatchType,
-		Patch:        patch,
-		PatchOptions: *a.PatchOptions.DeepCopy(),
+		ActionImpl: a.ActionImpl.DeepCopy().(ActionImpl),
+		Name:       a.Name,
+		PatchType:  a.PatchType,
+		Patch:      patch,
 	}
 }
 
@@ -840,20 +653,10 @@ func (a DeleteActionImpl) DeepCopy() Action {
 type DeleteCollectionActionImpl struct {
 	ActionImpl
 	ListRestrictions ListRestrictions
-	DeleteOptions    metav1.DeleteOptions
-	ListOptions      metav1.ListOptions
 }
 
 func (a DeleteCollectionActionImpl) GetListRestrictions() ListRestrictions {
 	return a.ListRestrictions
-}
-
-func (a DeleteCollectionActionImpl) GetDeleteOptions() metav1.DeleteOptions {
-	return a.DeleteOptions
-}
-
-func (a DeleteCollectionActionImpl) GetListOptions() metav1.ListOptions {
-	return a.ListOptions
 }
 
 func (a DeleteCollectionActionImpl) DeepCopy() Action {
@@ -863,23 +666,16 @@ func (a DeleteCollectionActionImpl) DeepCopy() Action {
 			Labels: a.ListRestrictions.Labels.DeepCopySelector(),
 			Fields: a.ListRestrictions.Fields.DeepCopySelector(),
 		},
-		DeleteOptions: *a.DeleteOptions.DeepCopy(),
-		ListOptions:   *a.ListOptions.DeepCopy(),
 	}
 }
 
 type WatchActionImpl struct {
 	ActionImpl
 	WatchRestrictions WatchRestrictions
-	ListOptions       metav1.ListOptions
 }
 
 func (a WatchActionImpl) GetWatchRestrictions() WatchRestrictions {
 	return a.WatchRestrictions
-}
-
-func (a WatchActionImpl) GetListOptions() metav1.ListOptions {
-	return a.ListOptions
 }
 
 func (a WatchActionImpl) DeepCopy() Action {
@@ -890,7 +686,6 @@ func (a WatchActionImpl) DeepCopy() Action {
 			Fields:          a.WatchRestrictions.Fields.DeepCopySelector(),
 			ResourceVersion: a.WatchRestrictions.ResourceVersion,
 		},
-		ListOptions: *a.ListOptions.DeepCopy(),
 	}
 }
 
