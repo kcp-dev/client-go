@@ -19,21 +19,38 @@ set -o nounset
 set -o pipefail
 set -o xtrace
 
-if [[ -z "${MAKELEVEL:-}" ]]; then
-    echo 'You must invoke this script via make'
-    exit 1
-fi
+CODEGEN_PKG="$(go list -f '{{.Dir}}' -m k8s.io/code-generator)"
+source "$CODEGEN_PKG/kube_codegen.sh"
 
-${CODE_GENERATOR} \
-  "client:externalOnly=true,standalone=true,outputPackagePath=github.com/kcp-dev/client-go,name=kubernetes,apiPackagePath=k8s.io/api,singleClusterClientPackagePath=k8s.io/client-go/kubernetes,singleClusterApplyConfigurationsPackagePath=k8s.io/client-go/applyconfigurations,headerFile=./hack/boilerplate/boilerplate.go.txt" \
-  "lister:apiPackagePath=k8s.io/api,singleClusterListerPackagePath=k8s.io/client-go/listers,headerFile=./hack/boilerplate/boilerplate.go.txt" \
-  "informer:clientsetName=kubernetes,externalOnly=true,standalone=true,outputPackagePath=github.com/kcp-dev/client-go,apiPackagePath=k8s.io/api,singleClusterClientPackagePath=k8s.io/client-go/kubernetes, singleClusterListerPackagePath=k8s.io/client-go/listers,singleClusterInformerPackagePath=k8s.io/client-go/informers,headerFile=./hack/boilerplate/boilerplate.go.txt" \
-  "paths=$( go list -m -json k8s.io/api | jq --raw-output .Dir )/..." \
-  "output:dir=./"
+CLUSTER_CODEGEN_PKG="$(go list -f '{{.Dir}}' -m github.com/kcp-dev/code-generator/v3)"
+source "$CLUSTER_CODEGEN_PKG/cluster_codegen.sh"
 
-${CODE_GENERATOR} \
-  "client:externalOnly=true,standalone=true,outputPackagePath=github.com/kcp-dev/client-go/apiextensions,name=client,apiPackagePath=k8s.io/apiextensions-apiserver/pkg/apis,singleClusterClientPackagePath=k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset,singleClusterApplyConfigurationsPackagePath=k8s.io/apiextensions-apiserver/pkg/client/applyconfiguration,headerFile=./hack/boilerplate/boilerplate.go.txt" \
-  "lister:apiPackagePath=k8s.io/apiextensions-apiserver/pkg/apis,singleClusterListerPackagePath=k8s.io/apiextensions-apiserver/pkg/client/listers,headerFile=./hack/boilerplate/boilerplate.go.txt" \
-  "informer:clientsetName=client,externalOnly=true,standalone=true,outputPackagePath=github.com/kcp-dev/client-go/apiextensions,apiPackagePath=k8s.io/apiextensions-apiserver/pkg/apis,singleClusterClientPackagePath=k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset, singleClusterListerPackagePath=k8s.io/apiextensions-apiserver/pkg/client/listers,singleClusterInformerPackagePath=k8s.io/apiextensions-apiserver/pkg/client/informers/externalversions,headerFile=./hack/boilerplate/boilerplate.go.txt" \
-  "paths=$( go list -m -json k8s.io/apiextensions-apiserver | jq --raw-output .Dir )/pkg/apis/..." \
-  "output:dir=./apiextensions"
+make clean-generated
+
+cluster::codegen::gen_client \
+    --boilerplate ./hack/boilerplate/boilerplate.go.txt \
+    --with-watch \
+    --output-dir . \
+    --output-pkg github.com/kcp-dev/client-go \
+    --versioned-clientset-dir kubernetes \
+    --versioned-clientset-pkg github.com/kcp-dev/client-go/kubernetes \
+    --single-cluster-versioned-clientset-pkg k8s.io/client-go/kubernetes \
+    --single-cluster-applyconfigurations-pkg k8s.io/client-go/applyconfigurations \
+    --single-cluster-informers-pkg k8s.io/client-go/informers \
+    --single-cluster-listers-pkg k8s.io/client-go/listers \
+    --exclude-group-versions "imagepolicy/v1alpha1" \
+    --plural-exceptions "Endpoints:Endpoints" \
+    "$(go list -m -json k8s.io/api | jq --raw-output .Dir)"
+
+cluster::codegen::gen_client \
+    --boilerplate ./hack/boilerplate/boilerplate.go.txt \
+    --output-dir apiextensions \
+    --output-pkg github.com/kcp-dev/client-go/apiextensions \
+    --with-watch \
+    --versioned-clientset-pkg github.com/kcp-dev/client-go/apiextensions/client \
+    --versioned-clientset-dir apiextensions/client \
+    --single-cluster-versioned-clientset-pkg k8s.io/apiextensions-apiserver/pkg/client/clientset/clientset \
+    --single-cluster-applyconfigurations-pkg k8s.io/apiextensions-apiserver/pkg/client/applyconfiguration \
+    --single-cluster-informers-pkg k8s.io/apiextensions-apiserver/pkg/client/informers/externalversions \
+    --single-cluster-listers-pkg k8s.io/apiextensions-apiserver/pkg/client/listers \
+    "$(go list -m -json k8s.io/apiextensions-apiserver | jq --raw-output .Dir)/pkg/apis"

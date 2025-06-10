@@ -18,6 +18,7 @@ package main
 
 import (
 	_ "github.com/kcp-dev/apimachinery/v2/pkg/cache"
+	_ "github.com/kcp-dev/code-generator/v3/cmd/cluster-client-gen/generators"
 	_ "github.com/kcp-dev/logicalcluster/v3"
 
 	_ "k8s.io/api/core/v1"
