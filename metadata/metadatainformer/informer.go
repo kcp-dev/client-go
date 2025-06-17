@@ -165,8 +165,12 @@ func (d *metadataClusterInformer) Lister() kcpcache.GenericClusterLister {
 }
 
 func (d *metadataClusterInformer) Cluster(clusterName logicalcluster.Name) upstreaminformers.GenericInformer {
+	return d.ClusterWithContext(context.Background(), clusterName)
+}
+
+func (d *metadataClusterInformer) ClusterWithContext(ctx context.Context, clusterName logicalcluster.Name) upstreaminformers.GenericInformer {
 	return &metadataInformer{
-		informer: d.Informer().Cluster(clusterName),
+		informer: d.Informer().ClusterWithContext(ctx, clusterName),
 		lister:   d.Lister().ByCluster(clusterName),
 	}
 }
