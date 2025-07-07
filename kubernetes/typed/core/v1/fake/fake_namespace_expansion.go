@@ -20,13 +20,16 @@ package fake
 import (
 	"context"
 
-	"k8s.io/api/core/v1"
+	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	core "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-func (c *namespacesClient) Finalize(ctx context.Context, namespace *v1.Namespace, opts metav1.UpdateOptions) (*v1.Namespace, error) {
+var namespacesResource = schema.GroupVersionResource{Group: "", Version: "v1", Resource: "namespaces"}
+
+func (c *namespaceScopedClient) Finalize(ctx context.Context, namespace *v1.Namespace, opts metav1.UpdateOptions) (*v1.Namespace, error) {
 	action := core.CreateActionImpl{}
 	action.Verb = "create"
 	action.Resource = namespacesResource

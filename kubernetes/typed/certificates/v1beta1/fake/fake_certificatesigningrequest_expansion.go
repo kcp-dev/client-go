@@ -22,11 +22,14 @@ import (
 
 	certificates "k8s.io/api/certificates/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	core "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-func (c *certificateSigningRequestsClient) UpdateApproval(ctx context.Context, certificateSigningRequest *certificates.CertificateSigningRequest, opts metav1.UpdateOptions) (result *certificates.CertificateSigningRequest, err error) {
+var certificateSigningRequestsResource = schema.GroupVersionResource{Group: "certificates.k8s.io", Version: "v1beta1", Resource: "certificatesigningrequests"}
+
+func (c *certificateSigningRequestScopedClient) UpdateApproval(ctx context.Context, certificateSigningRequest *certificates.CertificateSigningRequest, opts metav1.UpdateOptions) (result *certificates.CertificateSigningRequest, err error) {
 	obj, err := c.Fake.Invokes(core.NewRootUpdateSubresourceAction(certificateSigningRequestsResource, c.ClusterPath, "approval", certificateSigningRequest), &certificates.CertificateSigningRequest{})
 	if obj == nil {
 		return nil, err

@@ -26,10 +26,10 @@ import (
 	core "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-func (c *evictionsClient) Evict(ctx context.Context, eviction *policy.Eviction) error {
+func (c *evictionScopedClient) Evict(ctx context.Context, eviction *policy.Eviction) error {
 	action := core.CreateActionImpl{}
 	action.Verb = "create"
-	action.Namespace = c.Namespace
+	action.Namespace = c.Namespace()
 	action.ClusterPath = c.ClusterPath
 	action.Resource = schema.GroupVersionResource{Group: "", Version: "v1", Resource: "pods"}
 	action.Subresource = "eviction"

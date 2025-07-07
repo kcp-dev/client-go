@@ -19,16 +19,19 @@ package fake
 
 import (
 	"k8s.io/api/events/v1beta1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 
 	core "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
+var eventsResource = schema.GroupVersionResource{Group: "events.k8s.io", Version: "v1beta1", Resource: "events"}
+
 // CreateWithEventNamespace creats a new event. Returns the copy of the event the server returns, or an error.
-func (c *eventsClient) CreateWithEventNamespace(event *v1beta1.Event) (*v1beta1.Event, error) {
+func (c *eventScopedClient) CreateWithEventNamespace(event *v1beta1.Event) (*v1beta1.Event, error) {
 	action := core.NewRootCreateAction(eventsResource, c.ClusterPath, event)
-	if c.Namespace != "" {
-		action = core.NewCreateAction(eventsResource, c.ClusterPath, c.Namespace, event)
+	if c.Namespace() != "" {
+		action = core.NewCreateAction(eventsResource, c.ClusterPath, c.Namespace(), event)
 	}
 	obj, err := c.Fake.Invokes(action, event)
 	if obj == nil {
@@ -39,10 +42,10 @@ func (c *eventsClient) CreateWithEventNamespace(event *v1beta1.Event) (*v1beta1.
 }
 
 // UpdateWithEventNamespace replaces an existing event. Returns the copy of the event the server returns, or an error.
-func (c *eventsClient) UpdateWithEventNamespace(event *v1beta1.Event) (*v1beta1.Event, error) {
+func (c *eventScopedClient) UpdateWithEventNamespace(event *v1beta1.Event) (*v1beta1.Event, error) {
 	action := core.NewRootUpdateAction(eventsResource, c.ClusterPath, event)
-	if c.Namespace != "" {
-		action = core.NewUpdateAction(eventsResource, c.ClusterPath, c.Namespace, event)
+	if c.Namespace() != "" {
+		action = core.NewUpdateAction(eventsResource, c.ClusterPath, c.Namespace(), event)
 	}
 	obj, err := c.Fake.Invokes(action, event)
 	if obj == nil {
@@ -53,11 +56,11 @@ func (c *eventsClient) UpdateWithEventNamespace(event *v1beta1.Event) (*v1beta1.
 }
 
 // PatchWithEventNamespace patches an existing event. Returns the copy of the event the server returns, or an error.
-func (c *eventsClient) PatchWithEventNamespace(event *v1beta1.Event, data []byte) (*v1beta1.Event, error) {
+func (c *eventScopedClient) PatchWithEventNamespace(event *v1beta1.Event, data []byte) (*v1beta1.Event, error) {
 	pt := types.StrategicMergePatchType
 	action := core.NewRootPatchAction(eventsResource, c.ClusterPath, event.Name, pt, data)
-	if c.Namespace != "" {
-		action = core.NewPatchAction(eventsResource, c.ClusterPath, c.Namespace, event.Name, pt, data)
+	if c.Namespace() != "" {
+		action = core.NewPatchAction(eventsResource, c.ClusterPath, c.Namespace(), event.Name, pt, data)
 	}
 	obj, err := c.Fake.Invokes(action, event)
 	if obj == nil {
