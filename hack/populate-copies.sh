@@ -17,6 +17,7 @@
 set -o errexit
 set -o nounset
 set -o pipefail
+set -o xtrace
 
 # This script populates our third_party directory, along with any other files we're
 # wholesale copying from the upstream k8s.io/client-go repository. All files retain
@@ -24,42 +25,59 @@ set -o pipefail
 
 source_dir="$( go list -m -json k8s.io/client-go | jq --raw-output .Dir )"
 
-sink_dir="./third_party/k8s.io/client-go/dynamic/"
-mkdir -p "${sink_dir}"
-for file in scheme simple; do
-  cp "${source_dir}/dynamic/${file}.go" "${sink_dir}"
-done
+update_copy() {
+    local upstream_file="$1"
+    if [[ ! -f "$upstream_file" ]]; then
+        echo "Upstream file $upstream_file does not exist, skipping"
+        return
+    fi
+    local local_file="$2"
+    shift 2
+    # TODO could look into making this a go command and then use the AST
+    # to make intelligent transformations.
+    # E.g. the types are somewhat deterministic from `fakeX` to `scopedX`
+    # On the other hand that is a lot of work to save a few seconds once
+    # every few months.
+    sed \
+        -e '/Copyright .* The Kubernetes Authors./a \
+Modifications Copyright YEAR The KCP Authors.' \
+        "$@" \
+        "$upstream_file" > "$local_file"
+}
 
-sink_dir="./third_party/k8s.io/client-go/tools/cache"
-mkdir -p "${sink_dir}"
-cp "${source_dir}/tools/cache/mutation_cache.go" "${sink_dir}/mutation_cache.go"
 
-sink_dir="./third_party/k8s.io/client-go/testing/"
-mkdir -p "${sink_dir}"
-for file in actions fake fixture interface; do
-  cp "${source_dir}/testing/${file}.go" "${sink_dir}"
-done
+update_third_party() {
+    for third_party in $(find third_party/k8s.io/client-go -type f); do
+        update_copy \
+            "$source_dir/${third_party##third_party/k8s.io/client-go/}" \
+            "$third_party" \
+            -e 's#"k8s.io/client-go/testing"#kcptesting "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"#' \
+            -e 's# testing\.#kcptesting.#' \
+            -e 's#*testing\.#*kcptesting.#'
 
-sink_dir="./third_party/k8s.io/client-go/discovery/fake"
-mkdir -p "${sink_dir}"
-cp "${source_dir}/discovery/fake/discovery.go" "${sink_dir}"
+    done
+}
 
-sink_dir="./third_party/k8s.io/client-go/metadata/fake"
-mkdir -p "${sink_dir}"
-cp "${source_dir}/metadata/fake/simple.go" "${sink_dir}"
+update_expansion() {
+    local upstream_file="$1"
+    shift 1
+    if [[ ! -f "$upstream_file" ]]; then
+        echo "Upstream file $upstream_file does not exist, skipping"
+        return
+    fi
+    local local_equivalent="${upstream_file##$source_dir/}"
+    update_copy "$upstream_file" "$local_equivalent" "$@"
+}
 
-sink_dir="./third_party/k8s.io/client-go/dynamic/fake"
-mkdir -p "${sink_dir}"
-cp "${source_dir}/dynamic/fake/simple.go" "${sink_dir}"
+update_expansions() {
+    for expansion in $(find "${source_dir}/listers" -type f -name '*_expansion.go'); do
+        update_expansion "$expansion"
+    done
+    for expansion in $(find "${source_dir}/kubernetes" -type f -name 'fake_*_expansion.go'); do
+        update_expansion "$expansion" \
+            -e 's#"k8s.io/client-go/testing"#"github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"#'
+    done
+}
 
-for expansion in $( find "${source_dir}/listers" -type f -name '*_expansion.go' ); do
-  sink="./${expansion##"${source_dir}/"}"
-  mkdir -p "$( dirname "${sink}" )"
-  cp "${expansion}" "${sink}"
-done
-
-for expansion in $( find "${source_dir}/kubernetes" -type f -name 'fake_*_expansion.go' ); do
-  sink="./${expansion##"${source_dir}/"}"
-  mkdir -p "$( dirname "${sink}" )"
-  cp "${expansion}" "${sink}"
-done
+update_third_party
+update_expansions
