@@ -22,17 +22,14 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	core "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var namespacesResource = schema.GroupVersionResource{Group: "", Version: "v1", Resource: "namespaces"}
-
 func (c *namespaceScopedClient) Finalize(ctx context.Context, namespace *v1.Namespace, opts metav1.UpdateOptions) (*v1.Namespace, error) {
 	action := core.CreateActionImpl{}
 	action.Verb = "create"
-	action.Resource = namespacesResource
+	action.Resource = c.Resource()
 	action.Subresource = "finalize"
 	action.Object = namespace
 	action.ClusterPath = c.ClusterPath

@@ -22,18 +22,14 @@ import (
 
 	"k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 
 	core "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var deploymentsResource = schema.GroupVersionResource{Group: "extensions", Version: "v1beta1", Resource: "deployments"}
-var deploymentsKind = schema.GroupVersionKind{Group: "extensions", Version: "v1beta1", Kind: "Deployment"}
-
 func (c *deploymentScopedClient) Rollback(ctx context.Context, deploymentRollback *v1beta1.DeploymentRollback, opts metav1.CreateOptions) error {
 	action := core.CreateActionImpl{}
 	action.Verb = "create"
-	action.Resource = deploymentsResource
+	action.Resource = c.Resource()
 	action.Subresource = "rollback"
 	action.Object = deploymentRollback
 	action.ClusterPath = c.ClusterPath

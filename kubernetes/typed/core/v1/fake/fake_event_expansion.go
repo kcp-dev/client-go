@@ -18,23 +18,28 @@ limitations under the License.
 package fake
 
 import (
+	"context"
+
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
+	types "k8s.io/apimachinery/pkg/types"
 
 	core "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var eventsResource = schema.GroupVersionResource{Group: "events.k8s.io", Version: "v1beta1", Resource: "events"}
-var eventsKind = schema.GroupVersionKind{Group: "events.k8s.io", Version: "v1beta1", Kind: "Event"}
-
+// Deprecated: use CreateWithEventNamespaceWithContext instead.
 func (c *eventScopedClient) CreateWithEventNamespace(event *v1.Event) (*v1.Event, error) {
-	action := core.NewRootCreateAction(eventsResource, c.ClusterPath, event)
+	return c.CreateWithEventNamespaceWithContext(context.Background(), event)
+}
+
+func (c *eventScopedClient) CreateWithEventNamespaceWithContext(_ context.Context, event *v1.Event) (*v1.Event, error) {
+	var action core.CreateActionImpl
 	if c.Namespace() != "" {
-		action = core.NewCreateAction(eventsResource, c.ClusterPath, c.Namespace(), event)
+		action = core.NewCreateAction(c.Resource(), c.ClusterPath, c.Namespace(), event)
+	} else {
+		action = core.NewCreateAction(c.Resource(), c.ClusterPath, event.GetNamespace(), event)
 	}
 	obj, err := c.Fake.Invokes(action, event)
 	if obj == nil {
@@ -45,10 +50,19 @@ func (c *eventScopedClient) CreateWithEventNamespace(event *v1.Event) (*v1.Event
 }
 
 // Update replaces an existing event. Returns the copy of the event the server returns, or an error.
+//
+// Deprecated: use UpdateWithEventNamespaceWithContext instead.
 func (c *eventScopedClient) UpdateWithEventNamespace(event *v1.Event) (*v1.Event, error) {
-	action := core.NewRootUpdateAction(eventsResource, c.ClusterPath, event)
+	return c.UpdateWithEventNamespaceWithContext(context.Background(), event)
+}
+
+// Update replaces an existing event. Returns the copy of the event the server returns, or an error.
+func (c *eventScopedClient) UpdateWithEventNamespaceWithContext(_ context.Context, event *v1.Event) (*v1.Event, error) {
+	var action core.UpdateActionImpl
 	if c.Namespace() != "" {
-		action = core.NewUpdateAction(eventsResource, c.ClusterPath, c.Namespace(), event)
+		action = core.NewUpdateAction(c.Resource(), c.ClusterPath, c.Namespace(), event)
+	} else {
+		action = core.NewUpdateAction(c.Resource(), c.ClusterPath, event.GetNamespace(), event)
 	}
 	obj, err := c.Fake.Invokes(action, event)
 	if obj == nil {
@@ -60,12 +74,22 @@ func (c *eventScopedClient) UpdateWithEventNamespace(event *v1.Event) (*v1.Event
 
 // PatchWithEventNamespace patches an existing event. Returns the copy of the event the server returns, or an error.
 // TODO: Should take a PatchType as an argument probably.
+//
+// Deprecated: use PatchWithEventNamespaceWithContext instead.
 func (c *eventScopedClient) PatchWithEventNamespace(event *v1.Event, data []byte) (*v1.Event, error) {
+	return c.PatchWithEventNamespaceWithContext(context.Background(), event, data)
+}
+
+// PatchWithEventNamespaceWithContext patches an existing event. Returns the copy of the event the server returns, or an error.
+// TODO: Should take a PatchType as an argument probably.
+func (c *eventScopedClient) PatchWithEventNamespaceWithContext(_ context.Context, event *v1.Event, data []byte) (*v1.Event, error) {
 	// TODO: Should be configurable to support additional patch strategies.
 	pt := types.StrategicMergePatchType
-	action := core.NewRootPatchAction(eventsResource, c.ClusterPath, event.Name, pt, data)
+	var action core.PatchActionImpl
 	if c.Namespace() != "" {
-		action = core.NewPatchAction(eventsResource, c.ClusterPath, c.Namespace(), event.Name, pt, data)
+		action = core.NewPatchAction(c.Resource(), c.ClusterPath, c.Namespace(), event.Name, pt, data)
+	} else {
+		action = core.NewPatchAction(c.Resource(), c.ClusterPath, event.GetNamespace(), event.Name, pt, data)
 	}
 	obj, err := c.Fake.Invokes(action, event)
 	if obj == nil {
@@ -76,10 +100,19 @@ func (c *eventScopedClient) PatchWithEventNamespace(event *v1.Event, data []byte
 }
 
 // Search returns a list of events matching the specified object.
+//
+// Deprecated: use SearchWithContext instead.
 func (c *eventScopedClient) Search(scheme *runtime.Scheme, objOrRef runtime.Object) (*v1.EventList, error) {
-	action := core.NewRootListAction(eventsResource, eventsKind, c.ClusterPath, metav1.ListOptions{})
+	return c.SearchWithContext(context.Background(), scheme, objOrRef)
+}
+
+// SearchWithContext returns a list of events matching the specified object.
+func (c *eventScopedClient) SearchWithContext(_ context.Context, scheme *runtime.Scheme, objOrRef runtime.Object) (*v1.EventList, error) {
+	var action core.ListActionImpl
 	if c.Namespace() != "" {
-		action = core.NewListAction(eventsResource, eventsKind, c.ClusterPath, c.Namespace(), metav1.ListOptions{})
+		action = core.NewListAction(c.Resource(), c.Kind(), c.ClusterPath, c.Namespace(), metav1.ListOptions{})
+	} else {
+		action = core.NewListAction(c.Resource(), c.Kind(), c.ClusterPath, v1.NamespaceDefault, metav1.ListOptions{})
 	}
 	obj, err := c.Fake.Invokes(action, &v1.EventList{})
 	if obj == nil {
@@ -92,9 +125,8 @@ func (c *eventScopedClient) Search(scheme *runtime.Scheme, objOrRef runtime.Obje
 func (c *eventScopedClient) GetFieldSelector(involvedObjectName, involvedObjectNamespace, involvedObjectKind, involvedObjectUID *string) fields.Selector {
 	action := core.GenericActionImpl{}
 	action.Verb = "get-field-selector"
-	action.Resource = eventsResource
-	action.ClusterPath = c.ClusterPath
+	action.Resource = c.Resource()
 
-	_, _ = c.Fake.Invokes(action, nil)
+	c.Fake.Invokes(action, nil)
 	return fields.Everything()
 }

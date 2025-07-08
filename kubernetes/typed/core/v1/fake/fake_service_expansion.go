@@ -18,14 +18,11 @@ limitations under the License.
 package fake
 
 import (
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	restclient "k8s.io/client-go/rest"
 
 	core "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var servicesResource = schema.GroupVersionResource{Group: "", Version: "v1", Resource: "services"}
-
 func (c *serviceScopedClient) ProxyGet(scheme, name, port, path string, params map[string]string) restclient.ResponseWrapper {
-	return c.Fake.InvokesProxy(core.NewProxyGetAction(servicesResource, c.ClusterPath, c.Namespace(), scheme, name, port, path, params))
+	return c.Fake.InvokesProxy(core.NewProxyGetAction(c.Resource(), c.ClusterPath, c.Namespace(), scheme, name, port, path, params))
 }

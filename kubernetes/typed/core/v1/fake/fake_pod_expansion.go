@@ -28,7 +28,6 @@ import (
 	policyv1 "k8s.io/api/policy/v1"
 	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes/scheme"
 	restclient "k8s.io/client-go/rest"
 	fakerest "k8s.io/client-go/rest/fake"
@@ -36,14 +35,11 @@ import (
 	core "github.com/kcp-dev/client-go/third_party/k8s.io/client-go/testing"
 )
 
-var podsResource = schema.GroupVersionResource{Group: "", Version: "v1", Resource: "pods"}
-var podsKind = schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Pod"}
-
 func (c *podScopedClient) Bind(ctx context.Context, binding *v1.Binding, opts metav1.CreateOptions) error {
 	action := core.CreateActionImpl{}
 	action.Verb = "create"
 	action.Namespace = binding.Namespace
-	action.Resource = podsResource
+	action.Resource = c.Resource()
 	action.Subresource = "binding"
 	action.Object = binding
 	action.ClusterPath = c.ClusterPath
@@ -54,7 +50,7 @@ func (c *podScopedClient) Bind(ctx context.Context, binding *v1.Binding, opts me
 
 func (c *podScopedClient) GetBinding(name string) (result *v1.Binding, err error) {
 	obj, err := c.Fake.
-		Invokes(core.NewGetSubresourceAction(podsResource, c.ClusterPath, c.Namespace(), "binding", name), &v1.Binding{})
+		Invokes(core.NewGetSubresourceAction(c.Resource(), c.ClusterPath, c.Namespace(), "binding", name), &v1.Binding{})
 
 	if obj == nil {
 		return nil, err
@@ -66,7 +62,7 @@ func (c *podScopedClient) GetLogs(name string, opts *v1.PodLogOptions) *restclie
 	action := core.GenericActionImpl{}
 	action.Verb = "get"
 	action.Namespace = c.Namespace()
-	action.Resource = podsResource
+	action.Resource = c.Resource()
 	action.Subresource = "log"
 	action.Value = opts
 	action.ClusterPath = c.ClusterPath
@@ -81,7 +77,7 @@ func (c *podScopedClient) GetLogs(name string, opts *v1.PodLogOptions) *restclie
 			return resp, nil
 		}),
 		NegotiatedSerializer: scheme.Codecs.WithoutConversion(),
-		GroupVersion:         podsKind.GroupVersion(),
+		GroupVersion:         c.Kind().GroupVersion(),
 		VersionedAPIPath:     fmt.Sprintf("/api/v1/namespaces/%s/pods/%s/log", c.Namespace(), name),
 	}
 	return fakeClient.Request()
@@ -95,7 +91,7 @@ func (c *podScopedClient) EvictV1(ctx context.Context, eviction *policyv1.Evicti
 	action := core.CreateActionImpl{}
 	action.Verb = "create"
 	action.Namespace = c.Namespace()
-	action.Resource = podsResource
+	action.Resource = c.Resource()
 	action.Subresource = "eviction"
 	action.Object = eviction
 	action.ClusterPath = c.ClusterPath
@@ -108,7 +104,7 @@ func (c *podScopedClient) EvictV1beta1(ctx context.Context, eviction *policyv1be
 	action := core.CreateActionImpl{}
 	action.Verb = "create"
 	action.Namespace = c.Namespace()
-	action.Resource = podsResource
+	action.Resource = c.Resource()
 	action.Subresource = "eviction"
 	action.Object = eviction
 	action.ClusterPath = c.ClusterPath
@@ -118,5 +114,5 @@ func (c *podScopedClient) EvictV1beta1(ctx context.Context, eviction *policyv1be
 }
 
 func (c *podScopedClient) ProxyGet(scheme, name, port, path string, params map[string]string) restclient.ResponseWrapper {
-	return c.Fake.InvokesProxy(core.NewProxyGetAction(podsResource, c.ClusterPath, c.Namespace(), scheme, name, port, path, params))
+	return c.Fake.InvokesProxy(core.NewProxyGetAction(c.Resource(), c.ClusterPath, c.Namespace(), scheme, name, port, path, params))
 }
