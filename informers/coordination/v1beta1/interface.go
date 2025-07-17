@@ -25,6 +25,8 @@ import (
 type ClusterInterface interface {
 	// Leases returns a LeaseClusterInformer.
 	Leases() LeaseClusterInformer
+	// LeaseCandidates returns a LeaseCandidateClusterInformer.
+	LeaseCandidates() LeaseCandidateClusterInformer
 }
 
 type version struct {
@@ -40,4 +42,9 @@ func New(f kcpinternalinterfaces.SharedInformerFactory, tweakListOptions kcpinte
 // Leases returns a LeaseClusterInformer.
 func (v *version) Leases() LeaseClusterInformer {
 	return &leaseClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// LeaseCandidates returns a LeaseCandidateClusterInformer.
+func (v *version) LeaseCandidates() LeaseCandidateClusterInformer {
+	return &leaseCandidateClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

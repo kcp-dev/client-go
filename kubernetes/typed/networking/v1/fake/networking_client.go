@@ -41,6 +41,10 @@ func (c *NetworkingV1ClusterClient) Cluster(clusterPath logicalcluster.Path) net
 	return &NetworkingV1Client{Fake: c.Fake, ClusterPath: clusterPath}
 }
 
+func (c *NetworkingV1ClusterClient) IPAddresses() kcpnetworkingv1.IPAddressClusterInterface {
+	return newFakeIPAddressClusterClient(c)
+}
+
 func (c *NetworkingV1ClusterClient) Ingresses() kcpnetworkingv1.IngressClusterInterface {
 	return newFakeIngressClusterClient(c)
 }
@@ -53,9 +57,17 @@ func (c *NetworkingV1ClusterClient) NetworkPolicies() kcpnetworkingv1.NetworkPol
 	return newFakeNetworkPolicyClusterClient(c)
 }
 
+func (c *NetworkingV1ClusterClient) ServiceCIDRs() kcpnetworkingv1.ServiceCIDRClusterInterface {
+	return newFakeServiceCIDRClusterClient(c)
+}
+
 type NetworkingV1Client struct {
 	*kcptesting.Fake
 	ClusterPath logicalcluster.Path
+}
+
+func (c *NetworkingV1Client) IPAddresses() networkingv1.IPAddressInterface {
+	return newFakeIPAddressClient(c.Fake, c.ClusterPath)
 }
 
 func (c *NetworkingV1Client) Ingresses(namespace string) networkingv1.IngressInterface {
@@ -68,6 +80,10 @@ func (c *NetworkingV1Client) IngressClasses() networkingv1.IngressClassInterface
 
 func (c *NetworkingV1Client) NetworkPolicies(namespace string) networkingv1.NetworkPolicyInterface {
 	return newFakeNetworkPolicyClient(c.Fake, namespace, c.ClusterPath)
+}
+
+func (c *NetworkingV1Client) ServiceCIDRs() networkingv1.ServiceCIDRInterface {
+	return newFakeServiceCIDRClient(c.Fake, c.ClusterPath)
 }
 
 // RESTClient returns a RESTClient that is used to communicate

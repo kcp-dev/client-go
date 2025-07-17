@@ -45,6 +45,10 @@ func (c *CoordinationV1beta1ClusterClient) Leases() kcpcoordinationv1beta1.Lease
 	return newFakeLeaseClusterClient(c)
 }
 
+func (c *CoordinationV1beta1ClusterClient) LeaseCandidates() kcpcoordinationv1beta1.LeaseCandidateClusterInterface {
+	return newFakeLeaseCandidateClusterClient(c)
+}
+
 type CoordinationV1beta1Client struct {
 	*kcptesting.Fake
 	ClusterPath logicalcluster.Path
@@ -52,6 +56,10 @@ type CoordinationV1beta1Client struct {
 
 func (c *CoordinationV1beta1Client) Leases(namespace string) coordinationv1beta1.LeaseInterface {
 	return newFakeLeaseClient(c.Fake, namespace, c.ClusterPath)
+}
+
+func (c *CoordinationV1beta1Client) LeaseCandidates(namespace string) coordinationv1beta1.LeaseCandidateInterface {
+	return newFakeLeaseCandidateClient(c.Fake, namespace, c.ClusterPath)
 }
 
 // RESTClient returns a RESTClient that is used to communicate

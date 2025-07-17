@@ -33,9 +33,11 @@ import (
 
 type NetworkingV1ClusterInterface interface {
 	NetworkingV1ClusterScoper
+	IPAddressesClusterGetter
 	IngressesClusterGetter
 	IngressClassesClusterGetter
 	NetworkPoliciesClusterGetter
+	ServiceCIDRsClusterGetter
 }
 
 type NetworkingV1ClusterScoper interface {
@@ -54,6 +56,10 @@ func (c *NetworkingV1ClusterClient) Cluster(clusterPath logicalcluster.Path) net
 	return c.clientCache.ClusterOrDie(clusterPath)
 }
 
+func (c *NetworkingV1ClusterClient) IPAddresses() IPAddressClusterInterface {
+	return &iPAddressesClusterInterface{clientCache: c.clientCache}
+}
+
 func (c *NetworkingV1ClusterClient) Ingresses() IngressClusterInterface {
 	return &ingressesClusterInterface{clientCache: c.clientCache}
 }
@@ -64,6 +70,10 @@ func (c *NetworkingV1ClusterClient) IngressClasses() IngressClassClusterInterfac
 
 func (c *NetworkingV1ClusterClient) NetworkPolicies() NetworkPolicyClusterInterface {
 	return &networkPoliciesClusterInterface{clientCache: c.clientCache}
+}
+
+func (c *NetworkingV1ClusterClient) ServiceCIDRs() ServiceCIDRClusterInterface {
+	return &serviceCIDRsClusterInterface{clientCache: c.clientCache}
 }
 
 // NewForConfig creates a new NetworkingV1ClusterClient for the given config.

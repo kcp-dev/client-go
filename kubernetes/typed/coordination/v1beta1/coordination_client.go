@@ -34,6 +34,7 @@ import (
 type CoordinationV1beta1ClusterInterface interface {
 	CoordinationV1beta1ClusterScoper
 	LeasesClusterGetter
+	LeaseCandidatesClusterGetter
 }
 
 type CoordinationV1beta1ClusterScoper interface {
@@ -54,6 +55,10 @@ func (c *CoordinationV1beta1ClusterClient) Cluster(clusterPath logicalcluster.Pa
 
 func (c *CoordinationV1beta1ClusterClient) Leases() LeaseClusterInterface {
 	return &leasesClusterInterface{clientCache: c.clientCache}
+}
+
+func (c *CoordinationV1beta1ClusterClient) LeaseCandidates() LeaseCandidateClusterInterface {
+	return &leaseCandidatesClusterInterface{clientCache: c.clientCache}
 }
 
 // NewForConfig creates a new CoordinationV1beta1ClusterClient for the given config.

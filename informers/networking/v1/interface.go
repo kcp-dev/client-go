@@ -23,12 +23,16 @@ import (
 )
 
 type ClusterInterface interface {
+	// IPAddresses returns a IPAddressClusterInformer.
+	IPAddresses() IPAddressClusterInformer
 	// Ingresses returns a IngressClusterInformer.
 	Ingresses() IngressClusterInformer
 	// IngressClasses returns a IngressClassClusterInformer.
 	IngressClasses() IngressClassClusterInformer
 	// NetworkPolicies returns a NetworkPolicyClusterInformer.
 	NetworkPolicies() NetworkPolicyClusterInformer
+	// ServiceCIDRs returns a ServiceCIDRClusterInformer.
+	ServiceCIDRs() ServiceCIDRClusterInformer
 }
 
 type version struct {
@@ -39,6 +43,11 @@ type version struct {
 // New returns a new Interface.
 func New(f kcpinternalinterfaces.SharedInformerFactory, tweakListOptions kcpinternalinterfaces.TweakListOptionsFunc) ClusterInterface {
 	return &version{factory: f, tweakListOptions: tweakListOptions}
+}
+
+// IPAddresses returns a IPAddressClusterInformer.
+func (v *version) IPAddresses() IPAddressClusterInformer {
+	return &iPAddressClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }
 
 // Ingresses returns a IngressClusterInformer.
@@ -54,4 +63,9 @@ func (v *version) IngressClasses() IngressClassClusterInformer {
 // NetworkPolicies returns a NetworkPolicyClusterInformer.
 func (v *version) NetworkPolicies() NetworkPolicyClusterInformer {
 	return &networkPolicyClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
+}
+
+// ServiceCIDRs returns a ServiceCIDRClusterInformer.
+func (v *version) ServiceCIDRs() ServiceCIDRClusterInformer {
+	return &serviceCIDRClusterInformer{factory: v.factory, tweakListOptions: v.tweakListOptions}
 }

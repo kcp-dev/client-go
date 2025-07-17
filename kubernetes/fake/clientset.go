@@ -72,6 +72,7 @@ import (
 	rbacv1beta1 "k8s.io/client-go/kubernetes/typed/rbac/v1beta1"
 	resourcev1alpha3 "k8s.io/client-go/kubernetes/typed/resource/v1alpha3"
 	resourcev1beta1 "k8s.io/client-go/kubernetes/typed/resource/v1beta1"
+	resourcev1beta2 "k8s.io/client-go/kubernetes/typed/resource/v1beta2"
 	schedulingv1 "k8s.io/client-go/kubernetes/typed/scheduling/v1"
 	schedulingv1alpha1 "k8s.io/client-go/kubernetes/typed/scheduling/v1alpha1"
 	schedulingv1beta1 "k8s.io/client-go/kubernetes/typed/scheduling/v1beta1"
@@ -176,6 +177,8 @@ import (
 	kcpfakeresourcev1alpha3 "github.com/kcp-dev/client-go/kubernetes/typed/resource/v1alpha3/fake"
 	kcpresourcev1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/resource/v1beta1"
 	kcpfakeresourcev1beta1 "github.com/kcp-dev/client-go/kubernetes/typed/resource/v1beta1/fake"
+	kcpresourcev1beta2 "github.com/kcp-dev/client-go/kubernetes/typed/resource/v1beta2"
+	kcpfakeresourcev1beta2 "github.com/kcp-dev/client-go/kubernetes/typed/resource/v1beta2/fake"
 	kcpschedulingv1 "github.com/kcp-dev/client-go/kubernetes/typed/scheduling/v1"
 	kcpfakeschedulingv1 "github.com/kcp-dev/client-go/kubernetes/typed/scheduling/v1/fake"
 	kcpschedulingv1alpha1 "github.com/kcp-dev/client-go/kubernetes/typed/scheduling/v1alpha1"
@@ -478,6 +481,11 @@ func (c *ClusterClientset) ResourceV1alpha3() kcpresourcev1alpha3.ResourceV1alph
 // ResourceV1beta1 retrieves the ResourceV1beta1ClusterClient
 func (c *ClusterClientset) ResourceV1beta1() kcpresourcev1beta1.ResourceV1beta1ClusterInterface {
 	return &kcpfakeresourcev1beta1.ResourceV1beta1ClusterClient{Fake: &c.Fake}
+}
+
+// ResourceV1beta2 retrieves the ResourceV1beta2ClusterClient
+func (c *ClusterClientset) ResourceV1beta2() kcpresourcev1beta2.ResourceV1beta2ClusterInterface {
+	return &kcpfakeresourcev1beta2.ResourceV1beta2ClusterClient{Fake: &c.Fake}
 }
 
 // SchedulingV1 retrieves the SchedulingV1ClusterClient
@@ -791,6 +799,11 @@ func (c *Clientset) ResourceV1alpha3() resourcev1alpha3.ResourceV1alpha3Interfac
 // ResourceV1beta1 retrieves the ResourceV1beta1Client
 func (c *Clientset) ResourceV1beta1() resourcev1beta1.ResourceV1beta1Interface {
 	return &kcpfakeresourcev1beta1.ResourceV1beta1Client{Fake: c.Fake, ClusterPath: c.clusterPath}
+}
+
+// ResourceV1beta2 retrieves the ResourceV1beta2Client
+func (c *Clientset) ResourceV1beta2() resourcev1beta2.ResourceV1beta2Interface {
+	return &kcpfakeresourcev1beta2.ResourceV1beta2Client{Fake: c.Fake, ClusterPath: c.clusterPath}
 }
 
 // SchedulingV1 retrieves the SchedulingV1Client

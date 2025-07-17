@@ -34,6 +34,7 @@ import (
 type ResourceV1alpha3ClusterInterface interface {
 	ResourceV1alpha3ClusterScoper
 	DeviceClassesClusterGetter
+	DeviceTaintRulesClusterGetter
 	ResourceClaimsClusterGetter
 	ResourceClaimTemplatesClusterGetter
 	ResourceSlicesClusterGetter
@@ -57,6 +58,10 @@ func (c *ResourceV1alpha3ClusterClient) Cluster(clusterPath logicalcluster.Path)
 
 func (c *ResourceV1alpha3ClusterClient) DeviceClasses() DeviceClassClusterInterface {
 	return &deviceClassesClusterInterface{clientCache: c.clientCache}
+}
+
+func (c *ResourceV1alpha3ClusterClient) DeviceTaintRules() DeviceTaintRuleClusterInterface {
+	return &deviceTaintRulesClusterInterface{clientCache: c.clientCache}
 }
 
 func (c *ResourceV1alpha3ClusterClient) ResourceClaims() ResourceClaimClusterInterface {
