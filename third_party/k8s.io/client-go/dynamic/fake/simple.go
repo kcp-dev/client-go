@@ -551,19 +551,15 @@ func (c *dynamicResourceClient) Apply(ctx context.Context, name string, obj *uns
 	switch {
 	case len(c.namespace) == 0 && len(subresources) == 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewRootPatchAction(c.resource, c.client.clusterPath, name, types.ApplyPatchType,
-				outBytes),
-				&metav1.Status{Status: "dynamic patch fail"})
+			Invokes(kcptesting.NewRootPatchAction(c.resource, c.client.clusterPath, name, types.ApplyPatchType, outBytes), &metav1.Status{Status: "dynamic patch fail"})
 
 	case len(c.namespace) == 0 && len(subresources) > 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewRootPatchSubresourceAction(c.resource, c.client.clusterPath, name, types.ApplyPatchType, outBytes,
-				subresources...), &metav1.Status{Status: "dynamic patch fail"})
+			Invokes(kcptesting.NewRootPatchSubresourceAction(c.resource, c.client.clusterPath, name, types.ApplyPatchType, outBytes, subresources...), &metav1.Status{Status: "dynamic patch fail"})
 
 	case len(c.namespace) > 0 && len(subresources) == 0:
 		uncastRet, err = c.client.Fake.
-			Invokes(kcptesting.NewPatchAction(c.resource, c.client.clusterPath, c.namespace, name, types.ApplyPatchType, outBytes),
-				&metav1.Status{Status: "dynamic patch fail"})
+			Invokes(kcptesting.NewPatchAction(c.resource, c.client.clusterPath, c.namespace, name, types.ApplyPatchType, outBytes), &metav1.Status{Status: "dynamic patch fail"})
 
 	case len(c.namespace) > 0 && len(subresources) > 0:
 		uncastRet, err = c.client.Fake.

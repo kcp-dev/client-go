@@ -23,7 +23,9 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
+	"k8s.io/apimachinery/pkg/runtime/serializer/cbor"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
+	"k8s.io/client-go/features"
 )
 
 var watchScheme = runtime.NewScheme()
@@ -42,32 +44,50 @@ func init() {
 	metav1.AddToGroupVersion(deleteScheme, versionV1)
 }
 
-// basicNegotiatedSerializer is used to handle discovery and error handling serialization
-type basicNegotiatedSerializer struct{}
-
-func (s basicNegotiatedSerializer) SupportedMediaTypes() []runtime.SerializerInfo {
-	return []runtime.SerializerInfo{
+func newBasicNegotiatedSerializer() basicNegotiatedSerializer {
+	supportedMediaTypes := []runtime.SerializerInfo{
 		{
 			MediaType:        "application/json",
 			MediaTypeType:    "application",
 			MediaTypeSubType: "json",
 			EncodesAsText:    true,
-			Serializer:       json.NewSerializer(json.DefaultMetaFactory, unstructuredCreater{basicScheme}, unstructuredTyper{basicScheme}, false),
-			PrettySerializer: json.NewSerializer(json.DefaultMetaFactory, unstructuredCreater{basicScheme}, unstructuredTyper{basicScheme}, true),
+			Serializer:       json.NewSerializerWithOptions(json.DefaultMetaFactory, unstructuredCreater{basicScheme}, unstructuredTyper{basicScheme}, json.SerializerOptions{}),
+			PrettySerializer: json.NewSerializerWithOptions(json.DefaultMetaFactory, unstructuredCreater{basicScheme}, unstructuredTyper{basicScheme}, json.SerializerOptions{Pretty: true}),
 			StreamSerializer: &runtime.StreamSerializerInfo{
 				EncodesAsText: true,
-				Serializer:    json.NewSerializer(json.DefaultMetaFactory, basicScheme, basicScheme, false),
+				Serializer:    json.NewSerializerWithOptions(json.DefaultMetaFactory, basicScheme, basicScheme, json.SerializerOptions{}),
 				Framer:        json.Framer,
 			},
 		},
 	}
+	if features.FeatureGates().Enabled(features.ClientsAllowCBOR) {
+		supportedMediaTypes = append(supportedMediaTypes, runtime.SerializerInfo{
+			MediaType:        "application/cbor",
+			MediaTypeType:    "application",
+			MediaTypeSubType: "cbor",
+			Serializer:       cbor.NewSerializer(unstructuredCreater{basicScheme}, unstructuredTyper{basicScheme}),
+			StreamSerializer: &runtime.StreamSerializerInfo{
+				Serializer: cbor.NewSerializer(basicScheme, basicScheme, cbor.Transcode(false)),
+				Framer:     cbor.NewFramer(),
+			},
+		})
+	}
+	return basicNegotiatedSerializer{supportedMediaTypes: supportedMediaTypes}
+}
+
+type basicNegotiatedSerializer struct {
+	supportedMediaTypes []runtime.SerializerInfo
+}
+
+func (s basicNegotiatedSerializer) SupportedMediaTypes() []runtime.SerializerInfo {
+	return s.supportedMediaTypes
 }
 
 func (s basicNegotiatedSerializer) EncoderForVersion(encoder runtime.Encoder, gv runtime.GroupVersioner) runtime.Encoder {
 	return runtime.WithVersionEncoder{
 		Version:     gv,
 		Encoder:     encoder,
-		ObjectTyper: unstructuredTyper{basicScheme},
+		ObjectTyper: permissiveTyper{basicScheme},
 	}
 }
 
@@ -105,5 +125,27 @@ func (t unstructuredTyper) ObjectKinds(obj runtime.Object) ([]schema.GroupVersio
 }
 
 func (t unstructuredTyper) Recognizes(gvk schema.GroupVersionKind) bool {
+	return true
+}
+
+// The dynamic client has historically accepted Unstructured objects with missing or empty
+// apiVersion and/or kind as arguments to its write request methods. This typer will return the type
+// of a runtime.Unstructured with no error, even if the type is missing or empty.
+type permissiveTyper struct {
+	nested runtime.ObjectTyper
+}
+
+func (t permissiveTyper) ObjectKinds(obj runtime.Object) ([]schema.GroupVersionKind, bool, error) {
+	kinds, unversioned, err := t.nested.ObjectKinds(obj)
+	if err == nil {
+		return kinds, unversioned, nil
+	}
+	if _, ok := obj.(runtime.Unstructured); ok {
+		return []schema.GroupVersionKind{obj.GetObjectKind().GroupVersionKind()}, false, nil
+	}
+	return nil, false, err
+}
+
+func (t permissiveTyper) Recognizes(gvk schema.GroupVersionKind) bool {
 	return true
 }

@@ -18,7 +18,6 @@ limitations under the License.
 package testing
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"sort"
@@ -36,6 +35,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/apimachinery/pkg/util/managedfields"
 	"k8s.io/apimachinery/pkg/util/strategicpatch"
 	"k8s.io/apimachinery/pkg/watch"
@@ -73,14 +73,6 @@ type ObjectTracker interface {
 // fake calls to a server by returning objects based on their kind,
 // namespace and name.
 type ScopedObjectTracker interface {
-	// List retrieves all objects of a given kind in the given
-	// namespace. Only non-List kinds are accepted.
-	List(gvr schema.GroupVersionResource, gvk schema.GroupVersionKind, ns string, opts ...metav1.ListOptions) (runtime.Object, error)
-
-	// Watch watches objects from the tracker. Watch returns a channel
-	// which will push added / modified / deleted object.
-	Watch(gvr schema.GroupVersionResource, ns string, opts ...metav1.ListOptions) (watch.Interface, error)
-
 	// Add adds an object to the tracker. If object being added
 	// is a list, its items are added separately.
 	Add(obj runtime.Object) error
@@ -100,10 +92,18 @@ type ScopedObjectTracker interface {
 	// Apply applies an object in the tracker in the specified namespace.
 	Apply(gvr schema.GroupVersionResource, applyConfiguration runtime.Object, ns string, opts ...metav1.PatchOptions) error
 
+	// List retrieves all objects of a given kind in the given
+	// namespace. Only non-List kinds are accepted.
+	List(gvr schema.GroupVersionResource, gvk schema.GroupVersionKind, ns string, opts ...metav1.ListOptions) (runtime.Object, error)
+
 	// Delete deletes an existing object from the tracker. If object
 	// didn't exist in the tracker prior to deletion, Delete returns
 	// no error.
 	Delete(gvr schema.GroupVersionResource, ns, name string, opts ...metav1.DeleteOptions) error
+
+	// Watch watches objects from the tracker. Watch returns a channel
+	// which will push added / modified / deleted object.
+	Watch(gvr schema.GroupVersionResource, ns string, opts ...metav1.ListOptions) (watch.Interface, error)
 }
 
 // ObjectScheme abstracts the implementation of common operations on objects.
@@ -142,23 +142,18 @@ func ObjectReaction(tracker ObjectTracker) ReactionFunc {
 				obj, err = reactor.Cluster(action.GetCluster()).List(action)
 			}
 			return true, obj, err
-
 		case GetActionImpl:
 			obj, err := reactor.Cluster(action.GetCluster()).Get(action)
 			return true, obj, err
-
 		case CreateActionImpl:
 			obj, err := reactor.Cluster(action.GetCluster()).Create(action)
 			return true, obj, err
-
 		case UpdateActionImpl:
 			obj, err := reactor.Cluster(action.GetCluster()).Update(action)
 			return true, obj, err
-
 		case DeleteActionImpl:
 			obj, err := reactor.Cluster(action.GetCluster()).Delete(action)
 			return true, obj, err
-
 		case PatchActionImpl:
 			if action.GetPatchType() == types.ApplyPatchType {
 				obj, err := reactor.Cluster(action.GetCluster()).Apply(action)
@@ -166,7 +161,6 @@ func ObjectReaction(tracker ObjectTracker) ReactionFunc {
 			}
 			obj, err := reactor.Cluster(action.GetCluster()).Patch(action)
 			return true, obj, err
-
 		default:
 			return false, nil, fmt.Errorf("no reaction implemented for %s", action)
 		}
@@ -458,7 +452,6 @@ func (t *tracker) list(gvr schema.GroupVersionResource, gvk schema.GroupVersionK
 	if err != nil {
 		return nil, err
 	}
-
 	// Heuristic for list kind: original kind + List suffix. Might
 	// not always be true but this tracker has a pretty limited
 	// understanding of the actual API model.
@@ -531,7 +524,6 @@ func (t *scopedTracker) Get(gvr schema.GroupVersionResource, ns, name string, op
 	if err != nil {
 		return nil, err
 	}
-
 	errNotFound := apierrors.NewNotFound(gvr.GroupResource(), name)
 
 	t.lock.RLock()
@@ -605,7 +597,6 @@ func (t *scopedTracker) Create(gvr schema.GroupVersionResource, obj runtime.Obje
 	if err != nil {
 		return err
 	}
-
 	return t.add(gvr, obj, ns, false)
 }
 
@@ -614,7 +605,6 @@ func (t *scopedTracker) Update(gvr schema.GroupVersionResource, obj runtime.Obje
 	if err != nil {
 		return err
 	}
-
 	return t.add(gvr, obj, ns, true)
 }
 
@@ -623,7 +613,6 @@ func (t *scopedTracker) Patch(gvr schema.GroupVersionResource, patchedObject run
 	if err != nil {
 		return err
 	}
-
 	return t.add(gvr, patchedObject, ns, true)
 }
 
@@ -1013,11 +1002,11 @@ func (t *scopedManagedFieldObjectTracker) fieldManagerFor(gvk schema.GroupVersio
 		gvk,
 		gvk.GroupVersion(),
 		"",
-		nil,
-	)
+		nil)
 }
 
-// objectDefaulter implements runtime.Defaulter, but it actually does nothing.
+// objectDefaulter implements runtime.Defaulter, but it actually
+// does nothing.
 type objectDefaulter struct{}
 
 func (d *objectDefaulter) Default(_ runtime.Object) {}

@@ -52,7 +52,9 @@ func (c *FakeDiscovery) ServerResourcesForGroupVersion(groupVersion string) (*me
 		Resource:    schema.GroupVersionResource{Resource: "resource"},
 		ClusterPath: c.ClusterPath,
 	}
-	c.Invokes(action, nil)
+	if _, err := c.Invokes(action, nil); err != nil {
+		return nil, err
+	}
 	for _, resourceList := range c.Resources[c.ClusterPath] {
 		if resourceList.GroupVersion == groupVersion {
 			return resourceList, nil
@@ -83,7 +85,9 @@ func (c *FakeDiscovery) ServerGroupsAndResources() ([]*metav1.APIGroup, []*metav
 		Resource:    schema.GroupVersionResource{Resource: "resource"},
 		ClusterPath: c.ClusterPath,
 	}
-	c.Invokes(action, nil)
+	if _, err = c.Invokes(action, nil); err != nil {
+		return nil, nil, err
+	}
 	return resultGroups, c.Resources[c.ClusterPath], nil
 }
 
@@ -107,7 +111,9 @@ func (c *FakeDiscovery) ServerGroups() (*metav1.APIGroupList, error) {
 		Resource:    schema.GroupVersionResource{Resource: "group"},
 		ClusterPath: c.ClusterPath,
 	}
-	c.Invokes(action, nil)
+	if _, err := c.Invokes(action, nil); err != nil {
+		return nil, err
+	}
 
 	groups := map[string]*metav1.APIGroup{}
 
@@ -149,7 +155,10 @@ func (c *FakeDiscovery) ServerVersion() (*version.Info, error) {
 	action.Verb = "get"
 	action.Resource = schema.GroupVersionResource{Resource: "version"}
 	action.ClusterPath = c.ClusterPath
-	c.Invokes(action, nil)
+	_, err := c.Invokes(action, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	if c.FakedServerVersion != nil {
 		return c.FakedServerVersion, nil
