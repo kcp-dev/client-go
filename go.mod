@@ -4,8 +4,8 @@ go 1.24.0
 
 require (
 	github.com/google/gnostic-models v0.6.9
-	github.com/kcp-dev/apimachinery/v2 v2.0.1-0.20250512171935-ebb573a40077
-	github.com/kcp-dev/code-generator/v3 v3.0.0-20250707080944-4094fb87e20f
+	github.com/kcp-dev/apimachinery/v2 v2.0.1-0.20250717064240-78e565b4a69a
+	github.com/kcp-dev/code-generator/v3 v3.0.0-20250717064843-0c8e5fec4f71
 	github.com/kcp-dev/logicalcluster/v3 v3.0.5
 	gopkg.in/evanphx/json-patch.v4 v4.12.0
 	k8s.io/api v0.33.3
@@ -65,14 +65,14 @@ require (
 	go.opentelemetry.io/proto/otlp v1.4.0 // indirect
 	golang.org/x/exp v0.0.0-20250106191152-7588d65b2ba8 // indirect
 	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/net v0.39.0 // indirect
+	golang.org/x/net v0.40.0 // indirect
 	golang.org/x/oauth2 v0.29.0 // indirect
-	golang.org/x/sync v0.13.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
-	golang.org/x/term v0.31.0 // indirect
-	golang.org/x/text v0.24.0 // indirect
+	golang.org/x/sync v0.14.0 // indirect
+	golang.org/x/sys v0.33.0 // indirect
+	golang.org/x/term v0.32.0 // indirect
+	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
-	golang.org/x/tools v0.32.0 // indirect
+	golang.org/x/tools v0.33.0 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20241209162323-e6fa225c2576 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20241209162323-e6fa225c2576 // indirect
 	google.golang.org/grpc v1.69.2 // indirect
@@ -82,9 +82,9 @@ require (
 	k8s.io/apiserver v0.33.3 // indirect
 	k8s.io/code-generator v0.33.3 // indirect
 	k8s.io/component-base v0.33.3 // indirect
-	k8s.io/gengo/v2 v2.0.0-20250207200755-1244d31929d7 // indirect
+	k8s.io/gengo/v2 v2.0.0-20250513215321-e3bc6f1e78b4 // indirect
 	k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff // indirect
-	k8s.io/utils v0.0.0-20241104100929-3ea5e8cea738 // indirect
+	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.31.2 // indirect
 	sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
