@@ -4,8 +4,8 @@ go 1.24.0
 
 require (
 	github.com/google/gnostic-models v0.7.0
-	github.com/kcp-dev/apimachinery/v2 v2.0.0-00010101000000-000000000000
-	github.com/kcp-dev/code-generator/v3 v3.0.0-00010101000000-000000000000
+	github.com/kcp-dev/apimachinery/v2 v2.0.0-20251209121225-cf3c0b624983
+	github.com/kcp-dev/code-generator/v3 v3.0.0-20251209121225-ec25effe54ef
 	github.com/kcp-dev/logicalcluster/v3 v3.0.5
 	gopkg.in/evanphx/json-patch.v4 v4.12.0
 	k8s.io/api v0.34.2
@@ -91,9 +91,4 @@ require (
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.31.2 // indirect
 	sigs.k8s.io/json v0.0.0-20241014173422-cfa47c3a1cc8 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
-)
-
-replace (
-	github.com/kcp-dev/apimachinery/v2 => ../apimachinery
-	github.com/kcp-dev/code-generator/v3 => ../code-generator
 )
