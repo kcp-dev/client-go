@@ -4,8 +4,8 @@ go 1.25.0
 
 require (
 	github.com/google/gnostic-models v0.7.0
-	github.com/kcp-dev/apimachinery/v2 v2.0.0-20260223112726-e0491868132a
-	github.com/kcp-dev/code-generator/v3 v3.0.0-20260304120445-7a8d9a0cc332
+	github.com/kcp-dev/apimachinery/v2 v2.31.2
+	github.com/kcp-dev/code-generator/v3 v3.31.2
 	github.com/kcp-dev/logicalcluster/v3 v3.0.5
 	gopkg.in/evanphx/json-patch.v4 v4.13.0
 	k8s.io/api v0.35.1
