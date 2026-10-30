@@ -4,8 +4,8 @@ go 1.26.0
 
 require (
 	github.com/google/gnostic-models v0.7.1
-	github.com/kcp-dev/apimachinery/v2 v2.0.0-00010101000000-000000000000
-	github.com/kcp-dev/code-generator/v3 v3.0.0-00010101000000-000000000000
+	github.com/kcp-dev/apimachinery/v2 v2.0.0-20261030211804-fdca4391d570
+	github.com/kcp-dev/code-generator/v3 v3.0.0-20261030211804-3a884e2c3fd3
 	github.com/kcp-dev/logicalcluster/v3 v3.0.5
 	gopkg.in/evanphx/json-patch.v4 v4.13.0
 	k8s.io/api v0.37.0
@@ -15,11 +15,6 @@ require (
 	k8s.io/klog/v2 v2.140.0
 	sigs.k8s.io/structured-merge-diff/v6 v6.4.2
 	sigs.k8s.io/yaml v1.6.0
-)
-
-replace (
-	github.com/kcp-dev/apimachinery/v2 => ../apimachinery
-	github.com/kcp-dev/code-generator/v3 => ../code-generator
 )
 
 require (
