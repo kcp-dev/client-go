@@ -85,10 +85,10 @@ github.com/inconshreveable/mousetrap v1.1.0 h1:wN+x4NVGpMsO7ErUn/mUI3vEoE6Jt13X2
 github.com/inconshreveable/mousetrap v1.1.0/go.mod h1:vpF70FUmC8bwa3OWnCshd2FqLfsEA9PFc4w1p2J65bw=
 github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnrnM=
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
-github.com/kcp-dev/apimachinery/v2 v2.0.0-20261030211804-fdca4391d570 h1:JPMIiL0BstMxEQ42XCSZjybd9aq7KmBnQsETIrxwUR0=
-github.com/kcp-dev/apimachinery/v2 v2.0.0-20261030211804-fdca4391d570/go.mod h1:Ofl5G63tVCGIjnjOjKo3mvveWJpstPrgWdXxmFTEzpE=
-github.com/kcp-dev/code-generator/v3 v3.0.0-20261102194704-2c174fee7a8e h1:pOr3KxjmUHAh/3tInQDw5ed0/pVYaLEA7LZmxnWt1Ho=
-github.com/kcp-dev/code-generator/v3 v3.0.0-20261102194704-2c174fee7a8e/go.mod h1:jqKWSvlG2XYrmRtD9+mgmCE/6JrxkGXGq1PjxuF3Vus=
+github.com/kcp-dev/apimachinery/v2 v2.0.0-20261105081808-dc219c6dd3d5 h1:MLWymSjnIxIfXoISinWMey5rQzwEzNafMbqfBAdPf8Y=
+github.com/kcp-dev/apimachinery/v2 v2.0.0-20261105081808-dc219c6dd3d5/go.mod h1:Ofl5G63tVCGIjnjOjKo3mvveWJpstPrgWdXxmFTEzpE=
+github.com/kcp-dev/code-generator/v3 v3.0.0-20261105081808-bf8d153cc0d9 h1:hYJymk1Mo1OLc0eXmfbUiKJQMwJNywUmcAVcCtXqyeU=
+github.com/kcp-dev/code-generator/v3 v3.0.0-20261105081808-bf8d153cc0d9/go.mod h1:jqKWSvlG2XYrmRtD9+mgmCE/6JrxkGXGq1PjxuF3Vus=
 github.com/kcp-dev/logicalcluster/v3 v3.0.5 h1:JbYakokb+5Uinz09oTXomSUJVQsqfxEvU4RyHUYxHOU=
 github.com/kcp-dev/logicalcluster/v3 v3.0.5/go.mod h1:EWBUBxdr49fUB1cLMO4nOdBWmYifLbP1LfoL20KkXYY=
 github.com/klauspost/compress v1.19.0 h1:sXLILfc9jV2QYWkzFOPWStmcUVH2RHEB1JCdY2oVvCQ=
